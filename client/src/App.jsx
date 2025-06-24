@@ -7,6 +7,7 @@ import AccountPage from './pages/AccountPage'
 import ProblemUpload from './pages/ProblemUpload'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
+import HowToSatSolvePage from './pages/HowToSatSolvePage'
 
 function App() {
 
@@ -15,21 +16,24 @@ function App() {
       <BrowserRouter>
         <div className="app">
           <div className='upper-container'>
-            <header>
+            <header id="doc-header">
               <h1>Symmisolve</h1>
               <p>Meta University - Engineering</p>
               <p>A Community Based SAT Solver</p>
             </header>
-            <Routes>
-              <Route exact path="/" element = {<HomePage/>}/>
-              <Route path="/problem/:problemId"  element = {<ProblemPage/>}/>
-              <Route path="/user/:userId" element={<AccountPage/>} />
-              <Route path="/upload" element={<ProblemUpload/>}/>
-              <Route path="/login" element={<LoginPage/>}/>
-              <Route path="/signup" element={<SignupPage/>}/>
-            </Routes>
+            <div className='content'>
+              <Routes>
+                <Route exact path="/" element={<HomePage />} />
+                <Route path="/problem/:problemId" element={<ProblemPage />} />
+                <Route path="/user/:userId" element={<AccountPage />} />
+                <Route path="/upload" element={<ProblemUpload />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/help" element={<HowToSatSolvePage />} />
+              </Routes>
+            </div>
           </div>
-          <footer>
+          <footer id="doc-footer">
             <p>By Timothy James Nickerson, through Meta University</p>
           </footer>
         </div>
