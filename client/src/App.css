@@ -41,6 +41,8 @@ span.code-segment{
   padding:4px;
   border-radius: 5px;
   top:-1px;
+  margin-left:2px;
+  margin-right: 2px;
 }
 
 .overline{
