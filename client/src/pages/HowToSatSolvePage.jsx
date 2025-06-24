@@ -46,13 +46,14 @@ function HowToSatSolvePage() {
       <h2>Your Solving Tools</h2>
       <p>In Symmisolve, we use a specific format of Boolean SAT, that being CNF (Conjunctive Normal Form). Your goal is to determine if a formula is always false. For example, the formula <span className='code-segment'>(1) &times; (<span className='overline'>1</span>)</span> is always false, since the formula is false if 1 is false, and also false if 1 is true. If the formula is not always false, you can submit an assignment of variables such that it is true.</p>
       <h3>Resolution</h3>
-      <p></p>
+      <p>Resolution involves combining two different clauses that contain literals of the same variable, (like the literals <span className='code-segment'>1</span> and <span className='code-segment'><span className='overline'>1</span></span>) to produce a new clause. </p>
+      <p>Suppose you have the formula <span className='code-segment'>(1 + <span className='overline'>2</span>) &times; (<span className='overline'>1</span> + 2)</span></p>
+      <p>A resolution step would be <span className='code-segment'>(1 + 2) &times; (<span className='overline'>1</span> + 2) &rarr; (2)</span></p>
       <h3>Partial Solving</h3>
       <p>If you can find some assignment of variables that satisfies every clause involving an assigned variable, you can denote that as a possible assignment of those variables</p>
       <p>For example:</p>
       <p>Suppose you have the formula <span className='code-segment'>(1 + <span className='overline'>2</span>) &times; (<span className='overline'>1</span> + 3)</span></p>
       <p>A valid partial solution would be <span className='code-segment'>3</span>, since by setting 3 true, you satisfy all clauses involving 3.</p>
-      <h3>Symmetry</h3>
     </div>
   )
 }
