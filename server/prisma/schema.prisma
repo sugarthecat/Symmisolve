@@ -15,14 +15,15 @@ datasource db {
 }
 
 model User {
-  id            String  @id @default(cuid())
-  name          String
-  access_level  Int
-  password      String
+
+  username     String   @unique
+  id           Int      @id @default(autoincrement())
+  access_level Int
+  password     String
 }
 
 model Problem {
-  id            Int  @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   name          String
   poster        String
   description   String
@@ -32,7 +33,7 @@ model Problem {
 }
 
 model ProblemFile {
-  id            Int  @id @default(autoincrement())
+  id            Int    @id @default(autoincrement())
   problem_file  String
   solution_file String
 }
