@@ -23,8 +23,12 @@ body,
   width: 100%;
 }
 
+<<<<<<< backend
 header,
 footer {
+=======
+header#doc-header, footer#doc-footer{
+>>>>>>> main
   box-sizing: border-box;
   padding: 30px;
   width: 100%;
@@ -32,6 +36,7 @@ footer {
   background-color: darkblue;
 }
 
+<<<<<<< backend
 div#content {
   padding: 25px;
 }
@@ -39,4 +44,26 @@ div#content {
 .error {
   color: red;
   font-weight: bolder;
+=======
+div.content{
+  box-sizing: border-box;
+  width: 100%;
+  padding: 30px;
+}
+
+span.code-segment{
+  position: relative;
+  background-color: lightgray;
+  font-family: monospace;
+  padding:4px;
+  border-radius: 5px;
+  top:-1px;
+  margin-left:2px;
+  margin-right: 2px;
+}
+
+.overline{
+  text-decoration: overline;
+  text-decoration-thickness: 2px;
+>>>>>>> main
 }
