@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 function AccountPage() {
     const { userId } = useParams();
