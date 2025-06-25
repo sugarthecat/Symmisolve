@@ -28,11 +28,12 @@ let sessionConfig = {
 app.use(session(sessionConfig))
 
 function badRequestError(res, message, code = 400) {
-    res.status(code).json( message )
+    res.status(code).json(message)
 }
 
 app.post('/api/signup', async (req, res, next) => {
-    // check username for uniqueness, hash password and write user to db
+    // regex means that the username is purely alphanumeric
+    const regex = /^[a-zA-Z0-9]+$/;
     if (!req.body.username) {
         badRequestError(res, 'Username required')
     } else if (!req.body.password) {
@@ -41,10 +42,20 @@ app.post('/api/signup', async (req, res, next) => {
         badRequestError(res, 'Username must have length at least 5')
     } else if (req.body.password.length < 5) {
         badRequestError(res, 'Password must have length at least 5')
+    } else if (!req.body.username.match(regex)) {
+        badRequestError(res, 'Username can only contain letters and numbers')
     } else {
         const { username, password: plainPassword } = req.body
-        const user = await prisma.user.findUnique({ where: { username } })
-        if (user) {
+        const user = await prisma.user.findMany({
+            where: {
+                username:
+                {
+                    equals: username,
+                    mode: 'insensitive'
+                }
+            }
+        })
+        if (user.length > 0) {
             badRequestError(res, 'Username taken', 409)
         } else {
             const hash = await hashPassword(plainPassword)
@@ -63,7 +74,7 @@ app.post('/api/login', async (req, res, next) => {
         req.session.user = user
         res.json({ message: `Welcome back, ${username}!` })
     } else {
-        badRequestError(res, 'Invalid Login',401)
+        badRequestError(res, 'Invalid Login', 401)
     }
 })
 
