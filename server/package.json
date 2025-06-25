@@ -9,6 +9,7 @@
   "author": "TJ Nickerson",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^6.10.1",
     "express": "^5.1.0"
   },
   "devDependencies": {

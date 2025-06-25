@@ -15,9 +15,10 @@ datasource db {
 }
 
 model User {
-  id    String  @id @default(cuid())
-  name String
-  access_level Int
+  id            String  @id @default(cuid())
+  name          String
+  access_level  Int
+  password      String
 }
 
 model Problem {
