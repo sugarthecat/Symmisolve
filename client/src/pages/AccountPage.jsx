@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 function AccountPage() {
     const { username } = useParams();
     const updateData = async () => {
-
+        //TODO: fetch and update visible data
     }
     useState(() => {
         updateData();

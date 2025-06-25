@@ -39,9 +39,9 @@ app.post('/api/signup', async (req, res, next) => {
     } else if (!req.body.password) {
         badRequestError(res, 'Password required')
     } else if (req.body.username.length < 5) {
-        badRequestError(res, 'Username must have length at least 5')
+        badRequestError(res, 'Username must have length at least 5', 411)
     } else if (req.body.password.length < 5) {
-        badRequestError(res, 'Password must have length at least 5')
+        badRequestError(res, 'Password must have length at least 5', 411)
     } else if (!req.body.username.match(regex)) {
         badRequestError(res, 'Username can only contain letters and numbers')
     } else {
@@ -61,13 +61,13 @@ app.post('/api/signup', async (req, res, next) => {
             const hash = await hashPassword(plainPassword)
             const newUserData = { username, password: hash, access_level: 0 }
             const newUser = await prisma.user.create({ data: newUserData });
+            res.session.user = newUser //start logged in
             res.json({ message: `Welcome ${newUser.username}!` })
         }
     }
 })
 
 app.post('/api/login', async (req, res, next) => {
-    // check username exists and password matches the hash in the db
     const { username, password: plainPassword } = req.body
     const user = await prisma.user.findUnique({ where: { username } })
     if (user && await verifyPassword(plainPassword, user.password)) {

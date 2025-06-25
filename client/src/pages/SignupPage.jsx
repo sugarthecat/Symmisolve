@@ -1,22 +1,18 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom'
+import { makePostRequest } from '../logic/requestTemplates.jsx';
 function SignupPage() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const sendSignupRequest = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_SRC}/api/signup`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password }),
-        })
+        const res = await makePostRequest('signup', { username, password })
         if (res.status === 200) {
             //Succesful
             setMessage('Account created successfully!')
             setError('')
+            //TODO: On succesful signup, redirect to login page
         } else {
             setError(await res.json())
             setMessage('')

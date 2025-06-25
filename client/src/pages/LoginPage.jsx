@@ -1,22 +1,18 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { makePostRequest } from '../logic/requestTemplates.jsx';
 function LoginPage() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const sendLoginRequest = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_SRC}/api/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password }),
-        })
+        const res = await makePostRequest('login', { username, password })
         if (res.status === 200) {
             //Succesful
             setMessage('Succesfully logged in!')
             setError('')
+            //TODO: On succesful login, rediirect to account page.
         } else {
             setError(await res.json())
             setMessage('')
