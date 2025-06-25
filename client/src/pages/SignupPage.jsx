@@ -4,15 +4,38 @@ function SignupPage() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('');
+    const [message, setMessage] = useState('');
+    const sendSignupRequest = async () => {
+        const res = await fetch(`${import.meta.env.VITE_API_SRC}/api/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password }),
+        })
+        if (res.status === 200) {
+            //Succesful
+            setMessage('Account created successfully!')
+            setError('')
+        } else {
+            setError(await res.json())
+            setMessage('')
+        }
+    }
     return (
         <div>
             <h1>Sign up</h1>
             <div>
                 <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} />
-                <br/>
+                <br />
                 <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+                <br />
+                <button onClick={sendSignupRequest} >Sign Up</button>
             </div>
             <p> If you already have an account, you can <Link to="../login">Log In</Link>.</p>
+            <p className='error'> {error} </p>
+            <p> {message}</p>
+
         </div>
     )
 }

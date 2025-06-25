@@ -27,18 +27,31 @@ let sessionConfig = {
 
 app.use(session(sessionConfig))
 
+function badRequestError(res, message, code = 400) {
+    res.status(code).json( message )
+}
 
 app.post('/api/signup', async (req, res, next) => {
     // check username for uniqueness, hash password and write user to db
-    const { username, password: plainPassword } = req.body
-    const user = await prisma.user.findUnique({ where: { username } })
-    if (user) {
-        res.json({ message: 'Username taken' }).status(409)
+    if (!req.body.username) {
+        badRequestError(res, 'Username required')
+    } else if (!req.body.password) {
+        badRequestError(res, 'Password required')
+    } else if (req.body.username.length < 5) {
+        badRequestError(res, 'Username must have length at least 5')
+    } else if (req.body.password.length < 5) {
+        badRequestError(res, 'Password must have length at least 5')
     } else {
-        const hash = await hashPassword(plainPassword)
-        const newUserData = { username, password: hash, access_level: 0 }
-        const newUser = await prisma.user.create({ data: newUserData });
-        res.json({ message: `Welcome ${newUser.username}!` })
+        const { username, password: plainPassword } = req.body
+        const user = await prisma.user.findUnique({ where: { username } })
+        if (user) {
+            badRequestError(res, 'Username taken', 409)
+        } else {
+            const hash = await hashPassword(plainPassword)
+            const newUserData = { username, password: hash, access_level: 0 }
+            const newUser = await prisma.user.create({ data: newUserData });
+            res.json({ message: `Welcome ${newUser.username}!` })
+        }
     }
 })
 
@@ -46,11 +59,11 @@ app.post('/api/login', async (req, res, next) => {
     // check username exists and password matches the hash in the db
     const { username, password: plainPassword } = req.body
     const user = await prisma.user.findUnique({ where: { username } })
-    if (user && verifyPassword(plainPassword, user.password)) {
+    if (user && await verifyPassword(plainPassword, user.password)) {
         req.session.user = user
         res.json({ message: `Welcome back, ${username}!` })
     } else {
-        res.json({ message: `Invalid Login` }).status(401)
+        badRequestError(res, 'Invalid Login',401)
     }
 })
 

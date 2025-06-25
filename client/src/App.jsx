@@ -12,21 +12,23 @@ function App() {
   return (
     <>
       <BrowserRouter>
-        <div className="app">
-          <div className='upper-container'>
+        <div id="app">
+          <div id='upper-container'>
             <header>
               <h1>Symmisolve</h1>
               <p>Meta University - Engineering</p>
               <p>A Community Based SAT Solver</p>
             </header>
-            <Routes>
-              <Route exact path="/" element = {<HomePage/>}/>
-              <Route path="/problem/:problemId"  element = {<ProblemPage/>}/>
-              <Route path="/user/:userId" element={<AccountPage/>} />
-              <Route path="/upload" element={<ProblemUpload/>}/>
-              <Route path="/login" element={<LoginPage/>}/>
-              <Route path="/signup" element={<SignupPage/>}/>
-            </Routes>
+            <div id='content'>
+              <Routes>
+                <Route exact path="/" element={<HomePage />} />
+                <Route path="/problem/:problemId" element={<ProblemPage />} />
+                <Route path="/user/:userId" element={<AccountPage />} />
+                <Route path="/upload" element={<ProblemUpload />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+              </Routes>
+            </div>
           </div>
           <footer>
             <p>By Timothy James Nickerson, through Meta University</p>
