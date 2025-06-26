@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { makePostRequest } from '../logic/requestTemplates.jsx';
+import { makeGetRequest, makePostRequest } from '../logic/requestTemplates.jsx';
 function LoginPage({updateUser}) {
     const navigate = useNavigate()
     const [username, setUsername] = useState('')
@@ -20,6 +20,19 @@ function LoginPage({updateUser}) {
             setMessage('')
         }
     }
+    const checkWhoIAm = async () => {
+        const res = await makeGetRequest('whoami')
+        if (res.status === 200) {
+            const data = await res.json()
+            updateUser(data.username,data.accessLevel)
+            navigate(`/user/${data.username}`)
+        }else{
+            updateUser("",-1)
+        }
+    }
+    useState(() => {
+        checkWhoIAm()
+    })
     return (
         <div>
             <h1>Log in</h1>
