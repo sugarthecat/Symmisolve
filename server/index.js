@@ -74,7 +74,7 @@ app.post('/api/login', async (req, res, next) => {
     const user = await prisma.user.findFirst({ where: { username: { equals: username, mode: "insensitive" } } })
     if (user && await verifyPassword(plainPassword, user.password)) {
         req.session.user = user
-        res.json({ message: `Welcome back, ${username}!`, username: username })
+        res.json({ message: `Welcome back, ${username}!`, username: username, accessLevel: user.access_level })
     } else {
         badRequestError(res, 'Invalid Login', 401)
     }
@@ -107,11 +107,6 @@ app.get('/api/whoami', async (req, res, next) => {
         res.status(404).json({ message: 'User not found' })
     }
 })
-
-app.use((req, res, next) => {
-    console.log('Session:', req.session);
-    next();
-});
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);

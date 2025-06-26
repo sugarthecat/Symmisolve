@@ -8,10 +8,28 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import HowToSatSolvePage from './pages/HowToSatSolvePage'
 import { useState } from 'react'
+import NavBar from './components/NavBar'
+import { makeGetRequest } from './logic/requestTemplates'
 
 function App() {
   const [accessLevel, setAccessLevel] = useState(-1);
   const [username, setUsername] = useState("");
+  const updateUser = (username, accessLevel) => {
+    setAccessLevel(accessLevel);
+    setUsername(username);
+  }
+  const checkIdentity = async () => {
+    const response = await makeGetRequest("whoami");
+    if (response.status === 200) {
+      const data = await response.json();
+      updateUser(data.username, data.accessLevel);
+    }else{
+      updateUser("", -1);
+    }
+  }
+  useState(() => {
+    checkIdentity();
+  }, [])
   return (
     <>
       <BrowserRouter>
@@ -21,29 +39,7 @@ function App() {
               <h1>Symmisolve</h1>
               <p>Meta University - Engineering</p>
               <p>A Community Based SAT Solver</p>
-              <nav>
-                <Link to='/'>
-                  <button>
-                    Home
-                  </button>
-                </Link>
-                {
-                  accessLevel < 0 ?
-                  <Link to='/signup'>
-                    <button>
-                      Log In
-                    </button>
-                  </Link> : ""
-                }
-                {
-                  accessLevel < 0 ?
-                  <Link to='/signup'>
-                    <button>
-                      Sign Up
-                    </button>
-                  </Link> : ""
-                }
-              </nav>
+              <NavBar accessLevel={accessLevel} username={username}></NavBar>
             </header>
             <div id='content'>
               <Routes>
@@ -51,8 +47,8 @@ function App() {
                 <Route path="/problem/:problemId" element={<ProblemPage />} />
                 <Route path="/user/:username" element={<AccountPage />} />
                 <Route path="/upload" element={<ProblemUpload />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/login" element={<LoginPage updateUser={updateUser} />} />
+                <Route path="/signup" element={<SignupPage updateUser={updateUser} />} />
                 <Route path="/help" element={<HowToSatSolvePage />} />
               </Routes>
             </div>

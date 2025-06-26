@@ -8,8 +8,9 @@ function HomePage() {
   async function fetchData(){
     const res = await makeGetRequest("whoami");
     if(res.status === 200) {
-      setAccessLevel(res.data.accessLevel);
-      setUsername(res.data.username);
+      const resData = await res.json();
+      setAccessLevel(resData.accessLevel);
+      setUsername(resData.username);
     }else{
       setAccessLevel(-1);
     }
@@ -20,7 +21,7 @@ function HomePage() {
   if(accessLevel === -1) {
     return <div>
       <h2>Home</h2>
-      <p>Please <Link to="./signup">Log In</Link> or <Link to="./signup">Sign Up</Link> to view open problems.</p>
+      <p>Please <Link to="./login">Log In</Link> or <Link to="./signup">Sign Up</Link> to view open problems.</p>
     </div>
   }else{
     return <div>
