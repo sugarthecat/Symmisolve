@@ -20,6 +20,7 @@ model User {
   id           Int      @id @default(autoincrement())
   access_level Int
   password     String
+  total_size_reduced Int @default(0)
 }
 
 model Problem {

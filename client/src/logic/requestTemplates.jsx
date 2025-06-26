@@ -16,8 +16,7 @@ async function makeRequest(extension, body,method){
  * @returns {Response} the server's response
  */
 async function makeGetRequest(extension, body){
-    const res = await makeRequest(extension, body, 'GET')
-    return res;
+    return (await makeRequest(extension, body, 'GET'));
 }
 /**
  * sends a post request to the server
@@ -26,8 +25,7 @@ async function makeGetRequest(extension, body){
  * @returns {Response} the server's response
  */
 async function makePostRequest(extension, body){
-    const res = await makeRequest(extension, body, 'POST')
-    return res;
+    return (await makeRequest(extension, body, 'POST'));
 }
 
 /**
@@ -37,8 +35,7 @@ async function makePostRequest(extension, body){
  * @returns {Response} the server's response
  */
 async function makePutRequest(extension, body){
-    const res = await makeRequest(extension, body, 'PUT')
-    return res;
+    return (await makeRequest(extension, body, 'PUT'));
 }
 
 /**
@@ -48,8 +45,7 @@ async function makePutRequest(extension, body){
  * @returns {Response} the server's response
  */
 async function makeDeleteRequest(extension, body){
-    const res = await makeRequest(extension, body, 'DELETE')
-    return res;
+    return (await makeRequest(extension, body, 'DELETE'));
 }
 
 

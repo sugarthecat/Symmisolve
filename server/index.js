@@ -5,7 +5,7 @@ const app = express();
 const PORT = 3000;
 const { PrismaClient } = require('./generated/prisma');
 const prisma = new PrismaClient();
-const { hashPassword, verifyPassword } = require('./services/auth');
+const { hashPassword, verifyPassword } = require('./logic/auth');
 
 app.use(cors());
 app.use(express.json());
@@ -61,8 +61,8 @@ app.post('/api/signup', async (req, res, next) => {
             const hash = await hashPassword(plainPassword)
             const newUserData = { username, password: hash, access_level: 0 }
             const newUser = await prisma.user.create({ data: newUserData });
-            res.session.user = newUser //start logged in
-            res.json({ message: `Welcome ${newUser.username}!` })
+            req.session.user = newUser //start logged in
+            res.json({ message: `Welcome ${newUser.username}!`, username: newUser.username })
         }
     }
 })
@@ -72,7 +72,7 @@ app.post('/api/login', async (req, res, next) => {
     const user = await prisma.user.findUnique({ where: { username } })
     if (user && await verifyPassword(plainPassword, user.password)) {
         req.session.user = user
-        res.json({ message: `Welcome back, ${username}!` })
+        res.json({ message: `Welcome back, ${username}!`, username: username})
     } else {
         badRequestError(res, 'Invalid Login', 401)
     }
