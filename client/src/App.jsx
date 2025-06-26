@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom'
 import './App.css'
 import HomePage from './pages/HomePage'
 import ProblemPage from './pages/ProblemPage'
@@ -24,7 +24,7 @@ function App() {
               <Routes>
                 <Route exact path="/" element={<HomePage />} />
                 <Route path="/problem/:problemId" element={<ProblemPage />} />
-                <Route path="/user/:userId" element={<AccountPage />} />
+                <Route path="/user/:username" element={<AccountPage />} />
                 <Route path="/upload" element={<ProblemUpload />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
