@@ -6,13 +6,13 @@ function AccountPage() {
     const { username } = useParams();
     const [displayUsername, setDisplayUsername] = useState(username);
     const [accessLevel, setAccessLevel] = useState("Access Level");
+    const [sizeReduced, setSizeReduced] = useState(0);
     const [isMe, setIsMe] = useState(false);
     const updateData = async () => {
         const res = await makeGetRequest(`user/${username}`);
         if (res.status === 200) {
             const data = await res.json()
             setDisplayUsername(data.username);
-            console.log(data)
             switch (data.accessLevel) {
                 case 1:
                     setAccessLevel("Researcher");
@@ -25,6 +25,7 @@ function AccountPage() {
                     break;
             }
             setIsMe(data.isMe);
+            setSizeReduced(data.sizeReduction);
         } else if (res.status == 404) {
             navigate('../../')
         }
@@ -45,10 +46,10 @@ function AccountPage() {
             <h2>{accessLevel}</h2>
             {isMe ? <p><button onClick={signOut}>Sign Out</button></p> : ""}
             <p>
-                Date Created: Today
+                Date Joined: Today
             </p>
             <p>
-                Total Reduction: 0
+                Total Size Reduction: {sizeReduced}
             </p>
         </div>
     )

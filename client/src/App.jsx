@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom'
+import { BrowserRouter, Link, Route, Routes, useParams } from 'react-router-dom'
 import './App.css'
 import HomePage from './pages/HomePage'
 import ProblemPage from './pages/ProblemPage'
@@ -7,9 +7,11 @@ import ProblemUpload from './pages/ProblemUpload'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import HowToSatSolvePage from './pages/HowToSatSolvePage'
+import { useState } from 'react'
 
 function App() {
-
+  const [accessLevel, setAccessLevel] = useState(-1);
+  const [username, setUsername] = useState("");
   return (
     <>
       <BrowserRouter>
@@ -19,6 +21,29 @@ function App() {
               <h1>Symmisolve</h1>
               <p>Meta University - Engineering</p>
               <p>A Community Based SAT Solver</p>
+              <nav>
+                <Link to='/'>
+                  <button>
+                    Home
+                  </button>
+                </Link>
+                {
+                  accessLevel < 0 ?
+                  <Link to='/signup'>
+                    <button>
+                      Log In
+                    </button>
+                  </Link> : ""
+                }
+                {
+                  accessLevel < 0 ?
+                  <Link to='/signup'>
+                    <button>
+                      Sign Up
+                    </button>
+                  </Link> : ""
+                }
+              </nav>
             </header>
             <div id='content'>
               <Routes>

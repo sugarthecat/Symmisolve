@@ -95,8 +95,15 @@ app.get('/api/user/:username', async (req, res, next) => {
     }
     const user = await prisma.user.findFirst({ where: { username: { equals: username, mode: "insensitive" } } })
     if (user) {
-        res.json({ username: user.username, accessLevel: user.access_level, isMe: isMe })
+        res.json({ username: user.username, accessLevel: user.access_level, isMe: isMe, sizeReduction: user.total_size_reduced })
     } else {
+        res.status(404).json({ message: 'User not found' })
+    }
+})
+app.get('/api/whoami', async (req, res, next) => {
+    if (req.session.user) {
+        res.json({ username: req.session.user.username, accessLevel: req.session.user.access_level })
+    }else{
         res.status(404).json({ message: 'User not found' })
     }
 })
