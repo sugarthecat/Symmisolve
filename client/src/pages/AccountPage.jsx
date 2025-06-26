@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'
-import { makeGetRequest } from '../logic/requestTemplates';
+import { makeGetRequest, makePostRequest } from '../logic/requestTemplates';
 function AccountPage() {
     const navigate = useNavigate();
     const { username } = useParams();
@@ -12,6 +12,7 @@ function AccountPage() {
         if (res.status === 200) {
             const data = await res.json()
             setDisplayUsername(data.username);
+            console.log(data)
             switch (data.accessLevel) {
                 case 1:
                     setAccessLevel("Researcher");
@@ -31,11 +32,18 @@ function AccountPage() {
     useState(() => {
         updateData();
     },[username]);
+
+    const signOut = async () => {
+        const res = await makePostRequest(`logout`);
+        if(res.status === 200) {
+            navigate('../../login')
+        }
+    }
     return (
         <div>
             <h1>{displayUsername}</h1>
             <h2>{accessLevel}</h2>
-            {isMe ? <p><button>Sign Out</button></p> : ""}
+            {isMe ? <p><button onClick={signOut}>Sign Out</button></p> : ""}
             <p>
                 Date Created: Today
             </p>

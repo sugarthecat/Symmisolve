@@ -7,25 +7,27 @@ const { PrismaClient } = require('./generated/prisma');
 const prisma = new PrismaClient();
 const { hashPassword, verifyPassword } = require('./logic/auth');
 
-app.use(cors());
+app.use(cors(
+    {
+        origin: process.env.FRONTEND_URL,
+        credentials: true
+    }
+));
 app.use(express.json());
-app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
-});
-
 let sessionConfig = {
     name: 'sessionId',
     secret: 'secret text',
     cookie: {
         maxAge: 1000 * 60 * 5,
-        secure: true,
-        httpOnly: false,
+        secure: false,
+        httpOnly: true,
     },
-    resave: false,
+    resave: true,
     saveUninitialized: false,
 }
 
 app.use(session(sessionConfig))
+
 
 function badRequestError(res, message, code = 400) {
     res.status(code).json(message)
@@ -69,10 +71,10 @@ app.post('/api/signup', async (req, res, next) => {
 
 app.post('/api/login', async (req, res, next) => {
     const { username, password: plainPassword } = req.body
-    const user = await prisma.user.findUnique({ where: { username } })
+    const user = await prisma.user.findFirst({ where: { username: { equals: username, mode: "insensitive" } } })
     if (user && await verifyPassword(plainPassword, user.password)) {
         req.session.user = user
-        res.json({ message: `Welcome back, ${username}!`, username: username})
+        res.json({ message: `Welcome back, ${username}!`, username: username })
     } else {
         badRequestError(res, 'Invalid Login', 401)
     }
@@ -84,3 +86,26 @@ app.post('/api/logout', (req, res, next) => {
     });
     next({ message: 'Logout failed' })
 })
+
+app.get('/api/user/:username', async (req, res, next) => {
+    const { username } = req.params;
+    let isMe = false;
+    if (req.session.user) {
+        isMe = req.session.user.username === username
+    }
+    const user = await prisma.user.findFirst({ where: { username: { equals: username, mode: "insensitive" } } })
+    if (user) {
+        res.json({ username: user.username, accessLevel: user.access_level, isMe: isMe })
+    } else {
+        res.status(404).json({ message: 'User not found' })
+    }
+})
+
+app.use((req, res, next) => {
+    console.log('Session:', req.session);
+    next();
+});
+
+app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+});
