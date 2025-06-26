@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
 import HomePage from './pages/HomePage'
@@ -14,14 +13,14 @@ function App() {
   return (
     <>
       <BrowserRouter>
-        <div className="app">
-          <div className='upper-container'>
+        <div id="app">
+          <div id='upper-container'>
             <header id="doc-header">
               <h1>Symmisolve</h1>
               <p>Meta University - Engineering</p>
               <p>A Community Based SAT Solver</p>
             </header>
-            <div className='content'>
+            <div id='content'>
               <Routes>
                 <Route exact path="/" element={<HomePage />} />
                 <Route path="/problem/:problemId" element={<ProblemPage />} />

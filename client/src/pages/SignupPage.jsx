@@ -1,11 +1,37 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useState } from 'react';
+import { Link } from 'react-router-dom'
+import { makePostRequest } from '../logic/requestTemplates.jsx';
 function SignupPage() {
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState('');
+    const [message, setMessage] = useState('');
+    const sendSignupRequest = async () => {
+        const res = await makePostRequest('signup', { username, password })
+        if (res.status === 200) {
+            //Succesful
+            setMessage('Account created successfully!')
+            setError('')
+            //TODO: On succesful signup, redirect to login page
+        } else {
+            setError(await res.json())
+            setMessage('')
+        }
+    }
     return (
         <div>
-            <p>
-                Sign Up
-            </p>
+            <h1>Sign up</h1>
+            <div>
+                <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} />
+                <br />
+                <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+                <br />
+                <button onClick={sendSignupRequest} >Sign Up</button>
+            </div>
+            <p> If you already have an account, you can <Link to="../login">Log In</Link>.</p>
+            <p className='error'> {error} </p>
+            <p> {message}</p>
+
         </div>
     )
 }

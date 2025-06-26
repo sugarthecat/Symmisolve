@@ -1,13 +1,16 @@
-body{
+body {
   font-family: Arial, Helvetica, sans-serif;
-  margin:0px;
+  margin: 0px;
   overflow-x: hidden;
 }
-div.root, body, div.app{
-  min-height: 100vh ;
+
+#root,
+body,
+#app {
+  min-height: 100vh;
 }
 
-div.app{
+#app {
   display: flex;
   width: 100%;
   min-height: 100vh;
@@ -16,8 +19,8 @@ div.app{
   justify-content: space-between;
 }
 
-div.upper-container{
-width: 100%;
+#upper-container {
+  width: 100%;
 }
 
 header#doc-header, footer#doc-footer{
@@ -28,7 +31,7 @@ header#doc-header, footer#doc-footer{
   background-color: darkblue;
 }
 
-div.content{
+#content{
   box-sizing: border-box;
   width: 100%;
   padding: 30px;
