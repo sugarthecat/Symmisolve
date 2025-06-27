@@ -89,10 +89,7 @@ app.post('/api/logout', (req, res, next) => {
 
 app.get('/api/user/:username', async (req, res, next) => {
     const { username } = req.params;
-    let isMe = false;
-    if (req.session.user) {
-        isMe = req.session.user.username === username
-    }
+    let isMe = req.session.user?.username === username;
     const user = await prisma.user.findFirst({ where: { username: { equals: username, mode: "insensitive" } } })
     if (user) {
         res.json({ username: user.username, accessLevel: user.access_level, isMe: isMe, sizeReduction: user.total_size_reduced })
@@ -103,7 +100,7 @@ app.get('/api/user/:username', async (req, res, next) => {
 app.get('/api/whoami', async (req, res, next) => {
     if (req.session.user) {
         res.json({ username: req.session.user.username, accessLevel: req.session.user.access_level })
-    }else{
+    } else {
         res.status(404).json({ message: 'User not found' })
     }
 })
