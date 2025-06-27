@@ -1,28 +1,29 @@
-function validateCNF(formulaText){
-    const lines = formulaText.replaceAll("\r","").split('\n');
+function validateCNF(formulaText) {
+    const lines = formulaText.replaceAll("\r", "").split('\n');
     let numvars = -1;
     let numclauses = -1;
-    for(let i = 0; i < lines.length; i++){
-        if(lines[i].startsWith("c")){
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith("c") || lines[i].length < 2) {
+            //skip comment lines AND empty lines
             continue;
-        }else if(lines[i].startsWith("p cnf")){
+        } else if (lines[i].startsWith("p cnf")) {
             const parts = lines[i].split(" ");
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
-        }else if(numvars < 0 || numclauses < 1){
+        } else if (numvars < 0 || numclauses < 1) {
             return false;
-        }else{
+        } else {
             const parts = lines[i].split(" ");
-            for(let i= 0; i < parts.length; i++){
-                if(parts[i] == "0"){
+            for (let i = 0; i < parts.length; i++) {
+                if (parts[i] == "0") {
                     numclauses--;
                     break;
                 }
                 let partInt = parseInt(parts[i]);
-                if( isNaN(partInt)){
+                if (isNaN(partInt)) {
                     return false;
                 }
-                if(Math.abs(partInt) > numvars){
+                if (Math.abs(partInt) > numvars) {
                     return false;
                 }
             }
@@ -31,4 +32,32 @@ function validateCNF(formulaText){
     return numclauses == 0;
 }
 
-module.exports = { validateCNF };
+function parseCNF(formulaText) {
+    if (!validateCNF(formulaText)) {
+        throw new Error("Invalid CNF");
+    }
+    const lines = formulaText.replaceAll("\r", "").split('\n');
+    let clauses = [];
+    let currClause = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith("c")) {
+            continue;
+        } else if (lines[i].startsWith("p cnf")) {
+            const parts = lines[i].split(" ");
+            numvars = parseInt(parts[2]);
+        } else {
+            const parts = lines[i].split(" ");
+            for (let i = 0; i < parts.length; i++) {
+                if (parts[i] == "0") {
+                    clauses.push(currClause);
+                    currClause = [];
+                }else{
+                    currClause.push(parseInt(parts[i]));
+                }
+            }
+        }
+    }
+    return clauses;
+}
+
+module.exports = { validateCNF, parseCNF }
