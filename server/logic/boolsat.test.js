@@ -167,3 +167,10 @@ describe('CNF Parsing', () => {
     })
 
 });
+
+describe('CNF reduction', () => {
+    it('It should not alter an empty formula, or a false formula', () => {
+        assert.deepEqual(reduceCNF([]),[])
+        assert.deepEqual(reduceCNF([[]]),[[]])
+    })
+});

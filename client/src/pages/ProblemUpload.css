@@ -1,0 +1,16 @@
+#problem-file-upload {
+}
+.description {
+    resize: none;
+    width: 400px;
+    height: 250px;
+}
+
+.button-label {
+    display: block;
+    cursor: pointer;
+}
+
+.label-button {
+    pointer-events: none;
+}

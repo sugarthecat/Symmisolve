@@ -60,4 +60,9 @@ function parseCNF(formulaText) {
     return clauses;
 }
 
-module.exports = { validateCNF, parseCNF }
+function reduceCNF(clauses) {
+    //TODO: Make this better
+    return clauses;
+}
+
+module.exports = { validateCNF, parseCNF, reduceCNF}

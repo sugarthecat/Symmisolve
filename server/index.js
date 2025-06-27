@@ -33,7 +33,7 @@ function badRequestError(res, message, code = 400) {
     res.status(code).json(message)
 }
 
-app.post('/api/signup', async (req, res, next) => {
+app.post('/api/signup', async (req, res) => {
     // regex means that the username is purely alphanumeric
     const regex = /^[a-zA-Z0-9]+$/;
     if (!req.body.username) {
@@ -41,9 +41,9 @@ app.post('/api/signup', async (req, res, next) => {
     } else if (!req.body.password) {
         badRequestError(res, 'Password required')
     } else if (req.body.username.length < 5) {
-        badRequestError(res, 'Username must have length at least 5', 411)
+        badRequestError(res, 'Username must have length at least 6', 411)
     } else if (req.body.password.length < 5) {
-        badRequestError(res, 'Password must have length at least 5', 411)
+        badRequestError(res, 'Password must have length at least 6', 411)
     } else if (!req.body.username.match(regex)) {
         badRequestError(res, 'Username can only contain letters and numbers')
     } else {
@@ -69,7 +69,7 @@ app.post('/api/signup', async (req, res, next) => {
     }
 })
 
-app.post('/api/login', async (req, res, next) => {
+app.post('/api/login', async (req, res) => {
     const { username, password: plainPassword } = req.body
     const user = await prisma.user.findFirst({ where: { username: { equals: username, mode: "insensitive" } } })
     if (user && await verifyPassword(plainPassword, user.password)) {
@@ -84,10 +84,10 @@ app.post('/api/logout', (req, res, next) => {
     req.session.destroy(err => {
         res.json({ message: 'Logout successful' })
     });
-    next({ message: 'Logout failed' })
+    badRequestError(res, 'Logout Failed')
 })
 
-app.get('/api/user/:username', async (req, res, next) => {
+app.get('/api/user/:username', async (req, res) => {
     const { username } = req.params;
     let isMe = false;
     if (req.session.user) {
@@ -97,14 +97,31 @@ app.get('/api/user/:username', async (req, res, next) => {
     if (user) {
         res.json({ username: user.username, accessLevel: user.access_level, isMe: isMe, sizeReduction: user.total_size_reduced })
     } else {
-        res.status(404).json({ message: 'User not found' })
+        badRequestError(res, 'User Not Found', 404)
     }
 })
-app.get('/api/whoami', async (req, res, next) => {
+app.get('/api/whoami', async (req, res) => {
     if (req.session.user) {
         res.json({ username: req.session.user.username, accessLevel: req.session.user.access_level })
     }else{
-        res.status(404).json({ message: 'User not found' })
+        badRequestError(res, 'User Not Found', 404)
+    }
+})
+
+app.post('/api/upload', async (req, res) => {
+    if(!req.session.user || req.session.user.accessLevel < 2){
+        badRequestError(res, 'Unauthorized', 403)
+    }else if(!req.body.title || !req.body.description){
+        badRequestError(res, 'Title and description required', 400)
+    }else if(req.body.title.length < 5){
+        badRequestError(res, 'Title ust be at least 6 characters', 400)
+    }else{
+        const { title, description } = req.body
+        const newUploadData = { name: title, description, poster: req.session.user.username, current_size: 0 }
+        const newUpload = await prisma.problem.create({ data: newUploadData });
+        const problemFileData = {id: newUpload.id, problem_file: req.body.formula }
+        const problemFile = await prisma.problemFile.create({ data: problemFileData });
+        res.json({ message: `Upload created`, uploadId: newUpload.id })
     }
 })
 

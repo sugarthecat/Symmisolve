@@ -1,25 +1,42 @@
 import { useState } from "react"
-
+import "./ProblemUpload.css"
+import { makePostRequest } from "../logic/requestTemplates"
 function ProblemUpload() {
-    const [file, setFile] = useState(null)
-    const [title, setTitle] = useState(null)
-    const [description, setDescription] = useState(null)
+    const [cnfContent, setCNFContent] = useState(null)
+    const [title, setTitle] = useState("")
+    const [description, setDescription] = useState("")
     const updateSelectedFile = (event) => {
-        setFile(event.target.files[0])
+
+        const fileReader = new FileReader()
+        fileReader.onload = (event) => {
+            setCNFContent(fileReader.result)
+        }
+        fileReader.readAsText(event.target.files[0])
     }
     const updateTitle = (event) => {
         setTitle(event.target.value)
+    }
+    const updateDescription = (event) => {
+        setDescription(event.target.value)
+    }
+    const publishProblem = async () => {
+        //read file
+
+        const res = await makePostRequest("upload", {
+            title: title,
+            description: description,
+            formula: cnfContent
+        })
     }
     return (
         <div>
             <h1>Problem Upload</h1>
             <p>Upload a problem to the database.</p>
-            <p><input  placeholder="Title..." value={title} onChange={updateTitle}/></p>
-
+            <p><input placeholder="Title..." value={title} onChange={updateTitle}/></p>
+            <p><textarea placeholder="Description..." className="description" value={description} onChange={updateDescription}/></p>
             <p>
-                <input id="problemFileUpload" type="file" onChange={updateSelectedFile} />
-                <label for="problemFileUpload"><button>Select File</button></label>
-                <button>Publish</button>
+                <input accept=".cnf" id="problem-file-upload" type="file" onChange={updateSelectedFile} />
+                <button onClick={publishProblem}>Publish</button>
             </p>
         </div>
     )
