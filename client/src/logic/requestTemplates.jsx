@@ -1,10 +1,11 @@
 //local because you shouldn't be able to make requests without a valid method
-async function makeRequest(extension, body,method){
+async function makeRequest(extension, body, method) {
     const res = await fetch(`${import.meta.env.VITE_API_SRC}/api/${extension}`, {
         method: method,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(body),
     })
     return res;
@@ -15,9 +16,8 @@ async function makeRequest(extension, body,method){
  * @param {JSON} body A JSON object that will be sent to the server
  * @returns {Response} the server's response
  */
-async function makeGetRequest(extension, body){
-    const res = await makeRequest(extension, body, 'GET')
-    return res;
+async function makeGetRequest(extension, body) {
+    return (await makeRequest(extension, body, 'GET'));
 }
 /**
  * sends a post request to the server
@@ -25,9 +25,8 @@ async function makeGetRequest(extension, body){
  * @param {JSON} body A JSON object that will be sent to the server
  * @returns {Response} the server's response
  */
-async function makePostRequest(extension, body){
-    const res = await makeRequest(extension, body, 'POST')
-    return res;
+async function makePostRequest(extension, body) {
+    return (await makeRequest(extension, body, 'POST'));
 }
 
 /**
@@ -36,9 +35,8 @@ async function makePostRequest(extension, body){
  * @param {JSON} body A JSON object that will be sent to the server
  * @returns {Response} the server's response
  */
-async function makePutRequest(extension, body){
-    const res = await makeRequest(extension, body, 'PUT')
-    return res;
+async function makePutRequest(extension, body) {
+    return (await makeRequest(extension, body, 'PUT'));
 }
 
 /**
@@ -47,10 +45,9 @@ async function makePutRequest(extension, body){
  * @param {JSON} body A JSON object that will be sent to the server
  * @returns {Response} the server's response
  */
-async function makeDeleteRequest(extension, body){
-    const res = await makeRequest(extension, body, 'DELETE')
-    return res;
+async function makeDeleteRequest(extension, body) {
+    return (await makeRequest(extension, body, 'DELETE'));
 }
 
 
-export {makeGetRequest, makePostRequest, makePutRequest, makeDeleteRequest}
+export { makeGetRequest, makePostRequest, makePutRequest, makeDeleteRequest }

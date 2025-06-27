@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { makePostRequest } from '../logic/requestTemplates.jsx';
-function SignupPage() {
+function SignupPage({updateUser}) {
+    const navigate = useNavigate();
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('');
@@ -10,7 +11,8 @@ function SignupPage() {
         const res = await makePostRequest('signup', { username, password })
         if (res.status === 200) {
             //Succesful
-            setMessage('Account created successfully!')
+            updateUser(json.username,json.accessLevel)
+            navigate('/')
             setError('')
             //TODO: On succesful signup, redirect to login page
         } else {

@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Link, Route, Routes, useParams } from 'react-router-dom'
 import './App.css'
 import HomePage from './pages/HomePage'
 import ProblemPage from './pages/ProblemPage'
@@ -7,9 +7,31 @@ import ProblemUpload from './pages/ProblemUpload'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import HowToSatSolvePage from './pages/HowToSatSolvePage'
+import { useEffect, useState } from 'react'
+import NavBar from './components/NavBar'
+import { makeGetRequest } from './logic/requestTemplates'
+import ACCESS_LEVELS from './logic/accessLevels'
+
 
 function App() {
-
+  const [accessLevel, setAccessLevel] = useState(-1);
+  const [username, setUsername] = useState("");
+  const updateUser = (username, accessLevel) => {
+    setAccessLevel(accessLevel);
+    setUsername(username);
+  }
+  const checkIdentity = async () => {
+    const response = await makeGetRequest("whoami");
+    if (response.status === 200) {
+      const data = await response.json();
+      updateUser(data.username, data.accessLevel);
+    }else{
+      updateUser("", ACCESS_LEVELS.LOGGED_OUT);
+    }
+  }
+  useEffect(() => {
+    checkIdentity();
+  }, [])
   return (
     <>
       <BrowserRouter>
@@ -19,15 +41,16 @@ function App() {
               <h1>Symmisolve</h1>
               <p>Meta University - Engineering</p>
               <p>A Community Based SAT Solver</p>
+              <NavBar accessLevel={accessLevel} username={username}></NavBar>
             </header>
             <div id='content'>
               <Routes>
                 <Route exact path="/" element={<HomePage />} />
                 <Route path="/problem/:problemId" element={<ProblemPage />} />
-                <Route path="/user/:userId" element={<AccountPage />} />
+                <Route path="/user/:username" element={<AccountPage />} />
                 <Route path="/upload" element={<ProblemUpload />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/login" element={<LoginPage updateUser={updateUser} />} />
+                <Route path="/signup" element={<SignupPage updateUser={updateUser} />} />
                 <Route path="/help" element={<HowToSatSolvePage />} />
               </Routes>
             </div>

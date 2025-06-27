@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { makePostRequest } from '../logic/requestTemplates.jsx';
-function LoginPage() {
+function LoginPage({updateUser}) {
+    const navigate = useNavigate()
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('');
@@ -10,8 +11,9 @@ function LoginPage() {
         const res = await makePostRequest('login', { username, password })
         if (res.status === 200) {
             //Succesful
-            setMessage('Succesfully logged in!')
-            setError('')
+            const json = await res.json()
+            updateUser(json.username,json.accessLevel)
+            navigate(`/user/${json.username}`)
             //TODO: On succesful login, rediirect to account page.
         } else {
             setError(await res.json())
