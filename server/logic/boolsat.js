@@ -7,10 +7,11 @@ function validateCNF(formulaText) {
             //skip comment lines AND empty lines
             continue;
         } else if (lines[i].startsWith("p cnf")) {
-            const parts = lines[i].split(" ");
+            const parts = lines[i].replaceAll("  ","").split(" ");
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
         } else if (numvars < 0 || numclauses < 1) {
+            console.log("Bad variable / clause count");
             return false;
         } else {
             const parts = lines[i].split(" ");
@@ -19,11 +20,15 @@ function validateCNF(formulaText) {
                     numclauses--;
                     break;
                 }
+                if(parts[i].length == 0) {
+                    continue;
+                }
                 let partInt = parseInt(parts[i]);
                 if (isNaN(partInt)) {
                     return false;
                 }
                 if (Math.abs(partInt) > numvars) {
+                    console.log("Variable out of bounds: " + partInt);
                     return false;
                 }
             }
@@ -52,6 +57,12 @@ function parseCNF(formulaText) {
                     clauses.push(currClause);
                     currClause = [];
                 }else{
+                    if(parts[i].length == 0) {
+                        continue;
+                    }
+                    if(isNaN(parseInt(parts[i]))){
+                        continue;
+                    }
                     currClause.push(parseInt(parts[i]));
                 }
             }

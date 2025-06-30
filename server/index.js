@@ -1,11 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session')
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const app = express();
 const PORT = 3000;
 const { PrismaClient } = require('./generated/prisma');
 const prisma = new PrismaClient();
 const { hashPassword, verifyPassword } = require('./logic/auth');
+const { validateCNF } = require('./logic/boolsat');
 
 app.use(cors(
     {
@@ -13,7 +17,6 @@ app.use(cors(
         credentials: true
     }
 ));
-app.use(express.json());
 let sessionConfig = {
     name: 'sessionId',
     secret: 'secret text',
@@ -33,7 +36,7 @@ function badRequestError(res, message, code = 400) {
     res.status(code).json(message)
 }
 
-app.post('/api/signup', async (req, res) => {
+app.post('/api/signup', express.json(), async (req, res) => {
     // regex means that the username is purely alphanumeric
     const regex = /^[a-zA-Z0-9]+$/;
     if (!req.body.username) {
@@ -69,7 +72,7 @@ app.post('/api/signup', async (req, res) => {
     }
 })
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', express.json(), async (req, res) => {
     const { username, password: plainPassword } = req.body
     const user = await prisma.user.findFirst({ where: { username: { equals: username, mode: "insensitive" } } })
     if (user && await verifyPassword(plainPassword, user.password)) {
@@ -80,14 +83,13 @@ app.post('/api/login', async (req, res) => {
     }
 })
 
-app.post('/api/logout', (req, res, next) => {
+app.post('/api/logout', express.json(), (req, res) => {
     req.session.destroy(err => {
         res.json({ message: 'Logout successful' })
     });
-    badRequestError(res, 'Logout Failed')
 })
 
-app.get('/api/user/:username', async (req, res) => {
+app.get('/api/user/:username', express.json(), async (req, res) => {
     const { username } = req.params;
     let isMe = false;
     if (req.session.user) {
@@ -100,28 +102,39 @@ app.get('/api/user/:username', async (req, res) => {
         badRequestError(res, 'User Not Found', 404)
     }
 })
-app.get('/api/whoami', async (req, res) => {
+app.get('/api/whoami', express.json(), async (req, res) => {
     if (req.session.user) {
         res.json({ username: req.session.user.username, accessLevel: req.session.user.access_level })
-    }else{
+    } else {
         badRequestError(res, 'User Not Found', 404)
     }
 })
 
-app.post('/api/upload', async (req, res) => {
-    if(!req.session.user || req.session.user.accessLevel < 2){
-        badRequestError(res, 'Unauthorized', 403)
-    }else if(!req.body.title || !req.body.description){
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+    //console.log(req)
+    const { body, file } = req
+    console.log(body)
+    console.log(file)
+    if (!req.session.user || req.session.user.accessLevel < 2) {
+        badRequestError(res, 'Unauthorized - Make sure you\'re logged in!', 403)
+    } else if (!body.title || !body.description) {
         badRequestError(res, 'Title and description required', 400)
-    }else if(req.body.title.length < 5){
+    } else if (!file) {
+        badRequestError(res, 'No File Uploaded', 400)
+    } else if (body.title.length < 5) {
         badRequestError(res, 'Title ust be at least 6 characters', 400)
-    }else{
+    } else {
         const { title, description } = req.body
-        const newUploadData = { name: title, description, poster: req.session.user.username, current_size: 0 }
-        const newUpload = await prisma.problem.create({ data: newUploadData });
-        const problemFileData = {id: newUpload.id, problem_file: req.body.formula }
-        const problemFile = await prisma.problemFile.create({ data: problemFileData });
-        res.json({ message: `Upload created`, uploadId: newUpload.id })
+        const fileContents = Buffer.from(file.buffer).toString("utf-8")
+        if (!validateCNF(fileContents)) {
+            //console.log(fileContents)
+           badRequestError(res, 'Invalid CNF', 400)
+        }else{
+            const problemFileData = { problem_file: fileContents, solution_file: "" }
+            const newUploadData = { name: title, description, poster: req.session.user.username, current_size: 0, file:{create:problemFileData }}
+            const newUpload = await prisma.problem.create({ data: newUploadData });
+            res.json({ message: `Upload created`, uploadId: newUpload.id })
+        }
     }
 })
 

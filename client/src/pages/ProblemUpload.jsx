@@ -1,17 +1,13 @@
 import { useState } from "react"
 import "./ProblemUpload.css"
-import { makePostRequest } from "../logic/requestTemplates"
+import { makePostRequest, makePostRequestWithBodyData } from "../logic/requestTemplates"
 function ProblemUpload() {
-    const [cnfContent, setCNFContent] = useState(null)
+    const [file, setFile] = useState(null)
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
+    const [error,setError] = useState("")
     const updateSelectedFile = (event) => {
-
-        const fileReader = new FileReader()
-        fileReader.onload = (event) => {
-            setCNFContent(fileReader.result)
-        }
-        fileReader.readAsText(event.target.files[0])
+        setFile(event.target.files[0])
     }
     const updateTitle = (event) => {
         setTitle(event.target.value)
@@ -21,12 +17,16 @@ function ProblemUpload() {
     }
     const publishProblem = async () => {
         //read file
-
-        const res = await makePostRequest("upload", {
-            title: title,
-            description: description,
-            formula: cnfContent
-        })
+        const data =new FormData()
+        data.append('file', file)
+        data.append('title', title)
+        data.append('description', description)
+        const res = await makePostRequestWithBodyData("upload", data)
+        if(res.status === 200){
+        }else{
+            const resError = await res.json()
+            setError(resError)
+        }
     }
     return (
         <div>
@@ -38,6 +38,7 @@ function ProblemUpload() {
                 <input accept=".cnf" id="problem-file-upload" type="file" onChange={updateSelectedFile} />
                 <button onClick={publishProblem}>Publish</button>
             </p>
+            <p className="error">{error}</p>
         </div>
     )
 }
