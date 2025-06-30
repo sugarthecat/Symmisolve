@@ -2,21 +2,24 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { makeGetRequest } from "../logic/requestTemplates";
 
-function HomePage() {
+function HomePage({updateUser}) {
   const [accessLevel, setAccessLevel] = useState(-1);
   const [username, setUsername] = useState("")
-  async function fetchData(){
+  const [problems, setProblems] = useState([]);
+  async function getUserStatus(){
     const res = await makeGetRequest("whoami");
     if(res.status === 200) {
-      const resData = await res.json();
-      setAccessLevel(resData.accessLevel);
-      setUsername(resData.username);
+      const resUserData = await res.json();
+      setAccessLevel(resUserData.accessLevel);
+      setUsername(resUserData.username);
+      updateUser(resUserData.username, resData.accessLevel);
+      const resProblems = await makeGetRequest("problems");
     }else{
       setAccessLevel(-1);
     }
   }
   useEffect(() => {
-    fetchData();
+    getUserStatus();
   }, [])
   if(accessLevel === -1) {
     return <div>
