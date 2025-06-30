@@ -45,7 +45,7 @@ function App() {
             </header>
             <div id='content'>
               <Routes>
-                <Route exact path="/" element={<HomePage />} />
+                <Route exact path="/" element={<HomePage updateUser={updateUser} />} />
                 <Route path="/problem/:problemId" element={<ProblemPage />} />
                 <Route path="/user/:username" element={<AccountPage />} />
                 <Route path="/upload" element={<ProblemUpload />} />

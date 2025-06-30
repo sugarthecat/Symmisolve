@@ -12,7 +12,7 @@ function HomePage({updateUser}) {
       const resUserData = await res.json();
       setAccessLevel(resUserData.accessLevel);
       setUsername(resUserData.username);
-      updateUser(resUserData.username, resData.accessLevel);
+      updateUser(resUserData.username, resUserData.accessLevel);
       const resProblems = await makeGetRequest("problems");
     }else{
       setAccessLevel(-1);

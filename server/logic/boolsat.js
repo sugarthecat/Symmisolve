@@ -7,7 +7,7 @@ function validateCNF(formulaText) {
             //skip comment lines AND empty lines
             continue;
         } else if (lines[i].startsWith("p cnf")) {
-            const parts = lines[i].replaceAll("  ","").split(" ");
+            const parts = lines[i].replaceAll("  "," ").split(" ");
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
         } else if (numvars < 0 || numclauses < 1) {
@@ -17,7 +17,6 @@ function validateCNF(formulaText) {
             const parts = lines[i].split(" ");
             for (let i = 0; i < parts.length; i++) {
                 if (parts[i] == "0") {
-                    numclauses--;
                     break;
                 }
                 if(parts[i].length == 0) {
@@ -25,6 +24,7 @@ function validateCNF(formulaText) {
                 }
                 let partInt = parseInt(parts[i]);
                 if (isNaN(partInt)) {
+                    console.log("Invalid character: " + parts[i]);
                     return false;
                 }
                 if (Math.abs(partInt) > numvars) {
@@ -34,7 +34,7 @@ function validateCNF(formulaText) {
             }
         }
     }
-    return numclauses == 0;
+    return numvars > -1;
 }
 
 function parseCNF(formulaText) {
@@ -43,8 +43,8 @@ function parseCNF(formulaText) {
     }
     const lines = formulaText.replaceAll("\r", "").split('\n');
     let clauses = [];
-    let currClause = [];
     for (let i = 0; i < lines.length; i++) {
+        let currClause = [];
         if (lines[i].startsWith("c")) {
             continue;
         } else if (lines[i].startsWith("p cnf")) {
@@ -55,7 +55,7 @@ function parseCNF(formulaText) {
             for (let i = 0; i < parts.length; i++) {
                 if (parts[i] == "0") {
                     clauses.push(currClause);
-                    currClause = [];
+                    break
                 }else{
                     if(parts[i].length == 0) {
                         continue;
