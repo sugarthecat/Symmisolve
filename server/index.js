@@ -91,10 +91,7 @@ app.post('/api/logout', express.json(), (req, res) => {
 
 app.get('/api/user/:username', express.json(), async (req, res) => {
     const { username } = req.params;
-    let isMe = false;
-    if (req.session.user) {
-        isMe = req.session.user.username === username
-    }
+    let isMe = req.session.user?.username === username;
     const user = await prisma.user.findFirst({ where: { username: { equals: username, mode: "insensitive" } } })
     if (user) {
         res.json({ username: user.username, accessLevel: user.access_level, isMe: isMe, sizeReduction: user.total_size_reduced })
@@ -129,7 +126,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         if (!validateCNF(fileContents)) {
             //console.log(fileContents)
            badRequestError(res, 'Invalid CNF', 400)
-        }else{
+        } else {
             const problemFileData = { problem_file: fileContents, solution_file: "" }
             const newUploadData = { name: title, description, poster: req.session.user.username, current_size: 0, file:{create:problemFileData }}
             const newUpload = await prisma.problem.create({ data: newUploadData });

@@ -17,7 +17,7 @@ function HomePage() {
   }
   useEffect(() => {
     fetchData();
-  })
+  }, [])
   if(accessLevel === -1) {
     return <div>
       <h2>Home</h2>

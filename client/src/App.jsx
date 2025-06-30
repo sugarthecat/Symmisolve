@@ -7,9 +7,11 @@ import ProblemUpload from './pages/ProblemUpload'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import HowToSatSolvePage from './pages/HowToSatSolvePage'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import NavBar from './components/NavBar'
 import { makeGetRequest } from './logic/requestTemplates'
+import ACCESS_LEVELS from './logic/accessLevels'
+
 
 function App() {
   const [accessLevel, setAccessLevel] = useState(-1);
@@ -24,10 +26,10 @@ function App() {
       const data = await response.json();
       updateUser(data.username, data.accessLevel);
     }else{
-      updateUser("", -1);
+      updateUser("", ACCESS_LEVELS.LOGGED_OUT);
     }
   }
-  useState(() => {
+  useEffect(() => {
     checkIdentity();
   }, [])
   return (

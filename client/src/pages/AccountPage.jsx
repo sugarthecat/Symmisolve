@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'
 import { makeGetRequest, makePostRequest } from '../logic/requestTemplates';
+import ACCESS_LEVELS from '../logic/accessLevels';
 function AccountPage() {
     const navigate = useNavigate();
     const { username } = useParams();
@@ -14,30 +15,33 @@ function AccountPage() {
             const data = await res.json()
             setDisplayUsername(data.username);
             switch (data.accessLevel) {
-                case 1:
+                case ACCESS_LEVELS.USER:
+                    setAccessLevel("User");
+                    break;
+                case ACCESS_LEVELS.RESEARCHER:
                     setAccessLevel("Researcher");
                     break;
-                case 2:
+                case ACCESS_LEVELS.ADMIN:
                     setAccessLevel("Admin");
                     break;
                 default:
-                    setAccessLevel("User");
+                    setAccessLevel("Unknown");
                     break;
             }
             setIsMe(data.isMe);
             setSizeReduced(data.sizeReduction);
         } else if (res.status == 404) {
-            navigate('../../')
+            navigate('/')
         }
     }
-    useState(() => {
+    useEffect(() => {
         updateData();
-    },[username]);
+    }, [username]);
 
     const signOut = async () => {
         const res = await makePostRequest(`logout`);
-        if(res.status === 200) {
-            navigate('../../login')
+        if (res.status === 200) {
+            navigate('/login')
         }
     }
     return (
@@ -50,7 +54,7 @@ function AccountPage() {
             <p>
                 Total Size Reduction: {sizeReduced}
             </p>
-            {isMe ? <p><button onClick={signOut}>Sign Out</button></p> : ""}
+            {isMe && <p><button onClick={signOut}>Sign Out</button></p>}
         </div>
     )
 }
