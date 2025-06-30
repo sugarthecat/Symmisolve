@@ -26,7 +26,7 @@ let sessionConfig = {
         httpOnly: true,
     },
     resave: true,
-    saveUninitialized: false,
+    saveUninitialized: true,
 }
 
 app.use(session(sessionConfig))
@@ -123,10 +123,10 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         const fileContents = Buffer.from(file.buffer).toString("utf-8")
         if (!validateCNF(fileContents)) {
             //console.log(fileContents)
-           badRequestError(res, 'Invalid CNF', 400)
+            badRequestError(res, 'Invalid CNF', 400)
         } else {
             const problemFileData = { problem_file: fileContents, solution_file: "" }
-            const newUploadData = { name: title, description, poster: req.session.user.username, current_size: 0, file:{create:problemFileData }}
+            const newUploadData = { name: title, description, current_size: 0, file: { create: problemFileData }, user: { connect: { id: req.session.user.id } } }
             const newUpload = await prisma.problem.create({ data: newUploadData });
             res.json({ message: `Upload created`, uploadId: newUpload.id })
         }
@@ -138,8 +138,12 @@ app.get('/api/problems', express.json(), async (req, res) => {
     const { session } = req
     if (!session.user) {
         badRequestError(res, 'Unauthorized - Make sure you\'re logged in!', 403)
-    }else{
-        const problems = await prisma.problem.findMany();
+    } else {
+        const problems = await prisma.problem.findMany({
+            include: {
+                user: true,
+            }
+        });
         res.json({ problems: problems })
     }
 })

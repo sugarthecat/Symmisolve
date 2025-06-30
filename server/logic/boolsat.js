@@ -1,5 +1,5 @@
 function validateCNF(formulaText) {
-    const lines = formulaText.replaceAll("\r", "").split('\n');
+    const lines = formulaText.replaceAll("\t"," ").replaceAll("\r", "").split('\n');
     let numvars = -1;
     let numclauses = -1;
     for (let i = 0; i < lines.length; i++) {
@@ -41,7 +41,7 @@ function parseCNF(formulaText) {
     if (!validateCNF(formulaText)) {
         throw new Error("Invalid CNF");
     }
-    const lines = formulaText.replaceAll("\r", "").split('\n');
+    const lines = formulaText.replaceAll("\t"," ").replaceAll("\r", "").split('\n');
     let clauses = [];
     for (let i = 0; i < lines.length; i++) {
         let currClause = [];
