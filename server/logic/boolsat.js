@@ -37,6 +37,11 @@ function validateCNF(formulaText) {
     return numvars > -1;
 }
 
+/**
+ * Parses a CNF formula into a list of clauses
+ * @param {String} formulaText The text of the CNF formula (in DIMACS format)
+ * @returns A list of clauses
+ */
 function parseCNF(formulaText) {
     if (!validateCNF(formulaText)) {
         throw new Error("Invalid CNF");
@@ -99,8 +104,8 @@ function reduceCNF(clauses) {
                 continue
             }
 
-            if (canResolve(currClause, writtenClauses[i])) {
-                let newClause = resolve(currClause, writtenClauses[i]);
+            let newClause = resolve(currClause, writtenClauses[i]);;
+            if (newClause !== null) {
                 if(isSubclause(writtenClauses[i], newClause)) {
                     writtenClauses.splice(i, 1);
                     toAdd.push(newClause);
@@ -185,39 +190,10 @@ function isSubclause(clause1, clause2) {
     return index2 == clause2.length;
 }
 /**
- * Checks if clause1 can resolve with clause2.
- * @param {Clause} clause1 a CNF Clause
- * @param {Clause} clause2 a CNF Clause
- */
-function canResolve(clause1, clause2) {
-    let index1 = 0;
-    let index2 = 0;
-    let hasOpposingLiteral = false;
-    while (index1 < clause1.length && index2 < clause2.length) {
-        if (clause1[index1] == clause2[index2]) {
-            index1++;
-            index2++;
-        } else if (clause1[index1] == -clause2[index2]) {
-            index1++;
-            index2++;
-            if (hasOpposingLiteral) {
-                return false;
-            } else {
-                hasOpposingLiteral = true;
-            }
-        } else if (Math.abs(clause1[index1]) < Math.abs(clause2[index2])) {
-            index1++;
-        } else if (Math.abs(clause1[index1]) > Math.abs(clause2[index2])) {
-            index2++;
-        }
-    }
-    return hasOpposingLiteral;
-}
-/**
  * Resolves two clauses
  * @param {Clause} clause1 a CNF Clause
  * @param {Clause} clause2 a CNF Clause
- * @returns {Clause} The resolution of clause1 and clause2
+ * @returns {Clause} The resolution of clause1 and clause2. Null if resolution is not possible.
  */
 function resolve(clause1, clause2) {
     let newClause = [];
@@ -232,7 +208,10 @@ function resolve(clause1, clause2) {
         } else if (clause1[index1] == -clause2[index2]) {
             index1++;
             index2++;
-            continue;
+            if(hasOpposingLiteral) {
+                return null
+            }
+            hasOpposingLiteral = true;
         } else if (Math.abs(clause1[index1]) < Math.abs(clause2[index2])) {
             newClause.push(clause1[index1]);
             index1++;
@@ -240,6 +219,9 @@ function resolve(clause1, clause2) {
             newClause.push(clause2[index2]);
             index2++;
         }
+    }
+    if(!hasOpposingLiteral) {
+        return null
     }
     return newClause;
 }
