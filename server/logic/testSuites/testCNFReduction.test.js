@@ -21,5 +21,10 @@ const testCNFReduction = () => {
         assert.deepEqual(reduceCNF([[1],[1,2,3],[1,4,2],[1,4,6]]), [[1]])
         assert.deepEqual(reduceCNF([[1,2,3],[1,4,2],[1],[1,4,6]]), [[1]])
     })
+    it('It should sort clauses lexically', () => {
+        assert.deepEqual(reduceCNF([[-1,-2],[1,2]]), [[1,2],[-1,-2]])
+        assert.deepEqual(reduceCNF([[9],[2],[-3],[4],[-5],[7,-1]]), [[-1,7],[2],[-3],[4],[-5],[9]])
+        assert.deepEqual(reduceCNF([[-1,-7],[-1,5],[-1,6],[1]]), [[1],[5],[6],[-7]])
+    })
 }
 export default testCNFReduction

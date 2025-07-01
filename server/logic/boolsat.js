@@ -81,7 +81,7 @@ function parseCNF(formulaText) {
     return clauses;
 }
 /**
- * Reduces a CNF formula to a list of clauses
+ * Reduces a CNF formula, removing redundant clauses and subclauses, and taking simple resolution-rule steps to shrink the size of the formula.
  * @param {List<Clause>} clauses
  * @returns A list of reduced clauses
  */
@@ -112,7 +112,7 @@ function reduceCNF(clauses) {
             let newClause = resolve(currClause, writtenClauses[i]);
             if (newClause !== null) {
                 //if the two clauses resolve to something meaningful, see if it can be used for an immediate size reduction
-                if(isSubclause(writtenClauses[i], newClause)) {
+                if (isSubclause(writtenClauses[i], newClause)) {
                     //if the new clause is a subclause of the written clause the written clause is redundant
                     //doesn't mean the new clause can replace it, though, so add it to the stack
                     writtenClauses.splice(i, 1);
@@ -129,6 +129,38 @@ function reduceCNF(clauses) {
         }
         if (willAdd) {
             writtenClauses.push(currClause);
+        }
+    }
+    //now, sort written clauses.
+    //bubble sort is totally find in this case.
+    let sorted = false;
+    while(!sorted) {
+        sorted = true;
+        for (let i = 0; i < writtenClauses.length - 1; i++) {
+            let swap = false;
+            let reachedEnd = true
+            let clause1 = writtenClauses[i];
+            let clause2 = writtenClauses[i + 1];
+            //literal by literal, compare the clauses lexically
+            for (let j = 0; j < clause1.length; j++) {
+                if (Math.abs(clause1[j]) > Math.abs(clause2[j]) || (Math.abs(clause1[j]) == Math.abs(clause2[j]) && clause1[j] < clause2[j])) {
+                    swap = true;
+                    reachedEnd = false;
+                    break;
+                }else if(clause1[j] != clause2[j]) {
+                    reachedEnd = false;
+                    break;
+                }
+            }
+            if(reachedEnd) {
+                swap = clause2.length > clause1.length;
+            }
+            if(swap) {
+                sorted = false;
+                let temp = writtenClauses[i];
+                writtenClauses[i] = writtenClauses[i + 1];
+                writtenClauses[i + 1] = temp;
+            }
         }
     }
     return writtenClauses;
@@ -223,7 +255,7 @@ function resolve(clause1, clause2) {
         } else if (clause1[index1] == -clause2[index2]) {
             index1++;
             index2++;
-            if(hasOpposingLiteral) {
+            if (hasOpposingLiteral) {
                 // two or more opposing literals means that no meaningful resolution is possible
                 return null
             }
@@ -236,7 +268,15 @@ function resolve(clause1, clause2) {
             index2++;
         }
     }
-    if(!hasOpposingLiteral) {
+    while (index1 < clause1.length) {
+        newClause.push(clause1[index1]);
+        index1++;
+    }
+    while (index2 < clause2.length) {
+        newClause.push(clause2[index2]);
+        index2++;
+    }
+    if (!hasOpposingLiteral) {
         // no opposing literals means that no meaningful resolution is possible
         return null
     }
