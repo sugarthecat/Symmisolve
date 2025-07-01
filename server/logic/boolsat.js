@@ -16,7 +16,6 @@ function validateCNF(formulaText) {
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
         } else if (numvars < 0 || numclauses < 1) {
-            console.log("Bad variable / clause count");
             return false;
         } else {
             const parts = lines[i].split(" ");
@@ -29,11 +28,9 @@ function validateCNF(formulaText) {
                 }
                 let partInt = parseInt(parts[i]);
                 if (isNaN(partInt)) {
-                    console.log("Invalid character: " + parts[i]);
                     return false;
                 }
                 if (Math.abs(partInt) > numvars) {
-                    console.log("Variable out of bounds: " + partInt);
                     return false;
                 }
             }
@@ -94,6 +91,10 @@ function reduceCNF(clauses) {
     }
     while (toAdd.length > 0) {
         let currClause = formatClause(toAdd.pop());
+        if(currClause === null) {
+            //tautological clause, ignore
+            continue;
+        }
         let willAdd = true;
         for (let i = 0; i < writtenClauses.length; i++) {
             //remove duplicates and subclauses
@@ -197,7 +198,7 @@ function formatClause(clause) {
         }
     }
     if (tautological) {
-        return [];
+        return null;
     }
     return finalClause;
 
@@ -301,3 +302,5 @@ function isEqual(clause1, clause2) {
 }
 
 module.exports = { validateCNF, parseCNF, reduceCNF }
+
+//and they say mathemeticians can't code :p
