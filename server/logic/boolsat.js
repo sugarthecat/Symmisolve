@@ -109,15 +109,20 @@ function reduceCNF(clauses) {
                 continue
             }
             //nice resolutions
-            let newClause = resolve(currClause, writtenClauses[i]);;
+            let newClause = resolve(currClause, writtenClauses[i]);
             if (newClause !== null) {
+                //if the two clauses resolve to something meaningful, see if it can be used for an immediate size reduction
                 if(isSubclause(writtenClauses[i], newClause)) {
+                    //if the new clause is a subclause of the written clause the written clause is redundant
+                    //doesn't mean the new clause can replace it, though, so add it to the stack
                     writtenClauses.splice(i, 1);
                     toAdd.push(newClause);
                 }
                 if (isSubclause(currClause, newClause)) {
+                    //if the new clause is a subclause of the current clause, the current clause is redundant
+                    //it does mean the new clause can replace it, but we have to check relations with all other clauses now
                     currClause = newClause;
-                    i = 0;
+                    i = -1; //so it iterates through the whole list again
                     continue;
                 }
             }
@@ -168,6 +173,7 @@ function formatClause(clause) {
 /**
  * Checks if clause1 is a subclause of clause2.
  * Precondition: clause1 and clause2 are formatted
+ * For example, [1,2] is a subclause of [1], since [1] implies [1,2], so [1,2] is redundant.
  * @param {Clause} clause1 The possible subclause
  * @param {Clause} clause2 The possible superclause
  */
@@ -196,6 +202,9 @@ function isSubclause(clause1, clause2) {
 }
 /**
  * Resolves two clauses
+ * Precondition: clause1 and clause2 are formatted
+ * For example, [1,2] and [1,-2] resolve to [1]
+ * For further reference, google "Resolution Rule"
  * @param {Clause} clause1 a CNF Clause
  * @param {Clause} clause2 a CNF Clause
  * @returns {Clause} The resolution of clause1 and clause2. Null if resolution is not possible.
@@ -207,6 +216,7 @@ function resolve(clause1, clause2) {
     let hasOpposingLiteral = false;
     while (index1 < clause1.length && index2 < clause2.length) {
         if (clause1[index1] == clause2[index2]) {
+            //if the literals are the same, add them to the new clause
             newClause.push(clause1[index1]);
             index1++;
             index2++;
@@ -214,6 +224,7 @@ function resolve(clause1, clause2) {
             index1++;
             index2++;
             if(hasOpposingLiteral) {
+                // two or more opposing literals means that no meaningful resolution is possible
                 return null
             }
             hasOpposingLiteral = true;
@@ -226,6 +237,7 @@ function resolve(clause1, clause2) {
         }
     }
     if(!hasOpposingLiteral) {
+        // no opposing literals means that no meaningful resolution is possible
         return null
     }
     return newClause;
