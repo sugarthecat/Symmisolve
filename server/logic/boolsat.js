@@ -1,3 +1,8 @@
+/**
+ * Validates the formatting of a CNF formula
+ * @param {String} formulaText
+ * @returns {Boolean} Whether the formula is valid
+ */
 function validateCNF(formulaText) {
     const lines = formulaText.replaceAll("\t", " ").replaceAll("\r", "").split('\n');
     let numvars = -1;
@@ -103,7 +108,7 @@ function reduceCNF(clauses) {
                 i--;
                 continue
             }
-
+            //nice resolutions
             let newClause = resolve(currClause, writtenClauses[i]);;
             if (newClause !== null) {
                 if(isSubclause(writtenClauses[i], newClause)) {
@@ -242,4 +247,5 @@ function isEqual(clause1, clause2) {
     }
     return true;
 }
+
 module.exports = { validateCNF, parseCNF, reduceCNF }
