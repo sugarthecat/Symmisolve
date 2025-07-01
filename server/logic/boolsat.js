@@ -71,33 +71,48 @@ function parseCNF(formulaText) {
     return clauses;
 }
 /**
- *
+ * Reduces a CNF formula to a list of clauses
  * @param {List<Clause>} clauses
- * @returns
+ * @returns A list of reduced clauses
  */
 function reduceCNF(clauses) {
     let writtenClauses = []
     let toAdd = []; //used as a stack
     //copy clauses into toAdd
-    for(let i = 0; i < clauses.length; i++){
+    for (let i = 0; i < clauses.length; i++) {
         toAdd.push(clauses[i]);
     }
     while (toAdd.length > 0) {
         let currClause = formatClause(toAdd.pop());
         let willAdd = true;
         for (let i = 0; i < writtenClauses.length; i++) {
+            //remove duplicates and subclauses
             if (isEqual(writtenClauses[i], currClause)) {
                 willAdd = false;
                 break;
-            }else if (isSubclause(currClause, writtenClauses[i])) {
+            } else if (isSubclause(currClause, writtenClauses[i])) {
                 willAdd = false;
                 break;
-            }else if (isSubclause(writtenClauses[i], currClause)) {
+            } else if (isSubclause(writtenClauses[i], currClause)) {
                 writtenClauses.splice(i, 1);
                 i--;
+                continue
+            }
+
+            if (canResolve(currClause, writtenClauses[i])) {
+                let newClause = resolve(currClause, writtenClauses[i]);
+                if(isSubclause(writtenClauses[i], newClause)) {
+                    writtenClauses.splice(i, 1);
+                    toAdd.push(newClause);
+                }
+                if (isSubclause(currClause, newClause)) {
+                    currClause = newClause;
+                    i = 0;
+                    continue;
+                }
             }
         }
-        if(willAdd){
+        if (willAdd) {
             writtenClauses.push(currClause);
         }
     }
@@ -117,24 +132,24 @@ function formatClause(clause) {
         let ub = finalClause.length; // insertion upper bound
         let lb = 0; // insertion lower bound
         let add = true; // whether to add. Flagged as false if duplicate is found
-        while(ub > lb){
-            let mid = Math.floor((ub+lb)/2);
-            if(Math.abs(finalClause[mid]) == Math.abs(clause[i])){
+        while (ub > lb) {
+            let mid = Math.floor((ub + lb) / 2);
+            if (Math.abs(finalClause[mid]) == Math.abs(clause[i])) {
                 add = false;
-                if(finalClause[mid] == -clause[i]){
+                if (finalClause[mid] == -clause[i]) {
                     tautological = true;
                 }
-            } else if (Math.abs(finalClause[mid]) < Math.abs(clause[i])){
-                lb = mid+1;
-            }else{
+            } else if (Math.abs(finalClause[mid]) < Math.abs(clause[i])) {
+                lb = mid + 1;
+            } else {
                 ub = mid;
             }
         }
-        if(add){
+        if (add) {
             finalClause.splice(ub, 0, clause[i]);
         }
     }
-    if(tautological){
+    if (tautological) {
         return [];
     }
     return finalClause;
@@ -147,29 +162,86 @@ function formatClause(clause) {
  * @param {Clause} clause2 The possible superclause
  */
 function isSubclause(clause1, clause2) {
-    if(clause1.length < clause2.length){
+    if (clause1.length < clause2.length) {
         return false;
     }
     let index1 = 0;
     let index2 = 0;
-    while(index1 < clause1.length && index2 < clause2.length){
-        if(clause1[index1] == clause2[index2]){
+    while (index1 < clause1.length && index2 < clause2.length) {
+        if (clause1[index1] == clause2[index2]) {
             index1++;
             index2++;
-        }else if(clause1[index1] == -clause2[index2]){
+        } else if (clause1[index1] == -clause2[index2]) {
             //opposing literals - no overlap, not a subclause
             return false;
-        }else if(Math.abs(clause1[index1]) < Math.abs(clause2[index2])){
+        } else if (Math.abs(clause1[index1]) < Math.abs(clause2[index2])) {
             //clause 1 has some quality clause 2 doesn't, that's ok!. Clause 2 is more general
             index1++;
-        }else if(Math.abs(clause1[index1]) > Math.abs(clause2[index2])){
+        } else if (Math.abs(clause1[index1]) > Math.abs(clause2[index2])) {
             //clause 2 has some quality clause 1 doesn't
             return false;
         }
-
     }
-    //TODO: Implement this
     return index2 == clause2.length;
+}
+/**
+ * Checks if clause1 can resolve with clause2.
+ * @param {Clause} clause1 a CNF Clause
+ * @param {Clause} clause2 a CNF Clause
+ */
+function canResolve(clause1, clause2) {
+    let index1 = 0;
+    let index2 = 0;
+    let hasOpposingLiteral = false;
+    while (index1 < clause1.length && index2 < clause2.length) {
+        if (clause1[index1] == clause2[index2]) {
+            index1++;
+            index2++;
+        } else if (clause1[index1] == -clause2[index2]) {
+            index1++;
+            index2++;
+            if (hasOpposingLiteral) {
+                return false;
+            } else {
+                hasOpposingLiteral = true;
+            }
+        } else if (Math.abs(clause1[index1]) < Math.abs(clause2[index2])) {
+            index1++;
+        } else if (Math.abs(clause1[index1]) > Math.abs(clause2[index2])) {
+            index2++;
+        }
+    }
+    return hasOpposingLiteral;
+}
+/**
+ * Resolves two clauses
+ * @param {Clause} clause1 a CNF Clause
+ * @param {Clause} clause2 a CNF Clause
+ * @returns {Clause} The resolution of clause1 and clause2
+ */
+function resolve(clause1, clause2) {
+    let newClause = [];
+    let index1 = 0;
+    let index2 = 0;
+    let hasOpposingLiteral = false;
+    while (index1 < clause1.length && index2 < clause2.length) {
+        if (clause1[index1] == clause2[index2]) {
+            newClause.push(clause1[index1]);
+            index1++;
+            index2++;
+        } else if (clause1[index1] == -clause2[index2]) {
+            index1++;
+            index2++;
+            continue;
+        } else if (Math.abs(clause1[index1]) < Math.abs(clause2[index2])) {
+            newClause.push(clause1[index1]);
+            index1++;
+        } else if (Math.abs(clause1[index1]) > Math.abs(clause2[index2])) {
+            newClause.push(clause2[index2]);
+            index2++;
+        }
+    }
+    return newClause;
 }
 /**
  * Checks if clause1 is equal to clause2.
@@ -178,14 +250,14 @@ function isSubclause(clause1, clause2) {
  * @param {Clause} clause2
  */
 function isEqual(clause1, clause2) {
-    if(clause1.length != clause2.length){
+    if (clause1.length != clause2.length) {
         return false;
     }
-    for(let i = 0; i < clause1.length; i++){
-        if(clause1[i] != clause2[i]){
+    for (let i = 0; i < clause1.length; i++) {
+        if (clause1[i] != clause2[i]) {
             return false;
         }
     }
     return true;
 }
-module.exports = { validateCNF, parseCNF, reduceCNF}
+module.exports = { validateCNF, parseCNF, reduceCNF }

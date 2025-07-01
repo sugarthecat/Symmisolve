@@ -11,7 +11,8 @@ const testCNFReduction = () => {
         assert.deepEqual(reduceCNF([[1],[-1]]), [[]])
         assert.deepEqual(reduceCNF([[1,-2],[1,2],[-1]]), [[]])
         assert.deepEqual(reduceCNF([[1,-2],[1,2],[-1,3],[-1,-3]]), [[]])
-        assert.deepEqual(reduceCNF([[1,-2,4],[1,2,4],[1,3,4],[-1,-3,4]]), [[1]])
+        assert.deepEqual(reduceCNF([[1,-2,4],[1,2,4],[1,3,-4],[1,-3,-4]]), [[1]])
+        assert.deepEqual(reduceCNF([[-1,2],[-2,3],[1,-3],[1,2,3],[-1,-2,-3]]), [[]])
     })
     it('It should be able to remove duplicates', () => {
         assert.deepEqual(reduceCNF([[1],[1],[1],[1]]),[[1]])
