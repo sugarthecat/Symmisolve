@@ -9,7 +9,7 @@ function ProblemCard({ problem}) {
                 <b>Created By {problem.user.username}</b>
             </p>
             <p>
-                {problem.description}
+                {problem.description.length > 100 ? problem.description.substring(0, 100) + "..." : problem.description}
             </p>
         </div>
     )

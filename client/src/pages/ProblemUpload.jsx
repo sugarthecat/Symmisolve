@@ -1,6 +1,6 @@
 import { useState } from "react"
 import "./ProblemUpload.css"
-import { makePostRequest, makePostRequestWithBodyData } from "../logic/requestTemplates"
+import { makePostRequestWithBodyData } from "../logic/requestTemplates"
 function ProblemUpload() {
     const [file, setFile] = useState(null)
     const [title, setTitle] = useState("")

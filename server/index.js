@@ -148,6 +148,22 @@ app.get('/api/problems', express.json(), async (req, res) => {
     }
 })
 
+app.get('/api/problem/:problemId', express.json(), async (req, res) => {
+    //console.log(req)
+    const session = req.session
+    const { problemId } = req.params
+    if (!session.user) {
+        badRequestError(res, 'Unauthorized - Make sure you\'re logged in!', 403)
+    } else {
+        const problem = await prisma.problem.findUnique({ where: { id: parseInt(problemId) }, include: { user: true } })
+        if (!problem) {
+            badRequestError(res, 'Problem Not Found', 404)
+        } else {
+            res.json({ problem: problem })
+        }
+    }
+})
+
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
