@@ -152,8 +152,7 @@ function optimizeCNF(clauses) {
  * @returns A symmetry of the formula, or null if no symmetry is found.
  */
 function findSymmetry(clauses) {
-
-
+    //TODO: add symmetry finding algorithm
 }
 
 
