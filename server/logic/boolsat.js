@@ -118,30 +118,34 @@ function reduceCNF(clauses) {
                     //doesn't mean the new clause can replace it, though, so add it to the stack
                     writtenClauses.splice(i, 1);
                     toAdd.push(newClause);
-                }
-                if (isSubclause(currClause, newClause)) {
+                    i--;
+                }else if (isSubclause(currClause, newClause)) {
                     //if the new clause is a subclause of the current clause, the current clause is redundant
                     //it does mean the new clause can replace it, but we have to check relations with all other clauses now
-                    currClause = newClause;
-                    i = -1; //so it iterates through the whole list again
-                    continue;
+                    toAdd.push(newClause);
+                    willAdd = false;
+                    break;
                 }
             }
         }
         if (willAdd) {
             writtenClauses.push(currClause);
         }
-        if (toAdd.length == 0) {
-            //quick, find symmetries!
-
-        }
     }
     //now, sort written clauses.
     return sortClauses(writtenClauses);
 }
 
+/**
+ * Uses all tools to reduce the size of a CNF formula.
+ * @param {*} clauses
+ * @returns
+ */
+function optimizeCNF(clauses) {
+    return reduceCNF(clauses);
+}
+
 function findSymmetry(clauses) {
-    //naive approach, just check 2-literal swaps with shared clauses
 
 }
 
@@ -370,6 +374,6 @@ function sortClauses(clauses) {
     return writtenClauses;
 }
 
-module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses }
+module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF}
 
 //and they say mathemeticians can't code :p
