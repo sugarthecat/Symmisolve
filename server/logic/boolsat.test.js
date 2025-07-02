@@ -9,10 +9,10 @@ describe('CNF Validation', testCNFValidation);
 
 describe('CNF Parsing', testCNFParsing);
 
-describe('CNF reduction', testCNFReduction);
+describe('CNF Reduction', testCNFReduction);
 
 describe('Symmetry Verification', () => {
-    it('should verify symmetry on the PHP', () => {
+    it('Verifies symmetry on the PHP', () => {
         assert.equal(
             validateSymmetry(
                 sortClauses([
@@ -34,7 +34,7 @@ describe('Symmetry Verification', () => {
             true
         )
     })
-    it('should correctly handle negative symmetries', () => {
+    it('Correctly handles negative symmetries', () => {
         assert.equal(
             validateSymmetry(
                 [[1, -3], [-1, 3]],
@@ -42,8 +42,15 @@ describe('Symmetry Verification', () => {
             ),
             true
         )
+        assert.equal(
+            validateSymmetry(
+                [[1, 3]],
+                [[1, -3]]
+            ),
+            false
+        )
     })
-    it('should return false on dissymmetries on the PHP', () => {
+    it('Returns false on dissymmetries on the PHP', () => {
         assert.equal(
             validateSymmetry(
                 sortClauses([
@@ -69,7 +76,7 @@ describe('Symmetry Verification', () => {
 
 describe('Formula Optimization', () => {
     //TODO add symmetry breaking procedures
-    it.skip('Should solve the pidgeonhole principle', () => {
+    it.skip('Solves the pidgeonhole principle', () => {
         //pidgeonhole principle of 3 pidgeons in 2 holes
         assert.deepEqual(
             optimizeCNF([
