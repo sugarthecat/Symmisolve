@@ -119,7 +119,7 @@ function reduceCNF(clauses) {
                     writtenClauses.splice(i, 1);
                     toAdd.push(newClause);
                     i--;
-                }else if (isSubclause(currClause, newClause)) {
+                } else if (isSubclause(currClause, newClause)) {
                     //if the new clause is a subclause of the current clause, the current clause is redundant
                     //it does mean the new clause can replace it, but we have to check relations with all other clauses now
                     toAdd.push(newClause);
@@ -187,7 +187,7 @@ function validateSymmetry(clauses, symmetry) {
         for (let j = 0; j < clauses[i].length; j++) {
             let literal = clauses[i][j];
             let isNegative = literal < 0;
-            if(isNegative){
+            if (isNegative) {
                 literal = -literal;
             }
             let nextLiteral = (mapping[Math.abs(clauses[i][j])] * (isNegative ? -1 : 1)) || clauses[i][j]
@@ -197,8 +197,8 @@ function validateSymmetry(clauses, symmetry) {
         newFormula.push(newClause);
     }
     newFormula = sortClauses(newFormula);
-    for(let i = 0; i < newFormula.length; i++){
-        if(!isEqual(newFormula[i], clauses[i])){
+    for (let i = 0; i < newFormula.length; i++) {
+        if (!isEqual(newFormula[i], clauses[i])) {
             return false;
         }
     }
@@ -380,6 +380,6 @@ function sortClauses(clauses) {
     return writtenClauses;
 }
 
-module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF}
+module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF }
 
 //and they say mathemeticians can't code :p

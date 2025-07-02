@@ -37,7 +37,7 @@ describe('Symmetry Verification', () => {
     it('should correctly handle negative symmetries', () => {
         assert.equal(
             validateSymmetry(
-                [[1,-3], [-1, 3]],
+                [[1, -3], [-1, 3]],
                 [[1, -3]]
             ),
             true
