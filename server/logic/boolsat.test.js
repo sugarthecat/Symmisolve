@@ -34,6 +34,15 @@ describe('Symmetry Verification', () => {
             true
         )
     })
+    it('should correctly handle negative symmetries', () => {
+        assert.equal(
+            validateSymmetry(
+                [[1,-3], [-1, 3]],
+                [[1, -3]]
+            ),
+            true
+        )
+    })
     it('should return false on dissymmetries on the PHP', () => {
         assert.equal(
             validateSymmetry(
@@ -183,21 +192,3 @@ describe('Formula Optimization', () => {
         )
     })
 })
-
-
-console.log(
-    optimizeCNF(
-        [
-            //item 1 must be placed
-            [1, 2],
-            //item 2 must be placed
-            [3, 4],
-            //item 1 and item 2 cannot share a spot
-            [-1, -3],
-            [-2, -4],
-            //Item 1 must be after item 2
-            [-1, 4], //item 1 in position 1 implies item 2 in position 2
-            [-2], //item 1 can't be in position 2
-        ]
-    )
-)

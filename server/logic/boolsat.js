@@ -145,7 +145,13 @@ function optimizeCNF(clauses) {
     return reduceCNF(clauses);
 }
 
+/**
+ * Finds a symmetry of a CNF formula.
+ * @param {*} clauses The CNF formula
+ * @returns A symmetry of the formula, or null if no symmetry is found.
+ */
 function findSymmetry(clauses) {
+
 
 }
 
@@ -172,7 +178,7 @@ function validateSymmetry(clauses, symmetry) {
             let isNegative = symmetry[i][j] < 0;
             let nextIsNegative = symmetry[i][(j + 1) % symmetry[i].length] < 0;
             let flipNext = isNegative != nextIsNegative;
-            mapping[Math.abs(symmetry[i][j])] = symmetry[i][(j + 1) % symmetry[i].length] * (flipNext ? -1 : 1);
+            mapping[Math.abs(symmetry[i][j])] = Math.abs(symmetry[i][(j + 1) % symmetry[i].length]) * (flipNext ? -1 : 1);
         }
     }
     let newFormula = [];
