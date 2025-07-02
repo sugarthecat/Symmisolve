@@ -142,6 +142,7 @@ function reduceCNF(clauses) {
  * @returns
  */
 function optimizeCNF(clauses) {
+    // TODO add symmetry reduction
     return reduceCNF(clauses);
 }
 

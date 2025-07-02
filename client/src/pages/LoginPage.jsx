@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { makeGetRequest, makePostRequest } from '../logic/requestTemplates.jsx';
 function LoginPage({updateUser}) {
@@ -30,9 +30,9 @@ function LoginPage({updateUser}) {
             updateUser("",-1)
         }
     }
-    useState(() => {
+    useEffect(() => {
         checkWhoIAm()
-    })
+    }, [])
     return (
         <div>
             <h1>Log in</h1>
