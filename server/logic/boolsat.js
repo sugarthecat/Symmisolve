@@ -91,7 +91,7 @@ function reduceCNF(clauses) {
     }
     while (toAdd.length > 0) {
         let currClause = formatClause(toAdd.pop());
-        if(currClause === null) {
+        if (currClause === null) {
             //tautological clause, ignore
             continue;
         }
@@ -131,42 +131,69 @@ function reduceCNF(clauses) {
         if (willAdd) {
             writtenClauses.push(currClause);
         }
-    }
-    //now, sort written clauses.
-    //bubble sort is totally find in this case.
-    let sorted = false;
-    while(!sorted) {
-        sorted = true;
-        for (let i = 0; i < writtenClauses.length - 1; i++) {
-            let swap = false;
-            let reachedEnd = true
-            let clause1 = writtenClauses[i];
-            let clause2 = writtenClauses[i + 1];
-            //literal by literal, compare the clauses lexically
-            for (let j = 0; j < clause1.length; j++) {
-                if (Math.abs(clause1[j]) > Math.abs(clause2[j]) || (Math.abs(clause1[j]) == Math.abs(clause2[j]) && clause1[j] < clause2[j])) {
-                    swap = true;
-                    reachedEnd = false;
-                    break;
-                }else if(clause1[j] != clause2[j]) {
-                    reachedEnd = false;
-                    break;
-                }
-            }
-            if(reachedEnd) {
-                swap = clause2.length > clause1.length;
-            }
-            if(swap) {
-                sorted = false;
-                let temp = writtenClauses[i];
-                writtenClauses[i] = writtenClauses[i + 1];
-                writtenClauses[i + 1] = temp;
-            }
+        if (toAdd.length == 0) {
+            //quick, find symmetries!
+
         }
     }
-    return writtenClauses;
+    //now, sort written clauses.
+    return sortClauses(writtenClauses);
 }
 
+function findSymmetry(clauses) {
+    //naive approach, just check 2-literal swaps with shared clauses
+
+}
+
+
+/**
+ * Verifies a symmetry of a CNF Formula is valid.
+ * Symmetries are to be given in a format of cyclic mapping:
+ * For example, [[2,3]] is a symmetry that maps 2->3, 3->2 and everthing else to itself.
+ * TODO: implement negative symmetries.
+ * precondition: clauses are sorted and formatted
+ * @param {List} clauses
+ * @param {List} symmetry
+ */
+function validateSymmetry(clauses, symmetry) {
+    let variablesInSymmetry = [];
+    let mapping = {}
+    for (let i = 0; i < symmetry.length; i++) {
+        for (let j = 0; j < symmetry[i].length; j++) {
+            if (variablesInSymmetry.includes(Math.abs(symmetry[i][j]))) {
+                //already in symmetry,  duplicate mapping.
+                return false;
+            }
+            variablesInSymmetry.push(Math.abs(symmetry[i][j]));
+            let isNegative = symmetry[i][j] < 0;
+            let nextIsNegative = symmetry[i][(j + 1) % symmetry[i].length] < 0;
+            let flipNext = isNegative != nextIsNegative;
+            mapping[Math.abs(symmetry[i][j])] = symmetry[i][(j + 1) % symmetry[i].length] * (flipNext ? -1 : 1);
+        }
+    }
+    let newFormula = [];
+    for (let i = 0; i < clauses.length; i++) {
+        let newClause = [];
+        for (let j = 0; j < clauses[i].length; j++) {
+            let literal = clauses[i][j];
+            let isNegative = literal < 0;
+            if(isNegative){
+                literal = -literal;
+            }
+            let nextLiteral = (mapping[Math.abs(clauses[i][j])] * (isNegative ? -1 : 1)) || clauses[i][j]
+            newClause.push(nextLiteral);
+        }
+        newClause = formatClause(newClause);
+        newFormula.push(newClause);
+    }
+    newFormula = sortClauses(newFormula);
+    for(let i = 0; i < newFormula.length; i++){
+        if(!isEqual(newFormula[i], clauses[i])){
+            return false;
+        }
+    }
+    return true;
+}
 /**
  * Formats a clause by removing duplicates and sorting literals by absolute value (ascending)
  * @param {Clause} clause A CNF Clause to be formatted
@@ -186,6 +213,7 @@ function formatClause(clause) {
                 add = false;
                 if (finalClause[mid] == -clause[i]) {
                     tautological = true;
+                    break;
                 }
             } else if (Math.abs(finalClause[mid]) < Math.abs(clause[i])) {
                 lb = mid + 1;
@@ -301,6 +329,47 @@ function isEqual(clause1, clause2) {
     return true;
 }
 
-module.exports = { validateCNF, parseCNF, reduceCNF }
+/**
+ *  Sorts a list of clauses lexicographically
+ * @param {List} clauses
+ * @returns a list of clauses sorted lexically
+ */
+function sortClauses(clauses) {
+    //bubble sort is totally find in this case.
+    let writtenClauses = clauses;
+    let sorted = false;
+    while (!sorted) {
+        sorted = true;
+        for (let i = 0; i < writtenClauses.length - 1; i++) {
+            let swap = false;
+            let reachedEnd = true
+            let clause1 = writtenClauses[i];
+            let clause2 = writtenClauses[i + 1];
+            //literal by literal, compare the clauses lexically
+            for (let j = 0; j < clause1.length; j++) {
+                if (Math.abs(clause1[j]) > Math.abs(clause2[j]) || (Math.abs(clause1[j]) == Math.abs(clause2[j]) && clause1[j] < clause2[j])) {
+                    swap = true;
+                    reachedEnd = false;
+                    break;
+                } else if (clause1[j] != clause2[j]) {
+                    reachedEnd = false;
+                    break;
+                }
+            }
+            if (reachedEnd) {
+                swap = clause2.length > clause1.length;
+            }
+            if (swap) {
+                sorted = false;
+                let temp = writtenClauses[i];
+                writtenClauses[i] = writtenClauses[i + 1];
+                writtenClauses[i + 1] = temp;
+            }
+        }
+    }
+    return writtenClauses;
+}
+
+module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses }
 
 //and they say mathemeticians can't code :p

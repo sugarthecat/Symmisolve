@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { reduceCNF } from "../boolsat.js";
 
 const testCNFReduction = () => {
+
     it('It should not alter an empty formula, or a false formula', () => {
         assert.deepEqual(reduceCNF([]), [])
         assert.deepEqual(reduceCNF([[]]), [[]])
@@ -25,6 +26,10 @@ const testCNFReduction = () => {
         assert.deepEqual(reduceCNF([[-1,-2],[1,2]]), [[1,2],[-1,-2]])
         assert.deepEqual(reduceCNF([[9],[2],[-3],[4],[-5],[7,-1]]), [[-1,7],[2],[-3],[4],[-5],[9]])
         assert.deepEqual(reduceCNF([[-1,-7],[-1,5],[-1,6],[1]]), [[1],[5],[6],[-7]])
+    })
+    it('It should remove tautological clauses', () => {
+        assert.deepEqual(reduceCNF([[-1,1]]), [])
+        assert.deepEqual(reduceCNF([[12,3,9,-1,23,1,2],[7]]), [[7]])
     })
 }
 export default testCNFReduction
