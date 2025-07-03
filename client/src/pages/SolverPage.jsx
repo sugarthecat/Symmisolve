@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { makeGetRequest } from '../logic/requestTemplates';
-function ProblemPage() {
+function SolverPage() {
     const navigate = useNavigate();
     const { problemId } = useParams();
     const [isLoaded, setIsLoaded] = useState(false);
@@ -31,14 +31,11 @@ function ProblemPage() {
     } else {
         return (
             <div>
-                <Link to ="/"> <p>Return Home</p></Link>
-                <h1>{problem.name}</h1>
-                <h3>By {problem.user.username}</h3>
-                <p>{problem.description}</p>
-                <Link to={`/problem/${problemId}/solver`}> <button>Solve</button></Link>
+                <p><Link to={`/problem/${problemId}`}>Return to Problem Page</Link></p>
+                <h1>IPSolver</h1>
             </div>
         )
     }
 }
 
-export default ProblemPage
+export default SolverPage
