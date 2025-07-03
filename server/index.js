@@ -9,7 +9,7 @@ const PORT = 3000;
 const { PrismaClient } = require('./generated/prisma');
 const prisma = new PrismaClient();
 const { hashPassword, verifyPassword } = require('./logic/auth');
-const { validateCNF } = require('./logic/boolsat');
+const { validateCNF, parseCNF, stringifyCNF, reduceCNF } = require('./logic/boolsat');
 
 app.use(cors(
     {
@@ -125,8 +125,14 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
             //console.log(fileContents)
             badRequestError(res, 'Invalid CNF', 400)
         } else {
-            const problemFileData = { problem_file: fileContents, solution_file: "" }
-            const newUploadData = { name: title, description, current_size: 0, file: { create: problemFileData }, user: { connect: { id: req.session.user.id } } }
+            let originalProblem = fileContents
+            let reducedProblem = stringifyCNF(reduceCNF(parseCNF(fileContents)))
+            console.log(`Reduction (${originalProblem.length} -> ${reducedProblem.length})`)
+            const problemFileData = { problem_file: reducedProblem, solution_file: "" }
+
+            const newUploadData = { name: title, description, current_size: 0,
+                file: { create: problemFileData },
+                user: { connect: { id: req.session.user.id } } }
             const newUpload = await prisma.problem.create({ data: newUploadData });
             res.json({ message: `Upload created`, uploadId: newUpload.id })
         }
@@ -159,6 +165,25 @@ app.get('/api/problem/:problemId', express.json(), async (req, res) => {
         if (!problem) {
             badRequestError(res, 'Problem Not Found', 404)
         } else {
+            res.json({ problem: problem })
+        }
+    }
+})
+app.get('/api/problem/:problemId/file', express.json(), async (req, res) => {
+    //console.log(req)
+    const session = req.session
+    const { problemId } = req.params
+    if (!session.user) {
+        badRequestError(res, 'Unauthorized - Make sure you\'re logged in!', 403)
+    } else {
+        const problem = await prisma.problem.findUnique({
+            where: { id: parseInt(problemId) },
+            include: { file: true }
+        })
+        if (!problem) {
+            badRequestError(res, 'Problem Not Found', 404)
+        } else {
+            problem.file.problem_file = parseCNF(problem.file.problem_file)
             res.json({ problem: problem })
         }
     }

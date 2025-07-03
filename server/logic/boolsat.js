@@ -380,6 +380,26 @@ function sortClauses(clauses) {
     return writtenClauses;
 }
 
-module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF }
+function stringifyCNF(clauses) {
+    const clauseCount = clauses.length;
+    let variables = new Set();
+    for (let i = 0; i < clauses.length; i++) {
+        for (let j = 0; j < clauses[i].length; j++) {
+            variables.add(Math.abs(clauses[i][j]));
+        }
+    }
+    console.log(variables)
+    let string = `p cnf ${variables.size} ${clauseCount}\n`; //line 1
+    for (let i = 0; i < clauses.length; i++) {
+        for (let j = 0; j < clauses[i].length; j++) {
+            string += clauses[i][j];
+            string += " ";
+        }
+        string += "0\n";
+    }
+    return string
+}
+
+module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF, stringifyCNF }
 
 //and they say mathemeticians can't code :p

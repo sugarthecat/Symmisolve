@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { makeGetRequest } from '../logic/requestTemplates';
+import "./SolverPage.css";
 function SolverPage() {
     const navigate = useNavigate();
     const { problemId } = useParams();
@@ -8,7 +9,7 @@ function SolverPage() {
     const [problem, setProblem] = useState({});
 
     const getProblem = async () => {
-        const res = await makeGetRequest(`problem/${problemId}`);
+        const res = await makeGetRequest(`problem/${problemId}/file`);
         if (res.status === 200) {
             const data = await res.json();
             setProblem(data.problem);
@@ -32,7 +33,12 @@ function SolverPage() {
         return (
             <div>
                 <p><Link to={`/problem/${problemId}`}>Return to Problem Page</Link></p>
-                <h1>IPSolver</h1>
+                <h1>{problem.name}</h1>
+                <div className='clauses'>
+                    {problem.file.problem_file.map((clause, index) => {
+                        return <div key={index}>{clause.join("\t")}</div>
+                    })}
+                </div>
             </div>
         )
     }
