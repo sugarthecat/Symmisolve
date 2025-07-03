@@ -21,7 +21,7 @@ let sessionConfig = {
     name: 'sessionId',
     secret: 'secret text',
     cookie: {
-        maxAge: 1000 * 60 * 10, // 10 mins
+        maxAge: 1000 * 60 * 30, // 30 mins
         secure: false,
         httpOnly: true,
     },
