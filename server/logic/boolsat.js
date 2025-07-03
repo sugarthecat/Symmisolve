@@ -388,7 +388,6 @@ function stringifyCNF(clauses) {
             variables.add(Math.abs(clauses[i][j]));
         }
     }
-    console.log(variables)
     let string = `p cnf ${variables.size} ${clauseCount}\n`; //line 1
     for (let i = 0; i < clauses.length; i++) {
         for (let j = 0; j < clauses[i].length; j++) {
