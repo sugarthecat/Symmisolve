@@ -16,6 +16,7 @@ function validateCNF(formulaText) {
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
         } else if (numvars < 0 || numclauses < 1) {
+            console.log("Invalid Header");
             return false;
         } else {
             const parts = lines[i].split(" ");
@@ -28,9 +29,11 @@ function validateCNF(formulaText) {
                 }
                 let partInt = parseInt(parts[i]);
                 if (isNaN(partInt)) {
+                    console.log("Invalid Literal");
                     return false;
                 }
                 if (Math.abs(partInt) > numvars) {
+                    console.log("Out Of Variable Bounds");
                     return false;
                 }
             }
@@ -382,13 +385,13 @@ function sortClauses(clauses) {
 
 function stringifyCNF(clauses) {
     const clauseCount = clauses.length;
-    let variables = new Set();
+    let n_variables = 0;
     for (let i = 0; i < clauses.length; i++) {
         for (let j = 0; j < clauses[i].length; j++) {
-            variables.add(Math.abs(clauses[i][j]));
+            n_variables = Math.max(n_variables,Math.abs(clauses[i][j]));
         }
     }
-    let string = `p cnf ${variables.size} ${clauseCount}\n`; //line 1
+    let string = `p cnf ${n_variables} ${clauseCount}\n`; //line 1
     for (let i = 0; i < clauses.length; i++) {
         for (let j = 0; j < clauses[i].length; j++) {
             string += clauses[i][j];
@@ -399,6 +402,14 @@ function stringifyCNF(clauses) {
     return string
 }
 
-module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF, stringifyCNF }
+function getSizeCNF(clauses) {
+    let size = clauses.length;
+    for (let i = 0; i < clauses.length; i++) {
+        size += clauses[i].length;
+    }
+    return size
+}
+
+module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF, stringifyCNF, getSizeCNF }
 
 //and they say mathemeticians can't code :p

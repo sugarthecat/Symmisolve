@@ -12,7 +12,7 @@ const testCNFValidation = () => {
     it('Is true on a valid CNF formula', () => {
         assert.equal(validateCNF('p cnf 2 3\n1 2 0\n1 -2 0\n-1 0'), true);
     })
-    it('Is true on a valid CNF formula with a commen/s', () => {
+    it('Is true on a valid CNF formula with a comments', () => {
         assert.equal(validateCNF('c this is a basic formula \np cnf 2 3\n1 2 0\n1 -2 0\n-1 0'), true);
         assert.equal(validateCNF(
             "c this is a basic formula\n" +

@@ -9,7 +9,7 @@ const PORT = 3000;
 const { PrismaClient } = require('./generated/prisma');
 const prisma = new PrismaClient();
 const { hashPassword, verifyPassword } = require('./logic/auth');
-const { validateCNF, parseCNF, stringifyCNF, reduceCNF } = require('./logic/boolsat');
+const { validateCNF, parseCNF, stringifyCNF, reduceCNF, getSizeCNF } = require('./logic/boolsat');
 
 app.use(cors(
     {
@@ -127,14 +127,18 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         } else {
             let originalProblem = fileContents
             let reducedProblem = stringifyCNF(reduceCNF(parseCNF(fileContents)))
-            console.log(`Reduction (${originalProblem.length} -> ${reducedProblem.length})`)
+            const reductionData =
+            {
+                original_size: getSizeCNF(parseCNF( originalProblem)),
+                reduced_size: getSizeCNF(parseCNF(reducedProblem)),
+            }
             const problemFileData = { problem_file: reducedProblem, solution_file: "" }
 
-            const newUploadData = { name: title, description, current_size: 0,
+            const newUploadData = { name: title, description, current_size: getSizeCNF(parseCNF(reducedProblem)),
                 file: { create: problemFileData },
                 user: { connect: { id: req.session.user.id } } }
             const newUpload = await prisma.problem.create({ data: newUploadData });
-            res.json({ message: `Upload created`, uploadId: newUpload.id })
+            res.json({ message: `Upload created`, uploadId: newUpload.id, reductionData: reductionData })
         }
     }
 })
