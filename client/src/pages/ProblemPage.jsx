@@ -13,7 +13,6 @@ function ProblemPage() {
             const data = await res.json();
             setProblem(data.problem);
             setIsLoaded(true);
-            console.log(data);
         } else {
             navigate('/');
         }
@@ -31,7 +30,7 @@ function ProblemPage() {
     } else {
         return (
             <div>
-                <Link to ="/"> <p>Return Home</p></Link>
+                <Link to="/"> <p>Return Home</p></Link>
                 <h1>{problem.name}</h1>
                 <h3>By {problem.user.username}</h3>
                 <p>{problem.description}</p>

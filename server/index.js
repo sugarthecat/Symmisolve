@@ -108,7 +108,6 @@ app.get('/api/whoami', express.json(), async (req, res) => {
 })
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
-    //console.log(req)
     const { body, file } = req
     if (!req.session.user || req.session.user.accessLevel < 2) {
         badRequestError(res, 'Unauthorized - Make sure you\'re logged in!', 403)
@@ -122,8 +121,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         const { title, description } = req.body
         const fileContents = Buffer.from(file.buffer).toString("utf-8")
         if (!validateCNF(fileContents)) {
-            //console.log(fileContents)
-            badRequestError(res, 'Invalid CNF', 400)
+           badRequestError(res, 'Invalid CNF', 400)
         } else {
             let originalProblem = fileContents
             let reducedProblem = stringifyCNF(reduceCNF(parseCNF(fileContents)))
@@ -144,7 +142,6 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 })
 
 app.get('/api/problems', express.json(), async (req, res) => {
-    //console.log(req)
     const { session } = req
     if (!session.user) {
         badRequestError(res, 'Unauthorized - Make sure you\'re logged in!', 403)
@@ -159,7 +156,6 @@ app.get('/api/problems', express.json(), async (req, res) => {
 })
 
 app.get('/api/problem/:problemId', express.json(), async (req, res) => {
-    //console.log(req)
     const session = req.session
     const { problemId } = req.params
     if (!session.user) {
