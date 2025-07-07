@@ -20,10 +20,10 @@ function validateCNF(formulaText) {
         } else {
             const parts = lines[i].split(" ");
             for (let i = 0; i < parts.length; i++) {
-                if (parts[i] == "0") {
+                if (parts[i] === "0") {
                     break;
                 }
-                if (parts[i].length == 0) {
+                if (parts[i].length === 0) {
                     continue;
                 }
                 let partInt = parseInt(parts[i]);
@@ -60,11 +60,11 @@ function parseCNF(formulaText) {
         } else {
             const parts = lines[i].split(" ");
             for (let i = 0; i < parts.length; i++) {
-                if (parts[i] == "0") {
+                if (parts[i] === "0") {
                     clauses.push(currClause);
                     break
                 } else {
-                    if (parts[i].length == 0) {
+                    if (parts[i].length === 0) {
                         continue;
                     }
                     if (isNaN(parseInt(parts[i]))) {
@@ -269,7 +269,7 @@ function isSubclause(clause1, clause2) {
             return false;
         }
     }
-    return index2 == clause2.length;
+    return index2 === clause2.length;
 }
 /**
  * Resolves two clauses
