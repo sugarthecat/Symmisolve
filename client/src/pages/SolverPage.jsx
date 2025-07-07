@@ -17,7 +17,6 @@ function SolverPage() {
             const data = await res.json();
             setProblem(data.problem);
             setIsLoaded(true);
-            console.log(data);
         } else {
             navigate('/');
         }
@@ -37,28 +36,28 @@ function SolverPage() {
         const hasSelectedClause = selectedClause !== null;
 
         let clauseList = []
-        if(hasSelectedClause){
+        if (hasSelectedClause) {
             clauseList.push(
-                <p>{selectedClause.join("\t")}  <button onClick={() => {setSelectedClause(null)}}>Deselect</button></p>
+                <p>{selectedClause.join("\t")}  <button onClick={() => { setSelectedClause(null) }}>Deselect</button></p>
             );
-            for(let i = 0; i < clauses.length; i++){
-                if(clauses[i] === selectedClause){
+            for (let i = 0; i < clauses.length; i++) {
+                if (clauses[i] === selectedClause) {
                     continue;
                 }
                 let resolution = resolve(selectedClause, clauses[i]);
-                if(resolution === null){
+                if (resolution === null) {
                     continue
                 }
                 clauseList.push(
-                    <div >{clauses[i].join("\t")} <button onClick={() => {console.error("Unimplemented ")}}>Resolve</button></div>
+                    <div >{clauses[i].join("\t")} <button onClick={() => { console.error("Unimplemented ") }}>Resolve</button></div>
                 );
             }
-        }else{
-            clauseList = clauses.slice(startIndex*100,startIndex*100+100).map((clause, index) => {
-                return <div >{clause.join("\t")} <button onClick={() => {setSelectedClause(clause)}}>Select</button></div>
+        } else {
+            clauseList = clauses.slice(startIndex * 100, startIndex * 100 + 100).map((clause, index) => {
+                return <div >{clause.join("\t")} <button onClick={() => { setSelectedClause(clause) }}>Select</button></div>
             })
         }
-        if(startIndex*100 >= clauses.length){
+        if (startIndex * 100 >= clauses.length) {
             setStartIndex(0)
         }
         return (
@@ -68,10 +67,10 @@ function SolverPage() {
                 <div className='clauses'>
                     {clauseList}
                 </div>
-                    <div>
-                    {startIndex != 0 && <button onClick={() => {setStartIndex(startIndex-1)}}>Previous</button>}
-                    {startIndex < Math.floor(clauseList.length/100)&& <button onClick={() => {setStartIndex(startIndex+1)}}>Next</button>}
-                    </div>
+                <div>
+                    {startIndex != 0 && <button onClick={() => { setStartIndex(startIndex - 1) }}>Previous</button>}
+                    {startIndex < Math.floor(clauseList.length / 100) && <button onClick={() => { setStartIndex(startIndex + 1) }}>Next</button>}
+                </div>
             </div>
         )
 

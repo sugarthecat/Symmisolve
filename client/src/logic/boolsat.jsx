@@ -146,7 +146,8 @@ function getSizeCNF(clauses) {
 }
 
 export {
-    resolve
+    resolve,
+    isSubclause
 }
 
 //and they say mathemeticians can't code :p
