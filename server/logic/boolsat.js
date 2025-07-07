@@ -11,7 +11,6 @@ function validateCNF(formulaText) {
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
         } else if (numvars < 0 || numclauses < 1) {
-            console.log("Bad variable / clause count");
             return false;
         } else {
             const parts = lines[i].split(" ");
@@ -28,7 +27,6 @@ function validateCNF(formulaText) {
                     return false;
                 }
                 if (Math.abs(partInt) > numvars) {
-                    console.log("Variable out of bounds: " + partInt);
                     return false;
                 }
             }

@@ -122,8 +122,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         const { title, description } = req.body
         const fileContents = Buffer.from(file.buffer).toString("utf-8")
         if (!validateCNF(fileContents)) {
-            //console.log(fileContents)
-            badRequestError(res, 'Invalid CNF', 400)
+           badRequestError(res, 'Invalid CNF', 400)
         } else {
             const problemFileData = { problem_file: fileContents, solution_file: "" }
             const newUploadData = { name: title, description, current_size: 0, file: { create: problemFileData }, user: { connect: { id: req.session.user.id } } }
