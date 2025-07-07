@@ -1,2 +1,0 @@
--- AddForeignKey
-ALTER TABLE "Problem" ADD CONSTRAINT "Problem_id_fkey" FOREIGN KEY ("id") REFERENCES "ProblemFile"("id") ON DELETE CASCADE ON UPDATE CASCADE;

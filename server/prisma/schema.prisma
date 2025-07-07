@@ -21,17 +21,19 @@ model User {
   access_level Int
   password     String
   total_size_reduced Int @default(0)
+  problems    Problem[]
 }
 
 model Problem {
   id            Int      @id @default(autoincrement())
+  user_id       Int
   name          String
-  poster        String
   description   String
   date_created  DateTime @default(now())
   date_modified DateTime @default(now())
   current_size  Int
   file          ProblemFile  @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user          User  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model ProblemFile {

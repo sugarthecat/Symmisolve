@@ -1,0 +1,11 @@
+.problem-card{
+    width: 300px;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 25px;
+    background-color: #e5e5e5;
+    border: #ccc 2px solid;
+}

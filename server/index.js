@@ -26,7 +26,7 @@ let sessionConfig = {
         httpOnly: true,
     },
     resave: true,
-    saveUninitialized: false,
+    saveUninitialized: true,
 }
 
 app.use(session(sessionConfig))
@@ -108,10 +108,7 @@ app.get('/api/whoami', express.json(), async (req, res) => {
 })
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
-    //console.log(req)
     const { body, file } = req
-    console.log(body)
-    console.log(file)
     if (!req.session.user || req.session.user.accessLevel < 2) {
         badRequestError(res, 'Unauthorized - Make sure you\'re logged in!', 403)
     } else if (!body.title || !body.description) {
@@ -127,9 +124,38 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
            badRequestError(res, 'Invalid CNF', 400)
         } else {
             const problemFileData = { problem_file: fileContents, solution_file: "" }
-            const newUploadData = { name: title, description, poster: req.session.user.username, current_size: 0, file:{create:problemFileData }}
+            const newUploadData = { name: title, description, current_size: 0, file: { create: problemFileData }, user: { connect: { id: req.session.user.id } } }
             const newUpload = await prisma.problem.create({ data: newUploadData });
             res.json({ message: `Upload created`, uploadId: newUpload.id })
+        }
+    }
+})
+
+app.get('/api/problems', express.json(), async (req, res) => {
+    const { session } = req
+    if (!session.user) {
+        badRequestError(res, 'Unauthorized - Make sure you\'re logged in!', 403)
+    } else {
+        const problems = await prisma.problem.findMany({
+            include: {
+                user: true,
+            }
+        });
+        res.json({ problems: problems })
+    }
+})
+
+app.get('/api/problem/:problemId', express.json(), async (req, res) => {
+    const session = req.session
+    const { problemId } = req.params
+    if (!session.user) {
+        badRequestError(res, 'Unauthorized - Make sure you\'re logged in!', 403)
+    } else {
+        const problem = await prisma.problem.findUnique({ where: { id: parseInt(problemId) }, include: { user: true } })
+        if (!problem) {
+            badRequestError(res, 'Problem Not Found', 404)
+        } else {
+            res.json({ problem: problem })
         }
     }
 })
