@@ -62,15 +62,6 @@ function ProblemUpload() {
             </p>
             <p className="error">{error}</p>
             {message}
-            <div>
-                <p><input placeholder="Title..." value={title} onChange={updateTitle} /></p>
-                <p><textarea placeholder="Description..." className="description" value={description} onChange={updateDescription} /></p>
-                <p>
-                    <input accept=".cnf" id="problem-file-upload" type="file" onChange={updateSelectedFile} />
-                    {!uploaded && <button onClick={publishProblem}>Publish</button>}
-                </p>
-                <p className="error">{error}</p>
-            </div>
         </div>
     )
 }

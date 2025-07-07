@@ -82,11 +82,12 @@ function parseCNF(formulaText) {
 }
 /**
  * Reduces a CNF formula, removing redundant clauses and subclauses, and taking simple resolution-rule steps to shrink the size of the formula.
- * @param {List<Clause>} clauses
+ * @param {List<Clause>} clauses New Clauses to be added to the CNF formula / reduced
+ * @param {List<Clause>} alreadyReducedClauses A collection of clauses that have already been reduced.
  * @returns A list of reduced clauses
  */
-function reduceCNF(clauses) {
-    let writtenClauses = []
+function reduceCNF(clauses, alreadyReducedClauses = []) {
+    let writtenClauses = alreadyReducedClauses.slice();
     let toAdd = []; //used as a stack
     //copy clauses into toAdd
     for (let i = 0; i < clauses.length; i++) {
