@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { makePostRequest } from '../logic/requestTemplates.jsx';
-function LoginPage({updateUser}) {
+import { makeGetRequest, makePostRequest } from '../logic/requestTemplates.jsx';
+function LoginPage({ updateUser }) {
     const navigate = useNavigate()
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
@@ -12,7 +12,7 @@ function LoginPage({updateUser}) {
         if (res.status === 200) {
             //Succesful
             const json = await res.json()
-            updateUser(json.username,json.accessLevel)
+            updateUser(json.username, json.accessLevel)
             navigate(`/user/${json.username}`)
             //TODO: On succesful login, rediirect to account page.
         } else {
@@ -20,6 +20,19 @@ function LoginPage({updateUser}) {
             setMessage('')
         }
     }
+    const checkWhoIAm = async () => {
+        const res = await makeGetRequest('whoami')
+        if (res.status === 200) {
+            const data = await res.json()
+            updateUser(data.username, data.accessLevel)
+            navigate(`/user/${data.username}`)
+        } else {
+            updateUser("", -1)
+        }
+    }
+    useEffect(() => {
+        checkWhoIAm()
+    })
     return (
         <div>
             <h1>Log in</h1>

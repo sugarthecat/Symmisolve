@@ -48,13 +48,13 @@ function AccountPage() {
         <div>
             <h1>{displayUsername}</h1>
             <h2>{accessLevel}</h2>
-            {isMe && <p><button onClick={signOut}>Sign Out</button></p>}
             <p>
                 Date Joined: Today
             </p>
             <p>
                 Total Size Reduction: {sizeReduced}
             </p>
+            {isMe && <p><button onClick={signOut}>Sign Out</button></p>}
         </div>
     )
 }

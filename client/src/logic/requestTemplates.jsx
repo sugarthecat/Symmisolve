@@ -6,7 +6,7 @@ async function makeRequest(extension, body, method) {
             'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(body),
+        body: JSON.stringify(body)
     })
     return res;
 }
@@ -49,5 +49,13 @@ async function makeDeleteRequest(extension, body) {
     return (await makeRequest(extension, body, 'DELETE'));
 }
 
+async function makePostRequestWithBodyData(extension, body) {
+    const res = await fetch(`${import.meta.env.VITE_API_SRC}/api/${extension}`, {
+        method: 'POST',
+        credentials: 'include',
+        body: body,
+    })
+    return res;
 
-export { makeGetRequest, makePostRequest, makePutRequest, makeDeleteRequest }
+}
+export { makeGetRequest, makePostRequest, makePutRequest, makeDeleteRequest, makePostRequestWithBodyData }

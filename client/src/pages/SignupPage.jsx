@@ -10,6 +10,7 @@ function SignupPage({updateUser}) {
     const sendSignupRequest = async () => {
         const res = await makePostRequest('signup', { username, password })
         if (res.status === 200) {
+            const json = await res.json()
             //Succesful
             updateUser(json.username,json.accessLevel)
             navigate('/')
