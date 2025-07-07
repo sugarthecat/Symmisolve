@@ -35,6 +35,7 @@ function SolverPage() {
         const clauses = problem.file.problem_file;
         const hasSelectedClause = selectedClause !== null;
 
+        let resultCount = 0;
         let clauseList = []
         if (hasSelectedClause) {
             clauseList.push(
@@ -56,6 +57,7 @@ function SolverPage() {
             clauseList = clauses.slice(startIndex * 100, startIndex * 100 + 100).map((clause, index) => {
                 return <div >{clause.join("\t")} <button onClick={() => { setSelectedClause(clause) }}>Select</button></div>
             })
+            resultCount = clauses.length;
         }
         if (startIndex * 100 >= clauses.length) {
             setStartIndex(0)
@@ -69,7 +71,7 @@ function SolverPage() {
                 </div>
                 <div>
                     {startIndex != 0 && <button onClick={() => { setStartIndex(startIndex - 1) }}>Previous</button>}
-                    {startIndex < Math.floor(clauseList.length / 100) && <button onClick={() => { setStartIndex(startIndex + 1) }}>Next</button>}
+                    {startIndex < Math.floor(resultCount / 100) && <button onClick={() => { setStartIndex(startIndex + 1) }}>Next</button>}
                 </div>
             </div>
         )
