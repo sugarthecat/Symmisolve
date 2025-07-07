@@ -18,7 +18,6 @@ function HomePage({ updateUser }) {
       const resProblems = await makeGetRequest("problems");
       if (resProblems.status === 200) {
         const resProblemsData = await resProblems.json();
-        console.log(resProblemsData);
         setProblems(resProblemsData.problems);
       }
     } else {
