@@ -32,7 +32,7 @@ function LoginPage({ updateUser }) {
     }
     useEffect(() => {
         checkWhoIAm()
-    })
+    }, [])
     return (
         <div>
             <h1>Log in</h1>

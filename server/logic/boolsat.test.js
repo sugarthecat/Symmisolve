@@ -1,194 +1,124 @@
-import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { parseCNF, reduceCNF, validateCNF } from './boolsat.js';
+import testCNFValidation from './testSuites/testCNFValidation.test.js';
+import testCNFParsing from './testSuites/testCNFParsing.test.js';
+import testCNFReduction from './testSuites/testCNFReduction.test.js';
+import assert from 'node:assert/strict';
+import { optimizeCNF, sortClauses, validateSymmetry } from './boolsat.js';
 
-describe('CNF Validation', () => {
-    it('should be false on an empty string, or a string without a header', () => {
-        assert.equal(validateCNF(''), false);
-        assert.equal(validateCNF('c hey! this is a comment'), false);
-        assert.equal(validateCNF('c hey! this is a comment'), false);
-        assert.equal(validateCNF('c hey! this is a comment\nc a multiple line comment :)'), false);
-    })
-    it('should be true on a valid CNF formula', () => {
-        assert.equal(validateCNF('p cnf 2 3\n1 2 0\n1 -2 0\n-1 0'), true);
-    })
-    it('should be true on a valid CNF formula with a commen/s', () => {
-        assert.equal(validateCNF('c this is a basic formula \np cnf 2 3\n1 2 0\n1 -2 0\n-1 0'), true);
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "c with a comment\n" +
-            "c and another comment\n" +
-            "p cnf 2 3\n" +
-            "1 2 0\n" +
-            "1 -2 0\n" +
-            "-1 0"
-        ), true);
-    })
-    it('Should allow arbitrary extra spaces', () => {
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "c with a comment\n" +
-            "c and another comment\n" +
-            "p cnf 5 3\n" +
-            "1  2   0\n" +
-            "1  -2  0\n" +
-            "-1     0"
-        ), true);
-    })
-    it('Should be true on a benchmark problem', () => {
-        assert.equal(validateCNF(
-            "c SAT instance in DIMACS CNF input format .\n" +
-            "c \n" +
-            "p cnf 100 40\n" +
-            "8  -9  54  0\n" +
-            "-48  61  -97  0\n"
-        ), true);
-    })
-    it('Should allow the overcounting of variables', () => {
-        assert.equal(validateCNF('c this is a basic formula \np cnf 3 3\n1 2 0\n1 -2 0\n-1 0'), true);
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "c with a comment\n" +
-            "c and another comment\n" +
-            "p cnf 5 3\n" +
-            "1 2 0\n" +
-            "1 -2 0\n" +
-            "-1 0"
-        ), true);
-    })
-    it('Should not allow the undercounting of variables', () => {
-        assert.equal(validateCNF('c this is a basic formula \np cnf 1 3\n1 2 0\n1 -2 0\n-1 0'), false);
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "c with a comment\n" +
-            "c and another comment\n" +
-            "p cnf 2 3\n" +
-            "1 2 0\n" +
-            "3 -4 0\n" +
-            "-3 0"
-        ), false);
-    })
-    it('Should allow the overcounting of clauses', () => {
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "p cnf 4 4\n" +
-            "1 2 0\n" +
-            "3 -4 0\n" +
-            "-3 0"
-        ), true);
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "p cnf 4 2\n" +
-            "1 2 0\n"
-        ), true);
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "p cnf 4 3\n" +
-            "1 2 0\n" +
-            "2 -3 0\n"
-        ), true);
-    })
-    it('Should allow the undercounting of clauses', () => {
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "p cnf 4 2\n" +
-            "1 2 0\n" +
-            "3 -4 0\n" +
-            "-3 0"
-        ), true);
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "p cnf 4 1\n" +
-            "1 2 0\n" +
-            "3 4 0\n" +
-            "-3 -4 0\n"
-        ), true);
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "p cnf 4 1\n" +
-            "1 2 0\n" +
-            "2 -3 0\n"
-        ), true);
-    })
-    it('Should not allow non-numeric of variables', () => {
-        assert.equal(validateCNF('c this is a basic formula \np cnf 1 3\nb ao 0\n1 -2 0\n-1 0'), false);
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "c with a comment\n" +
-            "c and another comment\n" +
-            "p cnf 2 3\n" +
-            "1 2 0\n" +
-            "3 a 0\n" +
-            "-3 0"
-        ), false);
-    })
-    it('Should ignore empty lines', () => {
-        assert.equal(validateCNF('c this is a basic formula \np cnf 1 3\nb ao 0\n1 -2 0\n-1 0'), false);
-        assert.equal(validateCNF(
-            "c this is a basic formula\n" +
-            "c with a comment\n\n" +
-            "c and another comment\n" +
-            "p cnf 2 3\n" +
-            "1 2 0\n\n" +
-            "3 a 0\n" +
-            "-3 0\n\n"
-        ), false);
-    })
-});
+describe('CNF Validation', testCNFValidation);
 
-describe('CNF Parsing', () => {
-    it('It should throw an error on an invalid CNF', () => {
-        assert.throws(() => { parseCNF('') });
-        assert.throws(() => { parseCNF('c hey! this is a comment') });
-        assert.throws(() => { parseCNF('c hey! this is a comment\nc a multiple line comment :)') });
-        assert.throws(() => { parseCNF('p cnf 1 3\n1 2 0\n1 -2 0\n-1 0') });
-    })
-    it('It should parse formulas correctly', () => {
-        assert.deepEqual(parseCNF('p cnf 2 3\n1 2 0\n1 -2 0\n-1 0'), [[1, 2], [1, -2], [-1]]);
-        assert.deepEqual(parseCNF('p cnf 1 2\n1 0\n-1 0'), [[1], [-1]]);
-        assert.deepEqual(parseCNF('p cnf 1 0\n0'), [[]]);
-    })
-    it('It should parse large formulas correctly', () => {
-        assert.deepEqual(
-            parseCNF(
-                'c Pidgeonhole Principle (2 pidgeons, 3 holes)\n' +
-                'p cnf 6 9\n' +
-                '1 2 0\n' +
-                '3 4 0\n' +
-                '5 6 0\n' +
-                '-1 -3 0\n' +
-                '-1 -5 0\n' +
-                '-3 -5 0\n' +
-                '-2 -4 0\n' +
-                '-2 -6 0\n' +
-                '-4 -6 0\n'
+describe('CNF Parsing', testCNFParsing);
+
+describe('CNF Reduction', testCNFReduction);
+
+describe('Symmetry Verification', () => {
+    it('Verifies symmetry on the PHP', () => {
+        assert.equal(
+            validateSymmetry(
+                sortClauses([
+                    [1, 2], [3, 4], [5, 6],
+                    [-1, -3], [-3, -5], [-1, -5],
+                    [-2, -4], [-2, -6], [-4, -6]]),
+                [[1, 3], [2, 4]]
             ),
-            [[1, 2], [3, 4], [5, 6], [-1, -3], [-1, -5], [-3, -5], [-2, -4], [-2, -6], [-4, -6]]);
-        assert.deepEqual(
-            parseCNF(
-                'c Pidgeonhole Principle (3 pidgeons, 3 holes)\n' +
-                'p cnf 9 12\n' +
-                '1 2 3 0\n' +
-                '4 5 6 0\n' +
-                '7 8 9 0\n' +
-                '-1 -4 0\n' +
-                '-1 -7 0\n' +
-                '-4 -7 0\n' +
-                '-2 -5 0\n' +
-                '-2 -8 0\n' +
-                '-5 -8 0\n' +
-                '-3 -6 0\n' +
-                '-3 -9 0\n' +
-                '-6 -9 0\n'
+            true
+        )
+        assert.equal(
+            validateSymmetry(
+                sortClauses([
+                    [1, 2], [3, 4], [5, 6],
+                    [-1, -3], [-3, -5], [-1, -5],
+                    [-2, -4], [-2, -6], [-4, -6]]),
+                [[1, 2], [3, 4], [5, 6]]
             ),
-            [[1, 2, 3], [4, 5, 6], [7, 8, 9], [-1, -4], [-1, -7], [-4, -7], [-2, -5], [-2, -8], [-5, -8], [-3, -6], [-3, -9], [-6, -9]]);
+            true
+        )
     })
-
-});
-
-describe('CNF reduction', () => {
-    it('It should not alter an empty formula, or a false formula', () => {
-        assert.deepEqual(reduceCNF([]), [])
-        assert.deepEqual(reduceCNF([[]]), [[]])
+    it('Correctly handles negative symmetries', () => {
+        assert.equal(
+            validateSymmetry(
+                [[1, -3], [-1, 3]],
+                [[1, -3]]
+            ),
+            true
+        )
+        assert.equal(
+            validateSymmetry(
+                [[1, 3]],
+                [[1, -3]]
+            ),
+            false
+        )
     })
-});
+    it('Returns false on dissymmetries on the PHP', () => {
+        assert.equal(
+            validateSymmetry(
+                sortClauses([
+                    [1, 2], [3, 4], [5, 6],
+                    [-1, -3], [-3, -5], [-1, -5],
+                    [-2, -4], [-2, -6], [-4, -6]]),
+                [[1, 2]]
+            ),
+            false
+        )
+        assert.equal(
+            validateSymmetry(
+                sortClauses([
+                    [1, 2], [3, 4], [5, 6],
+                    [-1, -3], [-3, -5], [-1, -5],
+                    [-2, -4], [-2, -6], [-4, -6]]),
+                [[1, 2], [3, 4]]
+            ),
+            false
+        )
+    })
+})
+
+describe('Formula Optimization', () => {
+    //TODO add symmetry breaking procedures
+    it.skip('Solves the pidgeonhole principle', () => {
+        //pidgeonhole principle of 3 pidgeons in 2 holes
+        assert.deepEqual(
+            optimizeCNF([
+                [1, 2],
+                [3, 4],
+                [5, 6],
+                [-1, -3],
+                [-1, -5],
+                [-3, -5],
+                [-2, -4],
+                [-2, -6],
+                [-4, -6]]
+            ),
+            [[]]
+        )
+        //pidgeonhole principle of 4 pidgeons in 3 holes
+        assert.deepEqual(
+            optimizeCNF([
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+                [10, 11, 12],
+                [-1, -4],
+                [-1, -7],
+                [-1, -10],
+                [-4, -7],
+                [-4, -10],
+                [-7, -10],
+                [-2, -5],
+                [-2, -8],
+                [-2, -11],
+                [-5, -8],
+                [-5, -11],
+                [-8, -11],
+                [-3, -6],
+                [-3, -9],
+                [-3, -12],
+                [-6, -9],
+                [-6, -12],
+                [-9, -12]]
+            ),
+            [[]]
+        )
+    })
+})
