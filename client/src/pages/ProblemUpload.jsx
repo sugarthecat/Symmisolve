@@ -5,7 +5,7 @@ function ProblemUpload() {
     const [file, setFile] = useState(null)
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
-    const [error,setError] = useState("")
+    const [error, setError] = useState("")
     const updateSelectedFile = (event) => {
         setFile(event.target.files[0])
     }
@@ -17,13 +17,14 @@ function ProblemUpload() {
     }
     const publishProblem = async () => {
         //read file
-        const data =new FormData()
+        const data = new FormData()
         data.append('file', file)
         data.append('title', title)
         data.append('description', description)
         const res = await makePostRequestWithBodyData("upload", data)
-        if(res.status === 200){
-        }else{
+        if (res.status === 200) {
+            //TODO: Provide feedback
+        } else {
             const resError = await res.json()
             setError(resError)
         }
@@ -32,8 +33,8 @@ function ProblemUpload() {
         <div>
             <h1>Problem Upload</h1>
             <p>Upload a problem to the database.</p>
-            <p><input placeholder="Title..." value={title} onChange={updateTitle}/></p>
-            <p><textarea placeholder="Description..." className="description" value={description} onChange={updateDescription}/></p>
+            <p><input placeholder="Title..." value={title} onChange={updateTitle} /></p>
+            <p><textarea placeholder="Description..." className="description" value={description} onChange={updateDescription} /></p>
             <p>
                 <input accept=".cnf" id="problem-file-upload" type="file" onChange={updateSelectedFile} />
                 <button onClick={publishProblem}>Publish</button>
