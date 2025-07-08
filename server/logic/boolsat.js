@@ -411,6 +411,7 @@ function getSizeCNF(clauses) {
     return size
 }
 
-module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF, stringifyCNF, getSizeCNF, resolve, isEqual, isSubclause}
+const CURR_ALGO_VER = 1
+module.exports = { CURR_ALGO_VER, validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF, stringifyCNF, getSizeCNF, resolve, isEqual, isSubclause}
 
 //and they say mathematicians can't code :p

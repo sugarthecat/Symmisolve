@@ -1,0 +1,51 @@
+const { optimizeCNF, parseCNF, getSizeCNF, CURR_ALGO_VER } = require("../logic/boolsat.js");
+const fs = require("fs");
+const path = require("path");
+
+const BENCHMARK_INPUT_DIR = path.join(__dirname, "benchmark-problems");
+const BENCHMARK_OUTPUT_DIR = path.join(__dirname, "benchmark-results");
+
+const data = [];
+function runBenchmarkOn(problem, file, directory) {
+    console.log("Running benchmark on " + file + " in " + directory);
+    let benchmarkTime = Date.now();
+    const prevSize = getSizeCNF(problem);
+    const optimized = optimizeCNF(problem);
+    const newSize = getSizeCNF(optimized);
+    benchmarkTime = Date.now() - benchmarkTime;
+    data.push({ prevSize, newSize, benchmarkTime, file, pset:directory, algoVer: CURR_ALGO_VER });
+    console.log(`${prevSize} -> ${newSize} (${benchmarkTime}ms)`);
+}
+
+function runBenchmarkOnPset(pset) {
+    console.log("\n-----------  Running benchmark on " + pset + "  -----------\n");
+
+    const BENCHMARK_PSET = path.join(BENCHMARK_INPUT_DIR, pset);
+    return new Promise (resolve => {
+        fs.readdir(BENCHMARK_PSET, (err, probFiles) => {
+            probFiles.forEach((file) => {
+                if (!file.endsWith(".cnf")) return;
+                try {
+                    const data = fs.readFileSync(path.join(BENCHMARK_PSET, file), "utf8");
+                    const cnf = parseCNF(data);
+                    runBenchmarkOn(cnf, file, pset);
+                    resolve();
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        });
+    })
+}
+
+fs.readdir(BENCHMARK_INPUT_DIR, async (err, psetFiles) => {
+    //find directories in benchmark-problems
+    for(const psetFile of psetFiles) {
+        if (fs.lstatSync(path.join(BENCHMARK_INPUT_DIR, psetFile)).isDirectory()) {
+            //for each director, find files with .cnf extension
+            await runBenchmarkOnPset(psetFile);
+        }
+    }
+    console.log("Benchmark complete. Writing results to " + BENCHMARK_OUTPUT_DIR);
+});
+//TODO
