@@ -7,7 +7,6 @@ const BENCHMARK_OUTPUT_DIR = path.join(__dirname, "benchmark-results");
 
 const data = [];
 function runBenchmarkOn(problem, file, directory) {
-    console.log("Running benchmark on " + file + " in " + directory);
     let benchmarkTime = Date.now();
     const prevSize = getSizeCNF(problem);
     const optimized = optimizeCNF(problem);
@@ -41,11 +40,17 @@ function runBenchmarkOnPset(pset) {
 fs.readdir(BENCHMARK_INPUT_DIR, async (err, psetFiles) => {
     //find directories in benchmark-problems
     for(const psetFile of psetFiles) {
+        if(psetFile === "blocksworld") continue; // this benchmark takes forever rn, so skip it for now
         if (fs.lstatSync(path.join(BENCHMARK_INPUT_DIR, psetFile)).isDirectory()) {
             //for each director, find files with .cnf extension
             await runBenchmarkOnPset(psetFile);
         }
     }
-    console.log("Benchmark complete. Writing results to " + BENCHMARK_OUTPUT_DIR);
+    //write results to file
+    //make data into a csv
+    let csv = "prevSize,newSize,benchmarkTime,file,pset,algoVer\n";
+    for(const row of data) {
+        csv += `${row.prevSize},${row.newSize},${row.benchmarkTime},${row.file},${row.pset},${row.algoVer}\n`;
+    }
+    fs.writeFileSync(path.join(BENCHMARK_OUTPUT_DIR, `benchmark.csv`), csv, "utf8");
 });
-//TODO

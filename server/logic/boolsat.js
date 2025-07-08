@@ -53,8 +53,8 @@ function parseCNF(formulaText) {
     }
     const lines = formulaText.replaceAll("\t", " ").replaceAll("\r", "").split('\n');
     let clauses = [];
+    let currClause = [];
     for (let i = 0; i < lines.length; i++) {
-        let currClause = [];
         if (lines[i].startsWith("c")) {
             continue;
         } else if (lines[i].startsWith("p cnf")) {
@@ -65,6 +65,7 @@ function parseCNF(formulaText) {
             for (let i = 0; i < parts.length; i++) {
                 if (parts[i] === "0") {
                     clauses.push(currClause);
+                    currClause = [];
                     break
                 } else {
                     if (parts[i].length === 0) {
