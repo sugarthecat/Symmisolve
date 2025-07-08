@@ -7,26 +7,26 @@ function validateCNF(formulaText) {
     const lines = formulaText.replaceAll("\t", " ").replaceAll("\r", "").split("\n");
     let numvars = -1;
     let numclauses = -1;
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith("c") || lines[i].length < 2) {
+    for (const line of lines) {
+        if (line.startsWith("c") || line.length < 2) {
             //skip comment lines AND empty lines
             continue;
-        } else if (lines[i].startsWith("p cnf")) {
-            const parts = lines[i].replaceAll("  ", " ").split(" ");
+        } else if (line.startsWith("p cnf")) {
+            const parts = line.replaceAll("  ", " ").split(" ");
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
         } else if (numvars < 0 || numclauses < 1) {
             return false;
         } else {
-            const parts = lines[i].split(" ");
-            for (let i = 0; i < parts.length; i++) {
-                if (parts[i] === "0") {
+            const parts = line.split(" ");
+            for (const part of parts) {
+                if (part === "0") {
                     break;
                 }
-                if (parts[i].length === 0) {
+                if (part.length === 0) {
                     continue;
                 }
-                let partInt = parseInt(parts[i]);
+                let partInt = parseInt(part);
                 if (isNaN(partInt)) {
                     return false;
                 }
@@ -51,27 +51,27 @@ function parseCNF(formulaText) {
     const lines = formulaText.replaceAll("\t", " ").replaceAll("\r", "").split("\n");
     let clauses = [];
     let currClause = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith("c")) {
+    for (const line of lines) {
+        if (line.startsWith("c")) {
             continue;
-        } else if (lines[i].startsWith("p cnf")) {
-            const parts = lines[i].split(" ");
+        } else if (line.startsWith("p cnf")) {
+            const parts = line.split(" ");
             numvars = parseInt(parts[2]);
         } else {
-            const parts = lines[i].split(" ");
-            for (let i = 0; i < parts.length; i++) {
-                if (parts[i] === "0") {
+            const parts = line.split(" ");
+            for (const part of parts) {
+                if (part === "0") {
                     clauses.push(currClause);
                     currClause = [];
                     break;
                 } else {
-                    if (parts[i].length === 0) {
+                    if (part.length === 0) {
                         continue;
                     }
-                    if (isNaN(parseInt(parts[i]))) {
+                    if (isNaN(parseInt(part))) {
                         continue;
                     }
-                    currClause.push(parseInt(parts[i]));
+                    currClause.push(parseInt(part));
                 }
             }
         }
@@ -171,7 +171,7 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     newClause = formatClause(newClause);
                     if (newClause !== null) {
                         toAdd.push(newClause);
-                    }else{
+                    } else {
                         //tautological clause, meaning likely the relation itself got mapped away.
                         // Keep it around, since reduce is nondestructive
                         unmappedClauses.push(writtenClause);
@@ -181,6 +181,7 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                 }
             }
             writtenClauses = unmappedClauses;
+            console.log(`Mapped ${toAdd.length} clauses`);
         }
     }
     //now, sort written clauses.
@@ -413,9 +414,9 @@ function sortClauses(clauses) {
                 break;
             }
         }
-        if(swap){
+        if (swap) {
             return 1;
-        }else{
+        } else {
             return -1;
         }
     }
@@ -425,15 +426,15 @@ function sortClauses(clauses) {
 function stringifyCNF(clauses) {
     const clauseCount = clauses.length;
     let n_variables = 0;
-    for (let i = 0; i < clauses.length; i++) {
-        for (let j = 0; j < clauses[i].length; j++) {
-            n_variables = Math.max(n_variables, Math.abs(clauses[i][j]));
+    for (const clause of clauses) {
+        for (const literal of clause) {
+            n_variables = Math.max(n_variables, Math.abs(literal));
         }
     }
     let string = `p cnf ${n_variables} ${clauseCount}\n`; //line 1
-    for (let i = 0; i < clauses.length; i++) {
-        for (let j = 0; j < clauses[i].length; j++) {
-            string += clauses[i][j];
+    for (const clause of clauses) {
+        for (const literal of clause) {
+            string += literal;
             string += " ";
         }
         string += "0\n";
