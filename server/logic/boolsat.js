@@ -160,19 +160,19 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                 let changed = false;
                 for (let j = 0; j < writtenClause.length; j++) {
                     let literal = writtenClause[j];
-                    if (Math.abs(literal) in mappings) {
-                        newClause.push(mappings[Math.abs(literal)] * (literal < 0 ? -1 : 1));
+                    //follow the mapping chain until we reach an unmapped variable
+                    while (Math.abs(literal) in mappings) {
+                        literal = mappings[Math.abs(literal)] * (literal < 0 ? -1 : 1);
                         changed = true;
-                    } else {
-                        newClause.push(literal);
                     }
+                    newClause.push(literal);
                 }
                 if (changed) {
                     newClause = formatClause(newClause);
                     if (newClause !== null) {
                         toAdd.push(newClause);
                     }
-                }else{
+                } else {
                     unmappedClauses.push(writtenClause);
                 }
             }
