@@ -181,7 +181,6 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                 }
             }
             writtenClauses = unmappedClauses;
-            console.log(`Mapped ${toAdd.length} clauses`);
         }
     }
     //now, sort written clauses.
