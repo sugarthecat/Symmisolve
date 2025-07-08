@@ -18,7 +18,6 @@ function runBenchmarkOn(problem, file, directory) {
 
 function runBenchmarkOnPset(pset) {
     console.log("\n-----------  Running benchmark on " + pset + "  -----------\n");
-    if(pset === "blocksworld") return;
     const BENCHMARK_PSET = path.join(BENCHMARK_INPUT_DIR, pset);
     return new Promise (resolve => {
         fs.readdir(BENCHMARK_PSET, (err, probFiles) => {
