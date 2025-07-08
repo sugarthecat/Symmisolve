@@ -16,7 +16,6 @@ function validateCNF(formulaText) {
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
         } else if (numvars < 0 || numclauses < 1) {
-            console.log("Invalid Header");
             return false;
         } else {
             const parts = lines[i].split(" ");
@@ -29,11 +28,9 @@ function validateCNF(formulaText) {
                 }
                 let partInt = parseInt(parts[i]);
                 if (isNaN(partInt)) {
-                    console.log("Invalid Literal");
                     return false;
                 }
                 if (Math.abs(partInt) > numvars) {
-                    console.log("Out Of Variable Bounds");
                     return false;
                 }
             }
@@ -90,6 +87,7 @@ function parseCNF(formulaText) {
 function reduceCNF(clauses, alreadyReducedClauses = []) {
     let writtenClauses = alreadyReducedClauses.slice();
     let toAdd = []; //used as a stack
+    let mappings = {} //used as a dictionary
     //copy clauses into toAdd
     for (let i = 0; i < clauses.length; i++) {
         toAdd.push(clauses[i]);
@@ -102,34 +100,49 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
         }
         let willAdd = true;
         for (let i = 0; i < writtenClauses.length; i++) {
+            const writtenClause = writtenClauses[i];
             //remove duplicates and subclauses
-            if (isEqual(writtenClauses[i], currClause)) {
+            if (isEqual(writtenClause, currClause)) {
                 willAdd = false;
                 break;
-            } else if (isSubclause(currClause, writtenClauses[i])) {
+            } else if (isSubclause(currClause, writtenClause)) {
                 willAdd = false;
                 break;
-            } else if (isSubclause(writtenClauses[i], currClause)) {
+            } else if (isSubclause(writtenClause, currClause)) {
                 writtenClauses.splice(i, 1);
                 i--;
                 continue
             }
             //nice resolutions
-            let newClause = resolve(currClause, writtenClauses[i]);
+            let newClause = resolve(currClause, writtenClause);
             if (newClause !== null) {
                 //if the two clauses resolve to something meaningful, see if it can be used for an immediate size reduction
-                if (isSubclause(writtenClauses[i], newClause)) {
+                if (isSubclause(writtenClause, newClause)) {
                     //if the new clause is a subclause of the written clause the written clause is redundant
                     //doesn't mean the new clause can replace it, though, so add it to the stack
                     writtenClauses.splice(i, 1);
                     toAdd.push(newClause);
                     i--;
+                    continue;
                 } else if (isSubclause(currClause, newClause)) {
                     //if the new clause is a subclause of the current clause, the current clause is redundant
                     //it does mean the new clause can replace it, but we have to check relations with all other clauses now
                     toAdd.push(newClause);
                     willAdd = false;
                     break;
+                }
+            }
+            //check for an equality relation
+            //we already know they dont resolve, so if there both 2 literals, they must be either an equality or inequality relation
+            if( currClause.length === 2 && writtenClauses[i].length === 2
+                && Math.abs(currClause[0]) === Math.abs(writtenClause[0])
+                && Math.abs(currClause[1]) === Math.abs(writtenClause[1])
+            ) {
+                let isEqual = (currClause[0] * currClause[1]) < 0; //equality if opposite signs, opposite if same signs
+                if (isEqual) {
+                    mappings[Math.abs(currClause[1])] = Math.abs(currClause[0]);
+                }else{
+                    mappings[Math.abs(currClause[1])] = -Math.abs(currClause[0]);
                 }
             }
         }
