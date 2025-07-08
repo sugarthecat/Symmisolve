@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { makeGetRequest } from '../logic/requestTemplates';
+import { makeGetRequest, makePutRequest } from '../logic/requestTemplates';
 import "./SolverPage.css";
 import { getSizeCNF, isEqual, isSubclause, resolve } from '../logic/boolsat';
 function SolverPage() {
@@ -14,6 +14,7 @@ function SolverPage() {
     const [clauses, setClauses] = useState([])
     const [startIndex, setStartIndex] = useState(0);
     const [solutionSteps, setSolutionSteps] = useState([]);
+    const [error, setError] = useState("");
     const getProblem = async () => {
         const res = await makeGetRequest(`problem/${problemId}/file`);
         if (res.status === 200) {
@@ -99,6 +100,16 @@ function SolverPage() {
         setSolutionSteps(newSolutionSteps);
         setStartIndex(Math.floor(newClausesList.length / 100));
     }
+
+    const sendReduction = async () => {
+        const res = await makePutRequest(`problem/${problemId}/reduce`, { solution: solutionSteps })
+        const data = await res.json();
+        if (res.status === 200) {
+
+        } else {
+            setError(JSON.stringify(data))
+        }
+    }
     if (!isLoaded) {
         return (
             <div>
@@ -147,14 +158,18 @@ function SolverPage() {
                 <div className='clauses'>
                     {clauseList}
                 </div>
+                <div>
+                    {startIndex != 0 && <button onClick={() => { setStartIndex(startIndex - 1) }}>Previous</button>}
+                    {startIndex < Math.floor(resultCount / 100) && <button onClick={() => { setStartIndex(startIndex + 1) }}>Next</button>}
+                </div>
                 <b>Steps {`(${problemSize} Size -> ${getSizeCNF(clauses)} Size)`}</b>
                 <div className='solution-steps'>
                     {solutionSteps.map((step, index) => { return <div>{formatStep(step)} </div> })}
                 </div>
                 <div>
-                    {startIndex != 0 && <button onClick={() => { setStartIndex(startIndex - 1) }}>Previous</button>}
-                    {startIndex < Math.floor(resultCount / 100) && <button onClick={() => { setStartIndex(startIndex + 1) }}>Next</button>}
+                    {problemSize > getSizeCNF(clauses) && <button onClick={sendReduction}>Send Reduction</button>}
                 </div>
+                <p className='error'>{error}</p>
             </div>
         )
 

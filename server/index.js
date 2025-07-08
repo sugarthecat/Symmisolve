@@ -9,8 +9,16 @@ const PORT = 3000;
 const { PrismaClient } = require("./generated/prisma");
 const prisma = new PrismaClient();
 const { hashPassword, verifyPassword } = require("./logic/auth");
-const { validateCNF, parseCNF, stringifyCNF, reduceCNF, getSizeCNF } = require("./logic/boolsat");
-const { resolve, isEqual, isSubclause } = require("../client/src/logic/boolsat");
+const {
+    validateCNF,
+    parseCNF,
+    stringifyCNF,
+    reduceCNF,
+    getSizeCNF,
+    resolve,
+    isEqual,
+    isSubclause,
+} = require("./logic/boolsat");
 
 app.use(
     cors({
@@ -172,7 +180,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     }
 });
 
-app.put("/api/:problemId/solve", express.json(), async (req, res) => {
+app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
     const { problemId } = req.params;
     const { solution } = req.body;
     if (!req.session.user || req.session.user.accessLevel < 1) {
@@ -191,12 +199,8 @@ app.put("/api/:problemId/solve", express.json(), async (req, res) => {
     const oldSize = getSizeCNF(problemCNF);
     for (let i = 0; i < solution.length; i++) {
         let step = solution[i];
-        if (step.type === "resolve") {
+        if (step.type === "resolution") {
             let validLogic = isEqual(resolve(step.old[0], step.old[1]), step.new);
-            if (!validLogic) {
-                badRequestError(res, "Invalid solution", 400);
-                return;
-            }
             for (let j = 0; j < step.old.length; j++) {
                 let oldClause = step.old[j];
                 let foundMatch = false;
@@ -206,11 +210,41 @@ app.put("/api/:problemId/solve", express.json(), async (req, res) => {
                         isSubclause(oldClause, problemCNF[k])
                     ) {
                         foundMatch = true;
+                        break;
                     }
                 }
+                if (!foundMatch) {
+                    validLogic = false;
+                    break;
+                }
             }
+            if (!validLogic) {
+                badRequestError(res, "Invalid solution", 400);
+                return;
+            }
+            //so we're good!=
+            solutionFile += `Res ${step.old[0]} / ${step.old[1]} -> ${step.new}\n`;
+            problemCNF = reduceCNF([step.new], problemCNF);
+        } else {
+            badRequestError(res, `Invalid step type - What is ${step.type}?`, 400);
         }
     }
+    const newSize = getSizeCNF(problemCNF);
+    if (newSize >= oldSize) {
+        badRequestError(res, "Size Not Reduced", 400);
+        return;
+    }
+    const sizeReduction = oldSize - newSize;
+    const newProblemFileData = {
+        problem_file: stringifyCNF(problemCNF),
+        solution_file: solutionFile,
+    };
+    const update = await prisma.problemFile.update({
+        where: { id: problem.file.id },
+        data: newProblemFileData,
+    });
+    //TODO: Update size on the problem page
+    res.json(update);
 });
 
 app.get("/api/problems", express.json(), async (req, res) => {
@@ -246,7 +280,6 @@ app.get("/api/problem/:problemId", express.json(), async (req, res) => {
 });
 
 app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
-    //console.log(req)
     const session = req.session;
     const { problemId } = req.params;
     if (!session.user) {

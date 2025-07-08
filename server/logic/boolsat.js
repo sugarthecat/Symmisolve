@@ -411,6 +411,6 @@ function getSizeCNF(clauses) {
     return size
 }
 
-module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF, stringifyCNF, getSizeCNF }
+module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF, stringifyCNF, getSizeCNF, resolve, isEqual, isSubclause}
 
 //and they say mathematicians can't code :p
