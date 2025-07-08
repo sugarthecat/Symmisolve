@@ -276,6 +276,9 @@ function formatClause(clause) {
                 if (finalClause[mid] === -clause[i]) {
                     tautological = true;
                     break;
+                }else{
+                    //copy of the same literal
+                    break;
                 }
             } else if (Math.abs(finalClause[mid]) < Math.abs(clause[i])) {
                 lb = mid + 1;
