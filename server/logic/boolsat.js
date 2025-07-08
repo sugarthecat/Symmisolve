@@ -171,6 +171,10 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     newClause = formatClause(newClause);
                     if (newClause !== null) {
                         toAdd.push(newClause);
+                    }else{
+                        //tautological clause, meaning likely the relation itself got mapped away.
+                        // Keep it around, since reduce is nondestructive
+                        unmappedClauses.push(writtenClause);
                     }
                 } else {
                     unmappedClauses.push(writtenClause);
@@ -392,41 +396,30 @@ function isEqual(clause1, clause2) {
  * @returns a list of clauses sorted lexically
  */
 function sortClauses(clauses) {
-    let writtenClauses = clauses;
-    let sorted = false;
-    while (!sorted) {
-        sorted = true;
-        for (let i = 0; i < writtenClauses.length - 1; i++) {
-            let swap = false;
-            let reachedEnd = true;
-            let clause1 = writtenClauses[i];
-            let clause2 = writtenClauses[i + 1];
-            //literal by literal, compare the clauses lexically
-            for (let j = 0; j < clause1.length; j++) {
-                if (
-                    Math.abs(clause1[j]) > Math.abs(clause2[j]) ||
-                    (Math.abs(clause1[j]) === Math.abs(clause2[j]) && clause1[j] < clause2[j])
-                ) {
-                    swap = true;
-                    reachedEnd = false;
-                    break;
-                } else if (clause1[j] != clause2[j]) {
-                    reachedEnd = false;
-                    break;
-                }
-            }
-            if (reachedEnd) {
-                swap = clause2.length > clause1.length;
-            }
-            if (swap) {
-                sorted = false;
-                let temp = writtenClauses[i];
-                writtenClauses[i] = writtenClauses[i + 1];
-                writtenClauses[i + 1] = temp;
+    function compare(clause1, clause2) {
+        //literal by literal, compare the clauses lexically
+        let swap = false;
+        let reachedEnd = true;
+        for (let j = 0; j < clause1.length; j++) {
+            if (
+                Math.abs(clause1[j]) > Math.abs(clause2[j]) ||
+                (Math.abs(clause1[j]) === Math.abs(clause2[j]) && clause1[j] < clause2[j])
+            ) {
+                swap = true;
+                reachedEnd = false;
+                break;
+            } else if (clause1[j] != clause2[j]) {
+                reachedEnd = false;
+                break;
             }
         }
+        if(swap){
+            return 1;
+        }else{
+            return -1;
+        }
     }
-    return writtenClauses;
+    return clauses.sort(compare);
 }
 
 function stringifyCNF(clauses) {
