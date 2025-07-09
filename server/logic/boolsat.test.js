@@ -2,14 +2,20 @@ import { describe, it } from 'node:test';
 import testCNFValidation from './testSuites/testCNFValidation.test.js';
 import testCNFParsing from './testSuites/testCNFParsing.test.js';
 import testCNFReduction from './testSuites/testCNFReduction.test.js';
+import testVerifySymmetry from './testSuites/testVerifySymmetry.test.js';
 import assert from 'node:assert/strict';
 import { getSizeCNF, optimizeCNF, sortClauses, stringifyCNF, validateSymmetry } from './boolsat.js';
+import testVerifyAssignment from './testSuites/testVerifyAssignment.test.js';
 
 describe('CNF Validation', testCNFValidation);
 
 describe('CNF Parsing', testCNFParsing);
 
 describe('CNF Reduction', testCNFReduction);
+
+describe('CNF Symmetry', testVerifySymmetry);
+
+describe('CNF Partial assignment', testVerifyAssignment);
 
 describe('CNF Stringification', () => {
     it('Correctly stringifies CNF formulas', () => {
@@ -68,69 +74,6 @@ describe('CNF Size', () => {
         )
     })
 });
-
-describe('Symmetry Verification', () => {
-    it('Verifies symmetry on the PHP', () => {
-        assert.equal(
-            validateSymmetry(
-                sortClauses([
-                    [1, 2], [3, 4], [5, 6],
-                    [-1, -3], [-3, -5], [-1, -5],
-                    [-2, -4], [-2, -6], [-4, -6]]),
-                [[1, 3], [2, 4]]
-            ),
-            true
-        )
-        assert.equal(
-            validateSymmetry(
-                sortClauses([
-                    [1, 2], [3, 4], [5, 6],
-                    [-1, -3], [-3, -5], [-1, -5],
-                    [-2, -4], [-2, -6], [-4, -6]]),
-                [[1, 2], [3, 4], [5, 6]]
-            ),
-            true
-        )
-    })
-    it('Correctly handles negative symmetries', () => {
-        assert.equal(
-            validateSymmetry(
-                [[1, -3], [-1, 3]],
-                [[1, -3]]
-            ),
-            true
-        )
-        assert.equal(
-            validateSymmetry(
-                [[1, 3]],
-                [[1, -3]]
-            ),
-            false
-        )
-    })
-    it('Returns false on dissymmetries on the PHP', () => {
-        assert.equal(
-            validateSymmetry(
-                sortClauses([
-                    [1, 2], [3, 4], [5, 6],
-                    [-1, -3], [-3, -5], [-1, -5],
-                    [-2, -4], [-2, -6], [-4, -6]]),
-                [[1, 2]]
-            ),
-            false
-        )
-        assert.equal(
-            validateSymmetry(
-                sortClauses([
-                    [1, 2], [3, 4], [5, 6],
-                    [-1, -3], [-3, -5], [-1, -5],
-                    [-2, -4], [-2, -6], [-4, -6]]),
-                [[1, 2], [3, 4]]
-            ),
-            false
-        )
-    })
-})
 
 describe('Formula Optimization', () => {
     //TODO add symmetry breaking procedures
