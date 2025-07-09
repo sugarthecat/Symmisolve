@@ -171,7 +171,7 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     newClause.push(literal);
                     if (literal in literalCount) {
                         literalCount[literal]++;
-                    }else{
+                    }else if(writtenClause.length > 1){
                         literalCount[literal] = 1;
                     }
                 }
@@ -179,7 +179,7 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     newClause = formatClause(newClause);
                     if (newClause !== null) {
                         toAdd.push(newClause);
-                    } else {
+                    } else if(writtenClause.length == 2) {
                         //tautological clause, meaning likely the relation itself got mapped away.
                         // Keep it around, since reduce is nondestructive
                         unmappedClauses.push(writtenClause);
@@ -194,9 +194,9 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     //we do the compute in the positive branch
                     continue;
                 }
-                if (literalCount[literal] === 0 && literalCount[-literal] > 1){
+                if (literalCount[literal] === 0 && literalCount[-literal] > 0){
                     toAdd.push([-literal]);
-                }else if (literalCount[literal] > 1 && literalCount[-literal] === 0){
+                }else if (literalCount[literal] > 0 && literalCount[-literal] === 0){
                     toAdd.push([literal]);
                 }
             }
