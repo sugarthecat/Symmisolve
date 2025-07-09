@@ -1,3 +1,5 @@
+const e = require("express");
+
 /**
  * Validates the formatting of a CNF formula
  * @param {String} formulaText
@@ -153,19 +155,25 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
         }
         if (toAdd.length == 0) {
             //check all mappings - If a variable is supposed to be swapped to a lexically earlier variable, swap it.
+            //at the same time, check for variables that can be set positive or negative
             let unmappedClauses = [];
+            let literalCount = {};
             while (writtenClauses.length > 0) {
                 const writtenClause = writtenClauses.pop();
                 let newClause = [];
                 let changed = false;
-                for (let j = 0; j < writtenClause.length; j++) {
-                    let literal = writtenClause[j];
+                for (let literal of writtenClause) {
                     //follow the mapping chain until we reach an unmapped variable
                     while (Math.abs(literal) in mappings) {
                         literal = mappings[Math.abs(literal)] * (literal < 0 ? -1 : 1);
                         changed = true;
                     }
                     newClause.push(literal);
+                    if (literal in literalCount) {
+                        literalCount[literal]++;
+                    }else{
+                        literalCount[literal] = 1;
+                    }
                 }
                 if (changed) {
                     newClause = formatClause(newClause);
@@ -178,6 +186,18 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     }
                 } else {
                     unmappedClauses.push(writtenClause);
+                }
+            }
+            //if a variable is only positive, or only negative, we can set it to be positive or negative
+            for(const literal in literalCount){
+                if (literal < 0){
+                    //we do the compute in the positive branch
+                    continue;
+                }
+                if (literalCount[literal] === 0 && literalCount[-literal] > 1){
+                    toAdd.push([-literal]);
+                }else if (literalCount[literal] > 1 && literalCount[-literal] === 0){
+                    toAdd.push([literal]);
                 }
             }
             writtenClauses = unmappedClauses;
