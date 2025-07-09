@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { makeGetRequest, makePutRequest } from '../logic/requestTemplates';
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { makeGetRequest, makePutRequest } from "../logic/requestTemplates";
 import "./SolverPage.css";
-import { getSizeCNF, isEqual, isSubclause, resolve } from '../logic/boolsat';
+import { getSizeCNF, isEqual, isSubclause, resolve } from "../logic/boolsat";
+const SOLVER_PAGE = {
+    STEPS: 1,
+    PARTIAL_SOLVE: 2,
+    SYMMETRY_BREAKING: 3,
+};
 function SolverPage() {
     const navigate = useNavigate();
     const { problemId } = useParams();
@@ -11,44 +16,56 @@ function SolverPage() {
     const [problemSize, setProblemSize] = useState(0);
 
     const [selectedClause, setSelectedClause] = useState(null);
-    const [clauses, setClauses] = useState([])
+    const [clauses, setClauses] = useState([]);
     const [startIndex, setStartIndex] = useState(0);
     const [solutionSteps, setSolutionSteps] = useState([]);
     const [error, setError] = useState("");
+    const [sidePage, setSidePage] = useState(SOLVER_PAGE.STEPS);
     const getProblem = async () => {
         const res = await makeGetRequest(`problem/${problemId}/file`);
         if (res.status === 200) {
             const data = await res.json();
             setProblem(data.problem);
             setIsLoaded(true);
-            setClauses(data.problem.file.problem_file)
+            setClauses(data.problem.file.problem_file);
             setProblemSize(getSizeCNF(data.problem.file.problem_file));
         } else {
-            navigate('/');
+            navigate("/");
         }
-    }
-    useEffect(() => { getProblem(); }, [problemId])
-
-
+    };
+    useEffect(() => {
+        getProblem();
+    }, [problemId]);
 
     const stringifyClause = (clause) => {
-        return `[${clause.join(", ")}]`
-    }
+        return `[${clause.join(", ")}]`;
+    };
 
     const formatClause = (step) => {
-        return stringifyClause(step)
+        return stringifyClause(step);
         //TODO: Actually make JSX elements for the clause
-    }
+    };
 
     const formatStep = (step) => {
         if (step.type === "resolution") {
-            return <div><p>Resolving {formatClause(step.old[0])} and {formatClause(step.old[1])} yields {formatClause(step.new)}</p></div>
+            return (
+                <div>
+                    <p>
+                        Resolving {formatClause(step.old[0])} and {formatClause(step.old[1])} yields{" "}
+                        {formatClause(step.new)}
+                    </p>
+                </div>
+            );
         } else {
-            return <div><p className='error'>{step.type} isn't a valid step type</p></div>
+            return (
+                <div>
+                    <p className="error">{step.type} isn't a valid step type</p>
+                </div>
+            );
         }
-    }
+    };
     const addClause = (clause1, clause2) => {
-        let toAdd = [resolve(clause1, clause2)]
+        let toAdd = [resolve(clause1, clause2)];
         solutionSteps.push({ type: "resolution", old: [clause1, clause2], new: toAdd[0] });
         let newClausesList = clauses;
         let newSolutionSteps = solutionSteps;
@@ -56,7 +73,10 @@ function SolverPage() {
             let newClause = toAdd.pop();
             let add = true;
             for (let i = 0; i < newClausesList.length; i++) {
-                if (isEqual(newClausesList[i], newClause) || isSubclause(newClause, newClausesList[i])) {
+                if (
+                    isEqual(newClausesList[i], newClause) ||
+                    isSubclause(newClause, newClausesList[i])
+                ) {
                     //new clause is redundant
                     //Subsume step (not nessecary in proof, will not include for that reason)
                     //solutionSteps.push({ type: "subsume", old: newClause, new: newClausesList[i] });
@@ -74,15 +94,15 @@ function SolverPage() {
                 if (resolution !== null) {
                     if (isSubclause(newClause, resolution)) {
                         //new clause is redundant
-                        solutionSteps.push({ type: "resolution", old: [newClausesList[i], newClause], new: resolution });
                         //Subsume step (not nessecary in proof, will not include for that reason)
+                        //RR step is encapsulated by backend reduction anyways, disincluded
                         //solutionSteps.push({ type: "subsume", old: newClause, new: resolution });
                         add = false;
                         toAdd.push(resolution);
                         break;
                     } else if (isSubclause(newClausesList[i], resolution)) {
                         //old clause is redundant
-                        solutionSteps.push({ type: "resolution", old: [newClausesList[i], newClause], new: resolution });
+                        //RR step is encapsulated by backend reduction anyways, disincluded
                         //Subsume step (not nessecary in proof, will not include for that reason)
                         //solutionSteps.push({ type: "subsume", old: newClausesList[i], new: resolution });
                         toAdd.push(resolution);
@@ -99,33 +119,43 @@ function SolverPage() {
         setClauses(newClausesList);
         setSolutionSteps(newSolutionSteps);
         setStartIndex(Math.floor(newClausesList.length / 100));
-    }
+    };
 
     const sendReduction = async () => {
-        const res = await makePutRequest(`problem/${problemId}/reduce`, { solution: solutionSteps })
+        const res = await makePutRequest(`problem/${problemId}/reduce`, {
+            solution: solutionSteps,
+        });
         const data = await res.json();
         if (res.status === 200) {
-
         } else {
-            setError(JSON.stringify(data))
+            setError(JSON.stringify(data));
         }
-    }
+    };
     if (!isLoaded) {
         return (
             <div>
-                <p>
-                    Loading...
-                </p>
+                <p>Loading...</p>
             </div>
-        )
+        );
     } else {
+        //loaded
         const hasSelectedClause = selectedClause !== null;
 
         let resultCount = 0;
-        let clauseList = []
+        let clauseList = [];
+        //set clause list
         if (hasSelectedClause) {
             clauseList.push(
-                <p key={stringifyClause(selectedClause)}>{stringifyClause(selectedClause)}  <button onClick={() => { setSelectedClause(null) }}>Deselect</button></p>
+                <p key={stringifyClause(selectedClause)}>
+                    {stringifyClause(selectedClause)}{" "}
+                    <button
+                        onClick={() => {
+                            setSelectedClause(null);
+                        }}
+                    >
+                        Deselect
+                    </button>
+                </p>
             );
             for (let i = 0; i < clauses.length; i++) {
                 if (clauses[i] === selectedClause) {
@@ -133,47 +163,122 @@ function SolverPage() {
                 }
                 let resolution = resolve(selectedClause, clauses[i]);
                 if (resolution === null) {
-                    continue
+                    continue;
                 }
                 clauseList.push(
-                    <div key={stringifyClause(clauses[i])}>{stringifyClause(clauses[i])} <button onClick={() => {
-                        addClause(selectedClause, clauses[i]);
-                        setSelectedClause(null)
-                    }}>Resolve</button></div>
+                    <div key={stringifyClause(clauses[i])}>
+                        {stringifyClause(clauses[i])}{" "}
+                        <button
+                            onClick={() => {
+                                addClause(selectedClause, clauses[i]);
+                                setSelectedClause(null);
+                            }}
+                        >
+                            Resolve
+                        </button>
+                    </div>
                 );
             }
         } else {
-            clauseList = clauses.slice(startIndex * 100, startIndex * 100 + 100).map((clause, index) => {
-                return <div key={stringifyClause(clause)}>{stringifyClause(clause)} <button onClick={() => { setSelectedClause(clause) }}>Select</button></div>
-            })
+            clauseList = clauses
+                .slice(startIndex * 100, startIndex * 100 + 100)
+                .map((clause, index) => {
+                    return (
+                        <div key={stringifyClause(clause)}>
+                            {stringifyClause(clause)}{" "}
+                            <button
+                                onClick={() => {
+                                    setSelectedClause(clause);
+                                }}
+                            >
+                                Select
+                            </button>
+                        </div>
+                    );
+                });
             resultCount = clauses.length;
         }
         if (startIndex * 100 >= clauses.length) {
-            setStartIndex(0)
+            setStartIndex(0);
         }
         return (
             <div>
-                <p><Link to={`/problem/${problemId}`}>Return to Problem Page</Link></p>
-                <h1>{problem.name}</h1>
-                <div className='clauses'>
-                    {clauseList}
+                <p>
+                    <Link to={`/problem/${problemId}`}>Return to Problem Page</Link>
+                </p>
+                <div id="solver-pages">
+                    <div className="solver-side-page">
+                        <h1>{problem.name}</h1>
+                        <div className="clauses">{clauseList}</div>
+                        <div>
+                            {startIndex != 0 && (
+                                <button
+                                    onClick={() => {
+                                        setStartIndex(startIndex - 1);
+                                    }}
+                                >
+                                    Previous
+                                </button>
+                            )}
+                            {startIndex < Math.floor(resultCount / 100) && (
+                                <button
+                                    onClick={() => {
+                                        setStartIndex(startIndex + 1);
+                                    }}
+                                >
+                                    Next
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="solver-side-page">
+                        <div>
+                            <button
+                                onClick={() => {
+                                    setSidePage(SOLVER_PAGE.STEPS);
+                                }}
+                            >
+                                Solution Steps
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setSidePage(SOLVER_PAGE.PARTIAL_SOLVE);
+                                }}
+                            >
+                                Partial Solve
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setSidePage(SOLVER_PAGE.SYMMETRY_BREAKING);
+                                }}
+                            >
+                                Symmetry Breaking
+                            </button>
+                        </div>
+                        {sidePage === SOLVER_PAGE.STEPS && (
+                            <>
+                                <b>
+                                    Steps {`(${problemSize} Size -> ${getSizeCNF(clauses)} Size)`}
+                                </b>
+                                <div className="solution-steps">
+                                    {solutionSteps.map((step, index) => {
+                                        return <div>{formatStep(step)} </div>;
+                                    })}
+                                </div>
+                                <div>
+                                    {problemSize > getSizeCNF(clauses) && (
+                                        <button onClick={sendReduction}>Send Reduction</button>
+                                    )}
+                                </div>
+                                <p className="error">{error}</p>
+                            </>
+                        )}
+                        {sidePage === SOLVER_PAGE.PARTIAL_SOLVE && <>Partial Solve</>}
+                    </div>
                 </div>
-                <div>
-                    {startIndex != 0 && <button onClick={() => { setStartIndex(startIndex - 1) }}>Previous</button>}
-                    {startIndex < Math.floor(resultCount / 100) && <button onClick={() => { setStartIndex(startIndex + 1) }}>Next</button>}
-                </div>
-                <b>Steps {`(${problemSize} Size -> ${getSizeCNF(clauses)} Size)`}</b>
-                <div className='solution-steps'>
-                    {solutionSteps.map((step, index) => { return <div>{formatStep(step)} </div> })}
-                </div>
-                <div>
-                    {problemSize > getSizeCNF(clauses) && <button onClick={sendReduction}>Send Reduction</button>}
-                </div>
-                <p className='error'>{error}</p>
             </div>
-        )
-
+        );
     }
 }
 
-export default SolverPage
+export default SolverPage;
