@@ -472,7 +472,7 @@ function getSizeCNF(clauses) {
     return size;
 }
 
-const CURR_ALGO_VER = 3;
+const CURR_ALGO_VER = 2;
 module.exports = {
     CURR_ALGO_VER,
     validateCNF,
