@@ -51,5 +51,5 @@ fs.readdir(BENCHMARK_INPUT_DIR, async (err, psetFiles) => {
         csv += `${row.prevSize},${row.newSize},${row.benchmarkTime},${row.file},${row.pset},${row.algoVer}\n`;
     }
     let now = new Date();
-    fs.writeFileSync(path.join(BENCHMARK_OUTPUT_DIR, `bench-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}:${now.getMinutes()}.csv`), csv, "utf8");
+    fs.writeFileSync(path.join(BENCHMARK_OUTPUT_DIR, `bench-${now.getFullYear()}-${now.getMonth()}/${now.getDate()}-${now.getHours()}-${now.getMinutes()}.csv`), csv, "utf8");
 });
