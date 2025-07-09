@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { makeGetRequest, makePutRequest } from "../logic/requestTemplates";
 import "./SolverPage.css";
 import { getSizeCNF, isEqual, isSubclause, resolve } from "../logic/boolsat";
+import PartialSolveMenu from "../components/PartialSolveMenu";
 const SOLVER_PAGE = {
     STEPS: 1,
     PARTIAL_SOLVE: 2,
@@ -11,6 +12,7 @@ const SOLVER_PAGE = {
 function SolverPage() {
     const navigate = useNavigate();
     const { problemId } = useParams();
+
     const [isLoaded, setIsLoaded] = useState(false);
     const [problem, setProblem] = useState({});
     const [problemSize, setProblemSize] = useState(0);
@@ -21,6 +23,7 @@ function SolverPage() {
     const [solutionSteps, setSolutionSteps] = useState([]);
     const [error, setError] = useState("");
     const [sidePage, setSidePage] = useState(SOLVER_PAGE.STEPS);
+    const [sidePageData, setSidePageData] = useState({});
     const getProblem = async () => {
         const res = await makeGetRequest(`problem/${problemId}/file`);
         if (res.status === 200) {
@@ -33,6 +36,7 @@ function SolverPage() {
             navigate("/");
         }
     };
+
     useEffect(() => {
         getProblem();
     }, [problemId]);
@@ -235,6 +239,7 @@ function SolverPage() {
                         <div>
                             <button
                                 onClick={() => {
+                                    setSidePageData({});
                                     setSidePage(SOLVER_PAGE.STEPS);
                                 }}
                             >
@@ -242,6 +247,9 @@ function SolverPage() {
                             </button>
                             <button
                                 onClick={() => {
+                                    setSidePageData({
+                                        assignments: [],
+                                    });
                                     setSidePage(SOLVER_PAGE.PARTIAL_SOLVE);
                                 }}
                             >
@@ -273,7 +281,7 @@ function SolverPage() {
                                 <p className="error">{error}</p>
                             </>
                         )}
-                        {sidePage === SOLVER_PAGE.PARTIAL_SOLVE && <>Partial Solve</>}
+                        {sidePage === SOLVER_PAGE.PARTIAL_SOLVE && <PartialSolveMenu clauses={clauses} />}
                     </div>
                 </div>
             </div>
