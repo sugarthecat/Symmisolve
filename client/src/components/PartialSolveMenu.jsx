@@ -1,5 +1,6 @@
 import { useState } from "react";
-import "./PartialSolveMenu.css"
+import "./PartialSolveMenu.css";
+import { verifyPartialAssignment } from "../logic/boolsat";
 function PartialSolveMenu({ clauses }) {
     const [assignments, setAssignments] = useState([]);
     const [inputValue, setInputValue] = useState("");
@@ -47,12 +48,37 @@ function PartialSolveMenu({ clauses }) {
         setError("");
         setInputValue("");
         assignmentsLocal.push(value);
-        setAssignments(assignmentsLocal);
+        setAssignments(assignmentsLocal.slice());
     };
     const removeAssignment = (index) => {
-        let assignmentsLocal = assignments;
+        let assignmentsLocal = assignments.slice();
         assignmentsLocal.splice(index, 1);
+        console.log(assignmentsLocal);
         setAssignments(assignmentsLocal);
+    };
+    const verifyCurrAssignment = () => {
+        let conflictingClauses = [];
+        for (const clause of clauses) {
+            let satisfied = false;
+            let conflicting = false;
+            for (const literal of clause) {
+                for (const assignment of assignments) {
+                    if (assignment === literal) {
+                        satisfied = true;
+                        break;
+                    }
+                    if (assignment === -literal) {
+                        conflicting = true;
+                    }
+                }
+            }
+            if (conflicting && !satisfied) {
+                conflictingClauses.push(clause);
+            }
+        }
+        if (conflictingClauses.length > 0) {
+            setError("This partial assignment is not fully satisfying: " + JSON.stringify(conflictingClauses[0]));
+        }
     };
     return (
         <div>
@@ -74,15 +100,19 @@ function PartialSolveMenu({ clauses }) {
             <p>
                 {assignments.map((assignment, index) => (
                     <span
-                        className="assignment"
+                        className={assignment < 0 ? "assignment assignment-overline" : "assignment"}
                         onClick={() => {
                             removeAssignment(index);
                         }}
                         key={index}
                     >
-                        {assignment}
+                        {Math.abs(assignment)}
                     </span>
                 ))}
+            </p>
+            <p>
+                <button onClick={() => setAssignments([])}>Clear</button>
+                <button onClick={verifyCurrAssignment}>Confirm Partial Solve</button>
             </p>
         </div>
     );

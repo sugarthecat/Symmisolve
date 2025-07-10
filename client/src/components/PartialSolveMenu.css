@@ -1,11 +1,14 @@
 .assignment{
     margin:5px;
-    background-color: #bbb;
+    background-color: #ccc;
     padding: 5px;
     border-radius: 5px;
     transition-duration: 500ms;
     cursor: pointer;
 }
 .assignment:hover{
-    background-color: #ddd;
+    background-color: #eee;
+}
+.assignment-overline{
+    text-decoration: overline 3px;
 }

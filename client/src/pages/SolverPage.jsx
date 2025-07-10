@@ -184,21 +184,24 @@ function SolverPage() {
                 );
             }
         } else {
-            clauseList = clauses
+            //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
+            clauseList = clauses.filter((clause) => { return clause.length > 1; });
+            clauseList = clauseList
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
-                    return (
-                        <div key={stringifyClause(clause)}>
-                            {stringifyClause(clause)}{" "}
-                            <button
-                                onClick={() => {
-                                    setSelectedClause(clause);
-                                }}
-                            >
-                                Select
-                            </button>
-                        </div>
-                    );
+                    if (index)
+                        return (
+                            <div key={stringifyClause(clause)}>
+                                {stringifyClause(clause)}{" "}
+                                <button
+                                    onClick={() => {
+                                        setSelectedClause(clause);
+                                    }}
+                                >
+                                    Select
+                                </button>
+                            </div>
+                        );
                 });
             resultCount = clauses.length;
         }
@@ -281,7 +284,9 @@ function SolverPage() {
                                 <p className="error">{error}</p>
                             </>
                         )}
-                        {sidePage === SOLVER_PAGE.PARTIAL_SOLVE && <PartialSolveMenu clauses={clauses} />}
+                        {sidePage === SOLVER_PAGE.PARTIAL_SOLVE && (
+                            <PartialSolveMenu clauses={clauses} />
+                        )}
                     </div>
                 </div>
             </div>
