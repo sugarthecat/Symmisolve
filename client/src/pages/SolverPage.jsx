@@ -60,6 +60,14 @@ function SolverPage() {
                     </p>
                 </div>
             );
+        } else if (step.type === "partial-solve") {
+            return (
+                <div>
+                    <p>
+                        Partial Solve (Assignments: {step.assignments.join(", ")})
+                    </p>
+                </div>
+            );
         } else {
             return (
                 <div>
@@ -68,10 +76,24 @@ function SolverPage() {
             );
         }
     };
-    const addClause = (clause1, clause2) => {
-        let toAdd = [resolve(clause1, clause2)];
-        solutionSteps.push({ type: "resolution", old: [clause1, clause2], new: toAdd[0] });
-        let newClausesList = clauses;
+    const resolveClauses = (clause1, clause2) => {
+        let newClause = resolve(clause1, clause2);
+        let newSolutionSteps = solutionSteps;
+        newSolutionSteps.push({ type: "resolution", old: [clause1, clause2], new: newClause });
+        setSolutionSteps(newSolutionSteps);
+        addClauses([newClause]);
+    }
+    const submitPartialSolve = (assignments) => {
+        let newSolutionSteps = solutionSteps;
+        newSolutionSteps.push({ type: "partial-solve", assignments, });
+        setSolutionSteps(newSolutionSteps);
+        let assignmentClauses = assignments.map((assignment) => { return [assignment]; });
+        addClauses(assignmentClauses);
+        setSidePage(SOLVER_PAGE.STEPS)
+    }
+    const addClauses = (newClauses) => {
+        let toAdd = newClauses;
+        let newClausesList = clauses.slice(); //slice to make a copy, triggering re-render;
         let newSolutionSteps = solutionSteps;
         while (toAdd.length > 0) {
             let newClause = toAdd.pop();
@@ -131,6 +153,7 @@ function SolverPage() {
         });
         const data = await res.json();
         if (res.status === 200) {
+            window.location.reload();
         } else {
             setError(JSON.stringify(data));
         }
@@ -174,7 +197,7 @@ function SolverPage() {
                         {stringifyClause(clauses[i])}{" "}
                         <button
                             onClick={() => {
-                                addClause(selectedClause, clauses[i]);
+                                resolveClauses(selectedClause, clauses[i]);
                                 setSelectedClause(null);
                             }}
                         >
@@ -185,7 +208,7 @@ function SolverPage() {
             }
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
-            clauseList = clauses.filter((clause) => { return clause.length > 1; });
+            clauseList = clauses //.filter((clause) => { return clause.length > 1; });
             clauseList = clauseList
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
@@ -285,7 +308,7 @@ function SolverPage() {
                             </>
                         )}
                         {sidePage === SOLVER_PAGE.PARTIAL_SOLVE && (
-                            <PartialSolveMenu clauses={clauses} />
+                            <PartialSolveMenu clauses={clauses} submitPartialSolve={submitPartialSolve} />
                         )}
                     </div>
                 </div>

@@ -39,7 +39,7 @@ function ProblemUpload() {
             const resJson = await res.json()
             const reductionData = resJson.reductionData
             setMessage(
-                <p class="problem-upload-message">Problem size automatically reduced
+                <p className="problem-upload-message">Problem size automatically reduced
                     {` (${reductionData.original_size} -> ${reductionData.reduced_size}, `}
                     {` ${((reductionData.original_size - reductionData.reduced_size) * 100 / Math.max(1, reductionData.original_size)).toFixed(2)}% reduction)`}<br />
                     <Link to={`/problem/${resJson.uploadId}`}>{resJson.message}</Link>

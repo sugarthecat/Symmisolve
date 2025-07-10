@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./PartialSolveMenu.css";
-import { verifyPartialAssignment } from "../logic/boolsat";
-function PartialSolveMenu({ clauses }) {
+function PartialSolveMenu({ clauses, submitPartialSolve }) {
     const [assignments, setAssignments] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [error, setError] = useState("");
@@ -9,12 +8,14 @@ function PartialSolveMenu({ clauses }) {
     useEffect(() => {
         verifyCurrAssignment();
     }, [JSON.stringify(assignments)]);
+
     const handleInputChange = (event) => {
         const newValue = event.target.value;
         if (newValue.length == 0 || newValue == "-" || /^[+-]?\d+$/.test(newValue)) {
             setInputValue(newValue);
         }
     };
+
     const attemptAssignment = () => {
         if (inputValue.length == 0) {
             setError("Please enter a value");
@@ -93,13 +94,16 @@ function PartialSolveMenu({ clauses }) {
                 }
             }
         }
-        if (lostCause) {
+
+        if (assignments.length === 0) {
+            setError("");
+        } else if (lostCause) {
             setError(<>This partial assignment is not satisfiable: {JSON.stringify(lostCause)}</>);
         } else if (implications.length > 0) {
             setError(
                 <>
-                    This partial assignment is not fully satisfying ({conflictingClauses.length} altered unsatisfied clauses):{" "}
-                    {JSON.stringify(conflictingClauses[0])} <br />
+                    This partial assignment is not fully satisfying ({conflictingClauses.length}{" "}
+                    altered unsatisfied clauses): {JSON.stringify(conflictingClauses[0])} <br />
                     Some implications exist, would you like to add them as assignments?{" "}
                     <button
                         onClick={() => {
@@ -115,7 +119,9 @@ function PartialSolveMenu({ clauses }) {
                                     newAssignments.push(implication);
                                 }
                             }
-                            setAssignments(newAssignments.sort((a, b) => Math.abs(a) - Math.abs(b)));
+                            setAssignments(
+                                newAssignments.sort((a, b) => Math.abs(a) - Math.abs(b))
+                            );
                             setError("");
                             verifyCurrAssignment();
                         }}
@@ -125,8 +131,15 @@ function PartialSolveMenu({ clauses }) {
                 </>
             );
         } else if (conflictingClauses.length > 0) {
-            setError(<>This partial assignment is not fully satisfying ({conflictingClauses.length} altered unsatisfied clauses): {JSON.stringify(conflictingClauses[0])}  </>)
-
+            setError(
+                <>
+                    This partial assignment is not fully satisfying ({conflictingClauses.length}{" "}
+                    altered unsatisfied clauses): {JSON.stringify(conflictingClauses[0])}{" "}
+                </>
+            );
+        } else {
+            submitPartialSolve(assignments);
+            setError("");
         }
     };
     return (
@@ -161,7 +174,7 @@ function PartialSolveMenu({ clauses }) {
             </p>
             <p>
                 <button onClick={() => setAssignments([])}>Clear</button>
-                <button onClick={verifyCurrAssignment}>Check Partial Solve</button>
+                <button onClick={verifyCurrAssignment}>Submit Partial Solve</button>
             </p>
         </div>
     );

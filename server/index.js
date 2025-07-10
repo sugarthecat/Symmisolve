@@ -229,12 +229,12 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         } else if (step.type === "auto-reduction") {
             //we already do that! Happily pass through
         } else if (step.type === "partial-solve") {
-            if (verifyPartialAssignment(clauses, step.assignment)) {
+            if (verifyPartialAssignment(problemCNF, step.assignments)) {
                 let newClauses = [];
-                for(const assignment of step.assignment) {
+                for(const assignment of step.assignments) {
                     newClauses.push([assignment])
                 }
-                clauses = reduceCNF(newClauses, clauses);
+                problemCNF = reduceCNF(newClauses, problemCNF);
             } else {
                 badRequestError(res, "Invalid partial solve", 400);
                 return;
