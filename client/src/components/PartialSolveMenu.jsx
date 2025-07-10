@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./PartialSolveMenu.css";
 import { verifyPartialAssignment } from "../logic/boolsat";
 function PartialSolveMenu({ clauses }) {
     const [assignments, setAssignments] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        verifyCurrAssignment();
+    }, [JSON.stringify(assignments)]);
     const handleInputChange = (event) => {
         const newValue = event.target.value;
         if (newValue.length == 0 || newValue == "-" || /^[+-]?\d+$/.test(newValue)) {
@@ -53,31 +57,76 @@ function PartialSolveMenu({ clauses }) {
     const removeAssignment = (index) => {
         let assignmentsLocal = assignments.slice();
         assignmentsLocal.splice(index, 1);
-        console.log(assignmentsLocal);
         setAssignments(assignmentsLocal);
     };
     const verifyCurrAssignment = () => {
         let conflictingClauses = [];
+        let implications = [];
+        let lostCause = false; // if no solution exists with these assignments
         for (const clause of clauses) {
             let satisfied = false;
-            let conflicting = false;
+            let conflicting = 0;
+            let nonconflict = 0;
             for (const literal of clause) {
+                let hasConflict = false;
                 for (const assignment of assignments) {
                     if (assignment === literal) {
                         satisfied = true;
                         break;
-                    }
-                    if (assignment === -literal) {
-                        conflicting = true;
+                    } else if (assignment === -literal) {
+                        conflicting++;
+                        hasConflict = true;
                     }
                 }
+                if (!hasConflict && !satisfied) {
+                    nonconflict = literal;
+                }
             }
-            if (conflicting && !satisfied) {
+            if (conflicting > 0 && !satisfied) {
                 conflictingClauses.push(clause);
+                if (conflicting + 1 === clause.length) {
+                    implications.push(nonconflict);
+                } else if (conflicting === clause.length) {
+                    lostCause = clause;
+                    break;
+                    //no possible solution with these assignments
+                }
             }
         }
-        if (conflictingClauses.length > 0) {
-            setError("This partial assignment is not fully satisfying: " + JSON.stringify(conflictingClauses[0]));
+        if (lostCause) {
+            setError(<>This partial assignment is not satisfiable: {JSON.stringify(lostCause)}</>);
+        } else if (implications.length > 0) {
+            setError(
+                <>
+                    This partial assignment is not fully satisfying ({conflictingClauses.length} altered unsatisfied clauses):{" "}
+                    {JSON.stringify(conflictingClauses[0])} <br />
+                    Some implications exist, would you like to add them as assignments?{" "}
+                    <button
+                        onClick={() => {
+                            let newAssignments = assignments.slice();
+                            for (const implication of implications) {
+                                let found = false;
+                                for (const prevAssignment of newAssignments) {
+                                    if (Math.abs(prevAssignment) === Math.abs(implication)) {
+                                        found = true;
+                                    }
+                                }
+                                if (!found) {
+                                    newAssignments.push(implication);
+                                }
+                            }
+                            setAssignments(newAssignments.sort((a, b) => Math.abs(a) - Math.abs(b)));
+                            setError("");
+                            verifyCurrAssignment();
+                        }}
+                    >
+                        Add
+                    </button>
+                </>
+            );
+        } else if (conflictingClauses.length > 0) {
+            setError(<>This partial assignment is not fully satisfying ({conflictingClauses.length} altered unsatisfied clauses): {JSON.stringify(conflictingClauses[0])}  </>)
+
         }
     };
     return (
@@ -97,7 +146,7 @@ function PartialSolveMenu({ clauses }) {
                 <button onClick={attemptAssignment}>Add</button>
             </p>
             <p className="error">{error}</p>
-            <p>
+            <p id="assignments">
                 {assignments.map((assignment, index) => (
                     <span
                         className={assignment < 0 ? "assignment assignment-overline" : "assignment"}
@@ -112,7 +161,7 @@ function PartialSolveMenu({ clauses }) {
             </p>
             <p>
                 <button onClick={() => setAssignments([])}>Clear</button>
-                <button onClick={verifyCurrAssignment}>Confirm Partial Solve</button>
+                <button onClick={verifyCurrAssignment}>Check Partial Solve</button>
             </p>
         </div>
     );

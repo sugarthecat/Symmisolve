@@ -12,3 +12,8 @@
 .assignment-overline{
     text-decoration: overline 3px;
 }
+#assignments{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
