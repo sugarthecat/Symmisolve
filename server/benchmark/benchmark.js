@@ -137,14 +137,14 @@ async function main() {
     console.log("\t(2) Benchmark a specific problem set");
     console.log("\t(3) Examine output of reducing a specific problem");
     let input = await getConsoleInput();
-    while (input != "1" && input != "2" && input != "3" && input != "4") {
+    while (!["1","2","3","4"].includes(input)) {
         console.log("Invalid input. Please enter a, b, c, or d");
         input = await getConsoleInput();
     }
-    if (input == "1") {
+    if (input === "1") {
         rl.close();
         await runAllBenchmarks();
-    } else if (input == "2") {
+    } else if (input === "2") {
         let psets = await getProblemSets();
         console.log("\n");
         console.log("Which problem set do you want to benchmark?");
@@ -152,7 +152,7 @@ async function main() {
         let pset = await makeChoice(psets);
         rl.close();
         await runBenchmarkOnPset(pset);
-    } else if (input == "3") {
+    } else if (input === "3") {
         let psets = await getProblemSets();
         console.log("\n");
         console.log("Which problem set is your problem in?");
@@ -177,7 +177,7 @@ async function main() {
         console.log("\n");
         console.log(`file://${name}`);
     }
-    if (input != "3") {
+    if (input !== "3") {
         //benchmaks ran, write results to file
         let outputDest = writeBenchmarkResults();
         console.log(`Benchmark results written!`);
