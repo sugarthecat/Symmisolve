@@ -256,6 +256,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 badRequestError(res, "Invalid partial solve", 400);
                 return;
             }
+            solutionFile += `Partial ${step.assignments.join(" / ")}\n`;
         } else {
             badRequestError(res, `Invalid step type - What is ${step.type}?`, 400);
             return;
@@ -368,7 +369,11 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
         if (!problem) {
             badRequestError(res, "Problem Not Found", 404);
         } else {
-            problem.file.problem_file = parseCNF(problem.file.problem_file);
+            if (problem.is_active) {
+                //if active, parse the CNF file for the solver.
+                //Otherwise, don't parse it and leave it to be downloaded
+                problem.file.problem_file = parseCNF(problem.file.problem_file);
+            }
             res.json({ problem: problem });
         }
     }
