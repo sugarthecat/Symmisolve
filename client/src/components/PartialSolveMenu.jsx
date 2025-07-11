@@ -100,34 +100,29 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
         } else if (lostCause) {
             setError(<>This partial assignment is not satisfiable: {JSON.stringify(lostCause)}</>);
         } else if (implications.length > 0) {
+            const setImplications = () => {
+                let newAssignments = assignments.slice();
+                for (const implication of implications) {
+                    let found = false;
+                    for (const prevAssignment of newAssignments) {
+                        if (Math.abs(prevAssignment) === Math.abs(implication)) {
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        newAssignments.push(implication);
+                    }
+                }
+                setAssignments(newAssignments.sort((a, b) => Math.abs(a) - Math.abs(b)));
+                setError("");
+                verifyCurrAssignment();
+            };
             setError(
                 <>
                     This partial assignment is not fully satisfying ({conflictingClauses.length}{" "}
                     altered unsatisfied clauses): {JSON.stringify(conflictingClauses[0])} <br />
                     Some implications exist, would you like to add them as assignments?{" "}
-                    <button
-                        onClick={() => {
-                            let newAssignments = assignments.slice();
-                            for (const implication of implications) {
-                                let found = false;
-                                for (const prevAssignment of newAssignments) {
-                                    if (Math.abs(prevAssignment) === Math.abs(implication)) {
-                                        found = true;
-                                    }
-                                }
-                                if (!found) {
-                                    newAssignments.push(implication);
-                                }
-                            }
-                            setAssignments(
-                                newAssignments.sort((a, b) => Math.abs(a) - Math.abs(b))
-                            );
-                            setError("");
-                            verifyCurrAssignment();
-                        }}
-                    >
-                        Add
-                    </button>
+                    <button onClick={setImplications}>Add</button>
                 </>
             );
         } else if (conflictingClauses.length > 0) {
