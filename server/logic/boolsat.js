@@ -165,6 +165,11 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                         toAdd.push([abslit1, mappings[abslit2]]);
                         toAdd.push([-abslit1, -mappings[abslit2]]);
                     }
+                    //remove the 2 old ones and add the foundations for the new mapping
+                    willAdd = false;
+                    writtenClauses.splice(i, 1);
+                    i--;
+                    break;
                 } else if (isEqual) {
                     mappings[abslit2] = abslit1;
                 } else {
@@ -198,7 +203,7 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                 for (const prevLiteral of writtenClause) {
                     //follow the mapping chain until we reach an unmapped variable
                     let literal = getFinalLiteralMapping(prevLiteral);
-                    if(prevLiteral != literal) {
+                    if (prevLiteral != literal) {
                         changed = true;
                     }
                     newClause.push(literal);
@@ -501,7 +506,7 @@ function getSizeCNF(clauses) {
     return size;
 }
 
-const CURR_ALGO_VER = 2;
+const CURR_ALGO_VER = 3;
 module.exports = {
     CURR_ALGO_VER,
     validateCNF,

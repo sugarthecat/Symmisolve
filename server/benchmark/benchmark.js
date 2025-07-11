@@ -124,6 +124,12 @@ async function makeChoice(options) {
     return options[input - 1];
 }
 
+rl.on('SIGINT', () => {
+    console.log('\nCtrl+C detected. Exiting...');
+    rl.close(); // Close the readline interface
+    process.exit(0); // Exit the process
+});
+
 async function main() {
     console.log("\n\n");
     console.log("Do you want to:");
@@ -136,6 +142,7 @@ async function main() {
         input = await getConsoleInput();
     }
     if (input == "1") {
+        rl.close();
         await runAllBenchmarks();
     } else if (input == "2") {
         let psets = await getProblemSets();
@@ -143,6 +150,7 @@ async function main() {
         console.log("Which problem set do you want to benchmark?");
         console.log("\n");
         let pset = await makeChoice(psets);
+        rl.close();
         await runBenchmarkOnPset(pset);
     } else if (input == "3") {
         let psets = await getProblemSets();
