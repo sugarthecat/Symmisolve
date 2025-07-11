@@ -290,6 +290,16 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         where: { id: problem.file.id },
         data: newProblemFileData,
     });
+
+    let newTotalReduction = req.session.user.total_size_reduced + (oldSize - newSize);
+    const newUser = await prisma.user.update({
+        where: { id: req.session.user.id },
+        data: {
+            total_size_reduced: newTotalReduction,
+        },
+    });
+    console.log(newUser);
+    req.session.user = newUser;
     //TODO: Update size on the problem page
     res.json(update);
 });

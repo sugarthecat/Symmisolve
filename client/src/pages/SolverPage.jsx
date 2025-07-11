@@ -28,10 +28,15 @@ function SolverPage() {
         const res = await makeGetRequest(`problem/${problemId}/file`);
         if (res.status === 200) {
             const data = await res.json();
-            setProblem(data.problem);
-            setIsLoaded(true);
-            setClauses(data.problem.file.problem_file);
-            setProblemSize(getSizeCNF(data.problem.file.problem_file));
+            console.log(data)
+            if (data.problem.is_active) {
+                setProblem(data.problem);
+                setIsLoaded(true);
+                setClauses(data.problem.file.problem_file);
+                setProblemSize(getSizeCNF(data.problem.file.problem_file));
+            } else {
+                navigate("/")
+            }
         } else {
             navigate("/");
         }
