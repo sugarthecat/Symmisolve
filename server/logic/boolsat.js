@@ -90,6 +90,13 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
     let writtenClauses = alreadyReducedClauses.slice();
     let toAdd = []; //used as a stack
     let mappings = {}; //used as a dictionary
+    function getFinalLiteralMapping(literal) {
+        let newLiteral = literal;
+        while (Math.abs(newLiteral) in mappings) {
+            newLiteral = mappings[Math.abs(newLiteral)] * (newLiteral < 0 ? -1 : 1);
+        }
+        return newLiteral;
+    }
     //copy clauses into toAdd
     for (let i = 0; i < clauses.length; i++) {
         toAdd.push(clauses[i]);
@@ -136,17 +143,32 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
             }
             //check for an equality relation
             //we already know they dont resolve, so if there both 2 literals, they must be either an equality or inequality relation
+
             if (
                 currClause.length === 2 &&
                 writtenClauses[i].length === 2 &&
                 Math.abs(currClause[0]) === Math.abs(writtenClause[0]) &&
                 Math.abs(currClause[1]) === Math.abs(writtenClause[1])
             ) {
-                let isEqual = currClause[0] * currClause[1] < 0; //equality if opposite signs, opposite if same signs
-                if (isEqual) {
-                    mappings[Math.abs(currClause[1])] = Math.abs(currClause[0]);
+                let lit1 = currClause[0];
+                let lit2 = currClause[1];
+                let abslit1 = Math.abs(lit1);
+                let abslit2 = Math.abs(lit2);
+                let isEqual = lit1 * lit2 < 0; //equality if opposite signs, opposite if same signs
+                if (abslit2 in mappings && Math.abs(mappings[abslit2]) < abslit1) {
+                    //if the literal is already mapped to a lexically earlier variable, set up the ingredients to map the other way
+                    if (isEqual) {
+                        //insert outselves in the middle of this equality relation and add the new preserving clauses
+                        toAdd.push([-abslit1, mappings[abslit2]]);
+                        toAdd.push([abslit1, -mappings[abslit2]]);
+                    } else {
+                        toAdd.push([abslit1, mappings[abslit2]]);
+                        toAdd.push([-abslit1, -mappings[abslit2]]);
+                    }
+                } else if (isEqual) {
+                    mappings[abslit2] = abslit1;
                 } else {
-                    mappings[Math.abs(currClause[1])] = -Math.abs(currClause[0]);
+                    mappings[abslit2] = -abslit1;
                 }
             }
         }
@@ -160,18 +182,29 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
             let literalCount = {};
             while (writtenClauses.length > 0) {
                 const writtenClause = writtenClauses.pop();
+                if (
+                    writtenClause.length == 2 &&
+                    writtenClause[0] in mappings &&
+                    writtenClause[1] in mappings &&
+                    getFinalLiteralMapping(writtenClause[0]) !== writtenClause[0] &&
+                    getFinalLiteralMapping(writtenClause[1]) !== writtenClause[1]
+                ) {
+                    let newClause = [getFinalLiteralMapping(writtenClause[0]), writtenClause[1]];
+                    toAdd.push(newClause);
+                    continue;
+                }
                 let newClause = [];
                 let changed = false;
-                for (let literal of writtenClause) {
+                for (const prevLiteral of writtenClause) {
                     //follow the mapping chain until we reach an unmapped variable
-                    while (Math.abs(literal) in mappings) {
-                        literal = mappings[Math.abs(literal)] * (literal < 0 ? -1 : 1);
+                    let literal = getFinalLiteralMapping(prevLiteral);
+                    if(prevLiteral != literal) {
                         changed = true;
                     }
                     newClause.push(literal);
                     if (literal in literalCount) {
                         literalCount[literal]++;
-                    }else if(writtenClause.length > 1){
+                    } else if (writtenClause.length > 1) {
                         literalCount[literal] = 1;
                     }
                 }
@@ -179,24 +212,20 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     newClause = formatClause(newClause);
                     if (newClause !== null) {
                         toAdd.push(newClause);
-                    } else if(writtenClause.length == 2) {
-                        //tautological clause, meaning likely the relation itself got mapped away.
-                        // Keep it around, since reduce is nondestructive
-                        unmappedClauses.push(writtenClause);
                     }
                 } else {
                     unmappedClauses.push(writtenClause);
                 }
             }
             //if a variable is only positive, or only negative, we can set it to be positive or negative
-            for(const literal in literalCount){
-                if (literal < 0){
+            for (const literal in literalCount) {
+                if (literal < 0) {
                     //we do the compute in the positive branch
                     continue;
                 }
-                if (literalCount[literal] === 0 && literalCount[-literal] > 0){
+                if (literalCount[literal] === 0 && literalCount[-literal] > 0) {
                     toAdd.push([-literal]);
-                }else if (literalCount[literal] > 0 && literalCount[-literal] === 0){
+                } else if (literalCount[literal] > 0 && literalCount[-literal] === 0) {
                     toAdd.push([literal]);
                 }
             }
@@ -296,7 +325,7 @@ function formatClause(clause) {
                 if (finalClause[mid] === -clause[i]) {
                     tautological = true;
                     break;
-                }else{
+                } else {
                     //copy of the same literal
                     break;
                 }
