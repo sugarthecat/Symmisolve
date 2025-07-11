@@ -204,8 +204,8 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         badRequestError(res, "Invalid problem ID", 400);
         return;
     }
-    const problem = await prisma.problem.findUnique({
-        where: { id: parseInt(problemId) },
+    const problem = await prisma.problem.findFirst({
+        where: { id: parseInt(problemId), is_active: true },
         include: { file: true },
     });
     if (!problem) {
@@ -280,7 +280,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         problem_post: {
             update: {
                 current_size: getSizeCNF(problemCNF),
-                date_modified: (new Date()),
+                date_modified: new Date(),
                 is_active: !isSolved,
             },
         },
@@ -299,6 +299,16 @@ app.get("/api/problems", express.json(), async (req, res) => {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
         const problems = await prisma.problem.findMany({
+            where: {
+                OR: [
+                    {
+                        user_id: session.user.id,
+                    },
+                    {
+                        is_active: true,
+                    },
+                ],
+            },
             include: {
                 user: true,
             },
@@ -313,8 +323,18 @@ app.get("/api/problem/:problemId", express.json(), async (req, res) => {
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
-        const problem = await prisma.problem.findUnique({
-            where: { id: parseInt(problemId) },
+        const problem = await prisma.problem.findFirst({
+            where: {
+                id: parseInt(problemId),
+                OR: [
+                    {
+                        user_id: session.user.id,
+                    },
+                    {
+                        is_active: true,
+                    },
+                ],
+            },
             include: { user: true },
         });
         if (!problem) {
@@ -331,8 +351,18 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
-        const problem = await prisma.problem.findUnique({
-            where: { id: parseInt(problemId) },
+        const problem = await prisma.problem.findFirst({
+            where: {
+                id: parseInt(problemId),
+                OR: [
+                    {
+                        user_id: session.user.id,
+                    },
+                    {
+                        is_active: true,
+                    },
+                ],
+            },
             include: { file: true },
         });
         if (!problem) {
