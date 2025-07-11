@@ -105,7 +105,7 @@ function SolverPage() {
         const res = await makePutRequest(`problem/${problemId}/reduce`, { solution: solutionSteps })
         const data = await res.json();
         if (res.status === 200) {
-
+            //TODO: refresh page
         } else {
             setError(JSON.stringify(data))
         }
