@@ -19,20 +19,21 @@ function ProblemPage() {
     };
     // Modified code from stack overflow
     // https://stackoverflow.com/questions/44656610/download-a-string-as-txt-file-in-react
-    const downloadTxtFile = (text, filename) => {
+    const downloadTxtFile = (text, filename, extension = "cnf") => {
         const element = document.createElement("a");
-        const file = new Blob([text], { type: 'text/plain' });
+        const file = new Blob([text], { type: "text/plain" });
         element.href = URL.createObjectURL(file);
-        element.download = `${filename}.cnf`;
+        element.download = `${filename}.${extension}`;
         document.body.appendChild(element); // Required for this to work in FireFox
         element.click();
-    }
+    };
     const downloadSolution = async () => {
         const req = await makeGetRequest(`problem/${problemId}/file`);
         if (req.status === 200) {
             const data = (await req.json()).problem;
-            console.log(data)
-            downloadTxtFile(data.file.problem_file, data.name)
+            console.log(data);
+            downloadTxtFile(data.file.problem_file, data.name);
+            downloadTxtFile(data.file.solution_file, data.name, "symsln");
         } else {
             navigate("/");
         }
