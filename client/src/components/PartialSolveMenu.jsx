@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./PartialSolveMenu.css";
+import VariableAssignmentComponent from "./VariableAssignment";
 function PartialSolveMenu({ clauses, submitPartialSolve }) {
     const [assignments, setAssignments] = useState([]);
     const [inputValue, setInputValue] = useState("");
@@ -94,11 +95,14 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
                 }
             }
         }
-
+        let errorNode = <></>;
         if (assignments.length === 0) {
-            setError("");
+            errorNode = <></>;
+            //keep it like this, nothing happens. Nothing EVER happens.
         } else if (lostCause) {
-            setError(<>This partial assignment is not satisfiable: {JSON.stringify(lostCause)}</>);
+            errorNode = (
+                <>This partial assignment is not satisfiable: {JSON.stringify(lostCause)}</>
+            );
         } else if (implications.length > 0) {
             const setImplications = () => {
                 let newAssignments = assignments.slice();
@@ -117,7 +121,8 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
                 setError("");
                 verifyCurrAssignment();
             };
-            setError(
+
+            errorNode = (
                 <>
                     This partial assignment is not fully satisfying ({conflictingClauses.length}{" "}
                     altered unsatisfied clauses): {JSON.stringify(conflictingClauses[0])} <br />
@@ -126,7 +131,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
                 </>
             );
         } else if (conflictingClauses.length > 0) {
-            setError(
+            errorNode = (
                 <>
                     This partial assignment is not fully satisfying ({conflictingClauses.length}{" "}
                     altered unsatisfied clauses): {JSON.stringify(conflictingClauses[0])}{" "}
@@ -134,8 +139,9 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
             );
         } else {
             submitPartialSolve(assignments);
-            setError("");
+            errorNode = <></>;
         }
+        setError(errorNode);
     };
     return (
         <div>
@@ -156,15 +162,13 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
             <p className="error">{error}</p>
             <p id="assignments">
                 {assignments.map((assignment, index) => (
-                    <span
-                        className={assignment < 0 ? "assignment assignment-overline" : "assignment"}
-                        onClick={() => {
+                    <VariableAssignmentComponent
+                        key={assignment}
+                        assignment={assignment}
+                        removeFunction={() => {
                             removeAssignment(index);
                         }}
-                        key={index}
-                    >
-                        {Math.abs(assignment)}
-                    </span>
+                    ></VariableAssignmentComponent>
                 ))}
             </p>
             <p>
