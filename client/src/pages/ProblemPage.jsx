@@ -34,7 +34,10 @@ function ProblemPage() {
                 <h1>{problem.name}</h1>
                 <h3>By {problem.user.username}</h3>
                 <p>{problem.description}</p>
-                <Link to={`/problem/${problemId}/solver`}> <button>Solve</button></Link>
+                {problem.is_active ?
+                    <Link to={`/problem/${problemId}/solver`}> <button>Solve</button></Link>
+                    : <button>Download Solution </button>
+                }
             </div>
         )
     }
