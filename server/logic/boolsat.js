@@ -1,39 +1,38 @@
+const e = require("express");
+
 /**
  * Validates the formatting of a CNF formula
  * @param {String} formulaText
  * @returns {Boolean} Whether the formula is valid
  */
 function validateCNF(formulaText) {
-    const lines = formulaText.replaceAll("\t", " ").replaceAll("\r", "").split('\n');
+    const lines = formulaText.replaceAll("\t", " ").replaceAll("\r", "").split("\n");
     let numvars = -1;
     let numclauses = -1;
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith("c") || lines[i].length < 2) {
+    for (const line of lines) {
+        if (line.startsWith("c") || line.length < 2) {
             //skip comment lines AND empty lines
             continue;
-        } else if (lines[i].startsWith("p cnf")) {
-            const parts = lines[i].replaceAll("  ", " ").split(" ");
+        } else if (line.startsWith("p cnf")) {
+            const parts = line.replaceAll("  ", " ").split(" ");
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
         } else if (numvars < 0 || numclauses < 1) {
-            console.log("Invalid Header");
             return false;
         } else {
-            const parts = lines[i].split(" ");
-            for (let i = 0; i < parts.length; i++) {
-                if (parts[i] === "0") {
+            const parts = line.split(" ");
+            for (const part of parts) {
+                if (part === "0") {
                     break;
                 }
-                if (parts[i].length === 0) {
+                if (part.length === 0) {
                     continue;
                 }
-                let partInt = parseInt(parts[i]);
+                let partInt = parseInt(part);
                 if (isNaN(partInt)) {
-                    console.log("Invalid Literal");
                     return false;
                 }
                 if (Math.abs(partInt) > numvars) {
-                    console.log("Out Of Variable Bounds");
                     return false;
                 }
             }
@@ -51,29 +50,30 @@ function parseCNF(formulaText) {
     if (!validateCNF(formulaText)) {
         throw new Error("Invalid CNF");
     }
-    const lines = formulaText.replaceAll("\t", " ").replaceAll("\r", "").split('\n');
+    const lines = formulaText.replaceAll("\t", " ").replaceAll("\r", "").split("\n");
     let clauses = [];
-    for (let i = 0; i < lines.length; i++) {
-        let currClause = [];
-        if (lines[i].startsWith("c")) {
+    let currClause = [];
+    for (const line of lines) {
+        if (line.startsWith("c")) {
             continue;
-        } else if (lines[i].startsWith("p cnf")) {
-            const parts = lines[i].split(" ");
+        } else if (line.startsWith("p cnf")) {
+            const parts = line.split(" ");
             numvars = parseInt(parts[2]);
         } else {
-            const parts = lines[i].split(" ");
-            for (let i = 0; i < parts.length; i++) {
-                if (parts[i] === "0") {
+            const parts = line.split(" ");
+            for (const part of parts) {
+                if (part === "0") {
                     clauses.push(currClause);
-                    break
+                    currClause = [];
+                    break;
                 } else {
-                    if (parts[i].length === 0) {
+                    if (part.length === 0) {
                         continue;
                     }
-                    if (isNaN(parseInt(parts[i]))) {
+                    if (isNaN(parseInt(part))) {
                         continue;
                     }
-                    currClause.push(parseInt(parts[i]));
+                    currClause.push(parseInt(part));
                 }
             }
         }
@@ -89,6 +89,14 @@ function parseCNF(formulaText) {
 function reduceCNF(clauses, alreadyReducedClauses = []) {
     let writtenClauses = alreadyReducedClauses.slice();
     let toAdd = []; //used as a stack
+    let mappings = {}; //used as a dictionary
+    function getFinalLiteralMapping(literal) {
+        let newLiteral = literal;
+        while (Math.abs(newLiteral) in mappings) {
+            newLiteral = mappings[Math.abs(newLiteral)] * (newLiteral < 0 ? -1 : 1);
+        }
+        return newLiteral;
+    }
     //copy clauses into toAdd
     for (let i = 0; i < clauses.length; i++) {
         toAdd.push(clauses[i]);
@@ -101,28 +109,30 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
         }
         let willAdd = true;
         for (let i = 0; i < writtenClauses.length; i++) {
+            const writtenClause = writtenClauses[i];
             //remove duplicates and subclauses
-            if (isEqual(writtenClauses[i], currClause)) {
+            if (isEqual(writtenClause, currClause)) {
                 willAdd = false;
                 break;
-            } else if (isSubclause(currClause, writtenClauses[i])) {
+            } else if (isSubclause(currClause, writtenClause)) {
                 willAdd = false;
                 break;
-            } else if (isSubclause(writtenClauses[i], currClause)) {
+            } else if (isSubclause(writtenClause, currClause)) {
                 writtenClauses.splice(i, 1);
                 i--;
-                continue
+                continue;
             }
             //nice resolutions
-            let newClause = resolve(currClause, writtenClauses[i]);
+            let newClause = resolve(currClause, writtenClause);
             if (newClause !== null) {
                 //if the two clauses resolve to something meaningful, see if it can be used for an immediate size reduction
-                if (isSubclause(writtenClauses[i], newClause)) {
+                if (isSubclause(writtenClause, newClause)) {
                     //if the new clause is a subclause of the written clause the written clause is redundant
                     //doesn't mean the new clause can replace it, though, so add it to the stack
                     writtenClauses.splice(i, 1);
                     toAdd.push(newClause);
                     i--;
+                    continue;
                 } else if (isSubclause(currClause, newClause)) {
                     //if the new clause is a subclause of the current clause, the current clause is redundant
                     //it does mean the new clause can replace it, but we have to check relations with all other clauses now
@@ -131,9 +141,100 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     break;
                 }
             }
+            //check for an equality relation
+            //we already know they dont resolve, so if there both 2 literals, they must be either an equality or inequality relation
+
+            if (
+                currClause.length === 2 &&
+                writtenClauses[i].length === 2 &&
+                Math.abs(currClause[0]) === Math.abs(writtenClause[0]) &&
+                Math.abs(currClause[1]) === Math.abs(writtenClause[1])
+            ) {
+                let lit1 = currClause[0];
+                let lit2 = currClause[1];
+                let abslit1 = Math.abs(lit1);
+                let abslit2 = Math.abs(lit2);
+                let isEqual = lit1 * lit2 < 0; //equality if opposite signs, opposite if same signs
+                if (abslit2 in mappings && Math.abs(mappings[abslit2]) < abslit1) {
+                    //if the literal is already mapped to a lexically earlier variable, set up the ingredients to map the other way
+                    if (isEqual) {
+                        //insert outselves in the middle of this equality relation and add the new preserving clauses
+                        toAdd.push([-abslit1, mappings[abslit2]]);
+                        toAdd.push([abslit1, -mappings[abslit2]]);
+                    } else {
+                        toAdd.push([abslit1, mappings[abslit2]]);
+                        toAdd.push([-abslit1, -mappings[abslit2]]);
+                    }
+                    //remove the 2 old ones and add the foundations for the new mapping
+                    willAdd = false;
+                    writtenClauses.splice(i, 1);
+                    i--;
+                    break;
+                } else if (isEqual) {
+                    mappings[abslit2] = abslit1;
+                } else {
+                    mappings[abslit2] = -abslit1;
+                }
+            }
         }
         if (willAdd) {
             writtenClauses.push(currClause);
+        }
+        if (toAdd.length == 0) {
+            //check all mappings - If a variable is supposed to be swapped to a lexically earlier variable, swap it.
+            //at the same time, check for variables that can be set positive or negative
+            let unmappedClauses = [];
+            let literalCount = {};
+            while (writtenClauses.length > 0) {
+                const writtenClause = writtenClauses.pop();
+                if (
+                    writtenClause.length == 2 &&
+                    writtenClause[0] in mappings &&
+                    writtenClause[1] in mappings &&
+                    getFinalLiteralMapping(writtenClause[0]) !== writtenClause[0] &&
+                    getFinalLiteralMapping(writtenClause[1]) !== writtenClause[1]
+                ) {
+                    let newClause = [getFinalLiteralMapping(writtenClause[0]), writtenClause[1]];
+                    toAdd.push(newClause);
+                    continue;
+                }
+                let newClause = [];
+                let changed = false;
+                for (const prevLiteral of writtenClause) {
+                    //follow the mapping chain until we reach an unmapped variable
+                    let literal = getFinalLiteralMapping(prevLiteral);
+                    if (prevLiteral != literal) {
+                        changed = true;
+                    }
+                    newClause.push(literal);
+                    if (literal in literalCount) {
+                        literalCount[literal]++;
+                    } else if (writtenClause.length > 1) {
+                        literalCount[literal] = 1;
+                    }
+                }
+                if (changed) {
+                    newClause = formatClause(newClause);
+                    if (newClause !== null) {
+                        toAdd.push(newClause);
+                    }
+                } else {
+                    unmappedClauses.push(writtenClause);
+                }
+            }
+            //if a variable is only positive, or only negative, we can set it to be positive or negative
+            for (const literal in literalCount) {
+                if (literal < 0) {
+                    //we do the compute in the positive branch
+                    continue;
+                }
+                if (literalCount[literal] === 0 && literalCount[-literal] > 0) {
+                    toAdd.push([-literal]);
+                } else if (literalCount[literal] > 0 && literalCount[-literal] === 0) {
+                    toAdd.push([literal]);
+                }
+            }
+            writtenClauses = unmappedClauses;
         }
     }
     //now, sort written clauses.
@@ -159,7 +260,6 @@ function findSymmetry(clauses) {
     //TODO: add symmetry finding algorithm
 }
 
-
 /**
  * Verifies a symmetry of a CNF Formula is valid.
  * Symmetries are to be given in a format of cyclic mapping:
@@ -171,7 +271,7 @@ function findSymmetry(clauses) {
  */
 function validateSymmetry(clauses, symmetry) {
     let variablesInSymmetry = [];
-    let mapping = {}
+    let mapping = {};
     for (let i = 0; i < symmetry.length; i++) {
         for (let j = 0; j < symmetry[i].length; j++) {
             if (variablesInSymmetry.includes(Math.abs(symmetry[i][j]))) {
@@ -182,7 +282,8 @@ function validateSymmetry(clauses, symmetry) {
             let isNegative = symmetry[i][j] < 0;
             let nextIsNegative = symmetry[i][(j + 1) % symmetry[i].length] < 0;
             let flipNext = isNegative != nextIsNegative;
-            mapping[Math.abs(symmetry[i][j])] = Math.abs(symmetry[i][(j + 1) % symmetry[i].length]) * (flipNext ? -1 : 1);
+            mapping[Math.abs(symmetry[i][j])] =
+                Math.abs(symmetry[i][(j + 1) % symmetry[i].length]) * (flipNext ? -1 : 1);
         }
     }
     let newFormula = [];
@@ -194,7 +295,8 @@ function validateSymmetry(clauses, symmetry) {
             if (isNegative) {
                 literal = -literal;
             }
-            let nextLiteral = (mapping[Math.abs(clauses[i][j])] * (isNegative ? -1 : 1)) || clauses[i][j]
+            let nextLiteral =
+                mapping[Math.abs(clauses[i][j])] * (isNegative ? -1 : 1) || clauses[i][j];
             newClause.push(nextLiteral);
         }
         newClause = formatClause(newClause);
@@ -209,13 +311,13 @@ function validateSymmetry(clauses, symmetry) {
     return true;
 }
 /**
- * Formats a clause by removing duplicates and sorting literals by absolute value (ascending)
+ * Formats a clause by removing duplicates and sorting literals by absolute value (ascending). If the clause is tautological, returns null.
  * @param {Clause} clause A CNF Clause to be formatted
  * @returns The clause with duplicates removed and literals sorted by absolute value
  */
 function formatClause(clause) {
-    let finalClause = []
-    let tautological = false // if two opposing literals are in the clause, the clause is tautological
+    let finalClause = [];
+    let tautological = false; // if two opposing literals are in the clause, the clause is tautological
     //fast insertion sort with binary search
     for (let i = 0; i < clause.length; i++) {
         let ub = finalClause.length; // insertion upper bound
@@ -227,6 +329,9 @@ function formatClause(clause) {
                 add = false;
                 if (finalClause[mid] === -clause[i]) {
                     tautological = true;
+                    break;
+                } else {
+                    //copy of the same literal
                     break;
                 }
             } else if (Math.abs(finalClause[mid]) < Math.abs(clause[i])) {
@@ -243,7 +348,6 @@ function formatClause(clause) {
         return null;
     }
     return finalClause;
-
 }
 /**
  * Checks if clause1 is a subclause of clause2.
@@ -300,7 +404,7 @@ function resolve(clause1, clause2) {
             index2++;
             if (hasOpposingLiteral) {
                 // two or more opposing literals means that no meaningful resolution is possible
-                return null
+                return null;
             }
             hasOpposingLiteral = true;
         } else if (Math.abs(clause1[index1]) < Math.abs(clause2[index2])) {
@@ -321,7 +425,7 @@ function resolve(clause1, clause2) {
     }
     if (!hasOpposingLiteral) {
         // no opposing literals means that no meaningful resolution is possible
-        return null
+        return null;
     }
     return newClause;
 }
@@ -349,58 +453,49 @@ function isEqual(clause1, clause2) {
  * @returns a list of clauses sorted lexically
  */
 function sortClauses(clauses) {
-    //bubble sort is totally find in this case.
-    let writtenClauses = clauses;
-    let sorted = false;
-    while (!sorted) {
-        sorted = true;
-        for (let i = 0; i < writtenClauses.length - 1; i++) {
-            let swap = false;
-            let reachedEnd = true
-            let clause1 = writtenClauses[i];
-            let clause2 = writtenClauses[i + 1];
-            //literal by literal, compare the clauses lexically
-            for (let j = 0; j < clause1.length; j++) {
-                if (Math.abs(clause1[j]) > Math.abs(clause2[j]) || (Math.abs(clause1[j]) === Math.abs(clause2[j]) && clause1[j] < clause2[j])) {
-                    swap = true;
-                    reachedEnd = false;
-                    break;
-                } else if (clause1[j] != clause2[j]) {
-                    reachedEnd = false;
-                    break;
-                }
-            }
-            if (reachedEnd) {
-                swap = clause2.length > clause1.length;
-            }
-            if (swap) {
-                sorted = false;
-                let temp = writtenClauses[i];
-                writtenClauses[i] = writtenClauses[i + 1];
-                writtenClauses[i + 1] = temp;
+    function compare(clause1, clause2) {
+        //literal by literal, compare the clauses lexically
+        let swap = false;
+        let reachedEnd = true;
+        for (let j = 0; j < clause1.length; j++) {
+            if (
+                Math.abs(clause1[j]) > Math.abs(clause2[j]) ||
+                (Math.abs(clause1[j]) === Math.abs(clause2[j]) && clause1[j] < clause2[j])
+            ) {
+                swap = true;
+                reachedEnd = false;
+                break;
+            } else if (clause1[j] != clause2[j]) {
+                reachedEnd = false;
+                break;
             }
         }
+        if (swap) {
+            return 1;
+        } else {
+            return -1;
+        }
     }
-    return writtenClauses;
+    return clauses.sort(compare);
 }
 
 function stringifyCNF(clauses) {
     const clauseCount = clauses.length;
     let n_variables = 0;
-    for (let i = 0; i < clauses.length; i++) {
-        for (let j = 0; j < clauses[i].length; j++) {
-            n_variables = Math.max(n_variables,Math.abs(clauses[i][j]));
+    for (const clause of clauses) {
+        for (const literal of clause) {
+            n_variables = Math.max(n_variables, Math.abs(literal));
         }
     }
     let string = `p cnf ${n_variables} ${clauseCount}\n`; //line 1
-    for (let i = 0; i < clauses.length; i++) {
-        for (let j = 0; j < clauses[i].length; j++) {
-            string += clauses[i][j];
+    for (const clause of clauses) {
+        for (const literal of clause) {
+            string += literal;
             string += " ";
         }
         string += "0\n";
     }
-    return string
+    return string;
 }
 
 function getSizeCNF(clauses) {
@@ -408,9 +503,23 @@ function getSizeCNF(clauses) {
     for (let i = 0; i < clauses.length; i++) {
         size += clauses[i].length;
     }
-    return size
+    return size;
 }
 
-module.exports = { validateCNF, parseCNF, reduceCNF, validateSymmetry, sortClauses, optimizeCNF, stringifyCNF, getSizeCNF, resolve, isEqual, isSubclause}
+const CURR_ALGO_VER = 3;
+module.exports = {
+    CURR_ALGO_VER,
+    validateCNF,
+    parseCNF,
+    reduceCNF,
+    validateSymmetry,
+    sortClauses,
+    optimizeCNF,
+    stringifyCNF,
+    getSizeCNF,
+    resolve,
+    isEqual,
+    isSubclause,
+};
 
 //and they say mathematicians can't code :p

@@ -85,6 +85,10 @@ app.post("/api/signup", express.json(), async (req, res) => {
 
 app.post("/api/login", express.json(), async (req, res) => {
     const { username, password: plainPassword } = req.body;
+    if(!username || !plainPassword) {
+        badRequestError(res, "Username and password required", 400);
+        return;
+    }
     const user = await prisma.user.findFirst({
         where: { username: { equals: username, mode: "insensitive" } },
     });
@@ -109,6 +113,10 @@ app.post("/api/logout", express.json(), (req, res) => {
 app.get("/api/user/:username", express.json(), async (req, res) => {
     const { username } = req.params;
     let isMe = req.session.user?.username === username;
+    if(!username) {
+        badRequestError(res, "Invalid request", 400);
+        return;
+    }
     const user = await prisma.user.findFirst({
         where: { username: { equals: username, mode: "insensitive" } },
     });
@@ -189,11 +197,20 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
     }
     if (!solution) {
         badRequestError(res, "No solution provided", 400);
+        return;
+    }
+    if(isNaN(parseInt(problemId))){
+        badRequestError(res, "Invalid problem ID", 400);
+        return;
     }
     const problem = await prisma.problem.findUnique({
         where: { id: parseInt(problemId) },
         include: { file: true },
     });
+    if(!problem){
+        badRequestError(res, "Problem not found", 404);
+        return;
+    }
     let problemCNF = parseCNF(problem.file.problem_file);
     let solutionFile = problem.file.solution_file;
     const oldSize = getSizeCNF(problemCNF);
@@ -227,6 +244,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             problemCNF = reduceCNF([step.new], problemCNF);
         } else {
             badRequestError(res, `Invalid step type - What is ${step.type}?`, 400);
+            return;
         }
     }
     const newSize = getSizeCNF(problemCNF);
