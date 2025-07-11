@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import NavBar from './components/NavBar'
 import { makeGetRequest } from './logic/requestTemplates'
 import ACCESS_LEVELS from './logic/accessLevels'
+import SolverPage from './pages/SolverPage'
 
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
               <Routes>
                 <Route exact path="/" element={<HomePage updateUser={updateUser} />} />
                 <Route path="/problem/:problemId" element={<ProblemPage />} />
+                <Route path="/problem/:problemId/solver" element={<SolverPage />} />
                 <Route path="/user/:username" element={<AccountPage />} />
                 <Route path="/upload" element={<ProblemUpload />} />
                 <Route path="/login" element={<LoginPage updateUser={updateUser} />} />
