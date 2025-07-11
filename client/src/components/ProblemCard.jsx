@@ -4,7 +4,7 @@ import "./ProblemCard.css"
 function ProblemCard({ problem }) {
     return (
         <div className='problem-card'>
-            <h3><Link to={`problem/${problem.id}`}>{problem.name}</Link></h3>
+            <h3><Link to={`problem/${problem.id}`}>{problem.name} {!problem.is_active && `[SOLVED]`}</Link></h3>
             <p>
                 <b>Created By {problem.user.username}</b>
             </p>
