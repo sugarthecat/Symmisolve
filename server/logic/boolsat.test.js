@@ -122,4 +122,30 @@ describe('Formula Optimization', () => {
             [[]]
         )
     })
+    it.skip('Solves Transitivity problems', () => {
+        //a = b, b = c, a != c has a contradiction
+        assert.deepEqual(
+            optimizeCNF([
+                [1, -2],
+                [-1,2],
+                [2, -3],
+                [-2,3],
+                [1, 3],
+                [-1,-3],
+            ]),
+            [[]]
+        )
+        //a != b, b != c, a != c has a contradiction
+        assert.deepEqual(
+            optimizeCNF([
+                [1, 2],
+                [-1,-2],
+                [2, 3],
+                [-2,-3],
+                [1, 3],
+                [-1,-3],
+            ]),
+            [[]]
+        )
+    })
 })

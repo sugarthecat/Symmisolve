@@ -12,10 +12,10 @@ function isSubclause(clause1, clause2) {
     let index1 = 0;
     let index2 = 0;
     while (index1 < clause1.length && index2 < clause2.length) {
-        if (clause1[index1] == clause2[index2]) {
+        if (clause1[index1] === clause2[index2]) {
             index1++;
             index2++;
-        } else if (clause1[index1] == -clause2[index2]) {
+        } else if (clause1[index1] === -clause2[index2]) {
             //opposing literals - no overlap, not a subclause
             return false;
         } else if (Math.abs(clause1[index1]) < Math.abs(clause2[index2])) {
@@ -26,7 +26,7 @@ function isSubclause(clause1, clause2) {
             return false;
         }
     }
-    return index2 == clause2.length;
+    return index2 === clause2.length;
 }
 /**
  * Resolves two clauses
@@ -43,12 +43,12 @@ function resolve(clause1, clause2) {
     let index2 = 0;
     let hasOpposingLiteral = false;
     while (index1 < clause1.length && index2 < clause2.length) {
-        if (clause1[index1] == clause2[index2]) {
+        if (clause1[index1] === clause2[index2]) {
             //if the literals are the same, add them to the new clause
             newClause.push(clause1[index1]);
             index1++;
             index2++;
-        } else if (clause1[index1] == -clause2[index2]) {
+        } else if (clause1[index1] === -clause2[index2]) {
             index1++;
             index2++;
             if (hasOpposingLiteral) {
@@ -85,11 +85,11 @@ function resolve(clause1, clause2) {
  * @param {Clause} clause2
  */
 function isEqual(clause1, clause2) {
-    if (clause1.length != clause2.length) {
+    if (clause1.length !== clause2.length) {
         return false;
     }
     for (let i = 0; i < clause1.length; i++) {
-        if (clause1[i] != clause2[i]) {
+        if (clause1[i] !== clause2[i]) {
             return false;
         }
     }
@@ -114,11 +114,11 @@ function sortClauses(clauses) {
             let clause2 = writtenClauses[i + 1];
             //literal by literal, compare the clauses lexically
             for (let j = 0; j < clause1.length; j++) {
-                if (Math.abs(clause1[j]) > Math.abs(clause2[j]) || (Math.abs(clause1[j]) == Math.abs(clause2[j]) && clause1[j] < clause2[j])) {
+                if (Math.abs(clause1[j]) > Math.abs(clause2[j]) || (Math.abs(clause1[j]) === Math.abs(clause2[j]) && clause1[j] < clause2[j])) {
                     swap = true;
                     reachedEnd = false;
                     break;
-                } else if (clause1[j] != clause2[j]) {
+                } else if (clause1[j] !== clause2[j]) {
                     reachedEnd = false;
                     break;
                 }
