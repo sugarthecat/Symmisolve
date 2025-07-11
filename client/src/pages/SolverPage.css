@@ -1,0 +1,8 @@
+#solver-pages{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.solver-side-page{
+    width:40%
+}

@@ -18,6 +18,7 @@ const {
     resolve,
     isEqual,
     isSubclause,
+    verifyPartialAssignment,
 } = require("./logic/boolsat");
 
 app.use(
@@ -239,9 +240,22 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 badRequestError(res, "Invalid solution", 400);
                 return;
             }
-            //so we're good!=
+            //so we're good!
             solutionFile += `Res ${step.old[0]} / ${step.old[1]} -> ${step.new}\n`;
             problemCNF = reduceCNF([step.new], problemCNF);
+        } else if (step.type === "auto-reduction") {
+            //we already do that! Happily pass through
+        } else if (step.type === "partial-solve") {
+            if (verifyPartialAssignment(problemCNF, step.assignments)) {
+                let newClauses = [];
+                for(const assignment of step.assignments) {
+                    newClauses.push([assignment])
+                }
+                problemCNF = reduceCNF(newClauses, problemCNF);
+            } else {
+                badRequestError(res, "Invalid partial solve", 400);
+                return;
+            }
         } else {
             badRequestError(res, `Invalid step type - What is ${step.type}?`, 400);
             return;

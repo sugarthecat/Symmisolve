@@ -145,11 +145,42 @@ function getSizeCNF(clauses) {
     return size
 }
 
+/**
+ *  Verifies a partial assignment is valid.
+ *
+ * @param {Array} clauses The list of clauses int he formula
+ * @param {Array} assignments The list of partial assignments. Ex [1,2,-3]
+ * @returns
+ */
+function verifyPartialAssignment(clauses, assignments) {
+    for (const clause of clauses) {
+        let literalsRemoved = false;
+        let satisfied = false;
+        for (const literal of clause) {
+            for (const assignment of assignments) {
+                if (literal === assignment) {
+                    satisfied = true;
+                    break;
+
+                } else if (literal === -assignment) {
+                    literalsRemoved = true;
+                    break;
+                }
+            }
+        }
+        if (literalsRemoved && !satisfied) {
+            //invalid partial assignment
+            return false;
+        }
+    }
+    return true;
+}
 export {
     resolve,
     isSubclause,
     isEqual,
-    getSizeCNF
+    getSizeCNF,
+    verifyPartialAssignment
 }
 
 //and they say mathemeticians can't code :p
