@@ -86,7 +86,7 @@ app.post("/api/signup", express.json(), async (req, res) => {
 
 app.post("/api/login", express.json(), async (req, res) => {
     const { username, password: plainPassword } = req.body;
-    if(!username || !plainPassword) {
+    if (!username || !plainPassword) {
         badRequestError(res, "Username and password required", 400);
         return;
     }
@@ -114,7 +114,7 @@ app.post("/api/logout", express.json(), (req, res) => {
 app.get("/api/user/:username", express.json(), async (req, res) => {
     const { username } = req.params;
     let isMe = req.session.user?.username === username;
-    if(!username) {
+    if (!username) {
         badRequestError(res, "Invalid request", 400);
         return;
     }
@@ -200,7 +200,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         badRequestError(res, "No solution provided", 400);
         return;
     }
-    if(isNaN(parseInt(problemId))){
+    if (isNaN(parseInt(problemId))) {
         badRequestError(res, "Invalid problem ID", 400);
         return;
     }
@@ -208,7 +208,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         where: { id: parseInt(problemId) },
         include: { file: true },
     });
-    if(!problem){
+    if (!problem) {
         badRequestError(res, "Problem not found", 404);
         return;
     }
@@ -248,8 +248,8 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         } else if (step.type === "partial-solve") {
             if (verifyPartialAssignment(problemCNF, step.assignments)) {
                 let newClauses = [];
-                for(const assignment of step.assignments) {
-                    newClauses.push([assignment])
+                for (const assignment of step.assignments) {
+                    newClauses.push([assignment]);
                 }
                 problemCNF = reduceCNF(newClauses, problemCNF);
             } else {
@@ -266,10 +266,24 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         badRequestError(res, "Size Not Reduced", 400);
         return;
     }
+    let isSolved = true;
+    for (const clause in problemCNF) {
+        if (clause.length > 2) {
+            isSolved = false;
+            break;
+        }
+    }
     const sizeReduction = oldSize - newSize;
     const newProblemFileData = {
         problem_file: stringifyCNF(problemCNF),
         solution_file: solutionFile,
+        problem_post: {
+            update: {
+                current_size: getSizeCNF(problemCNF),
+                date_modified: (new Date()),
+                is_active: !isSolved,
+            },
+        },
     };
     const update = await prisma.problemFile.update({
         where: { id: problem.file.id },
