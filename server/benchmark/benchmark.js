@@ -124,8 +124,8 @@ async function makeChoice(options) {
     return options[input - 1];
 }
 
-rl.on('SIGINT', () => {
-    console.log('\nCtrl+C detected. Exiting...');
+rl.on("SIGINT", () => {
+    console.log("\nCtrl+C detected. Exiting...");
     rl.close(); // Close the readline interface
     process.exit(0); // Exit the process
 });
@@ -137,7 +137,7 @@ async function main() {
     console.log("\t(2) Benchmark a specific problem set");
     console.log("\t(3) Examine output of reducing a specific problem");
     let input = await getConsoleInput();
-    while (!["1","2","3","4"].includes(input)) {
+    while (!["1", "2", "3", "4"].includes(input)) {
         console.log("Invalid input. Please enter a, b, c, or d");
         input = await getConsoleInput();
     }

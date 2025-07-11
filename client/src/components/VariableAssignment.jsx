@@ -11,4 +11,4 @@ const VariableAssignmentComponent = ({ assignment, removeFunction }) => {
     );
 };
 
-export default VariableAssignmentComponent
+export default VariableAssignmentComponent;
