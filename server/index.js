@@ -160,7 +160,8 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
             badRequestError(res, "Invalid CNF", 400);
         } else {
             let originalProblem = fileContents;
-            let reducedProblem = stringifyCNF(reduceCNF(parseCNF(fileContents)));
+            let reducedProblemCNF = reduceCNF(parseCNF(fileContents));
+            let reducedProblem = stringifyCNF(reducedProblemCNF);
             const reductionData = {
                 original_size: getSizeCNF(parseCNF(originalProblem)),
                 reduced_size: getSizeCNF(parseCNF(reducedProblem)),
@@ -169,10 +170,17 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                 problem_file: reducedProblem,
                 solution_file: "",
             };
-
+            let solved = true;
+            for(const clause of reducedProblemCNF){
+                if(clause.length > 1){
+                    solved = false;
+                    break;
+                }
+            }
             const newUploadData = {
                 name: title,
                 description,
+                is_active: !solved,
                 current_size: getSizeCNF(parseCNF(reducedProblem)),
                 file: { create: problemFileData },
                 user: { connect: { id: req.session.user.id } },
