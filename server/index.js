@@ -19,6 +19,7 @@ const {
     isEqual,
     isSubclause,
     verifyPartialAssignment,
+    verifyConflict,
 } = require("./logic/boolsat");
 
 app.use(
@@ -265,7 +266,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 return;
             }
             solutionFile += `Partial ${step.assignments.join(" / ")}\n`;
-        } else if (step.type === "partial-solve") {
+        } else if (step.type === "conflict") {
             if (verifyConflict(problemCNF, step.assignments)) {
                 let newClause = [];
                 for (const assignment of step.assignments) {
@@ -318,7 +319,6 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             total_size_reduced: newTotalReduction,
         },
     });
-    console.log(newUser);
     req.session.user = newUser;
     //TODO: Update size on the problem page
     res.json(update);
