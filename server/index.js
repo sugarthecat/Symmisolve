@@ -306,7 +306,6 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             total_size_reduced: newTotalReduction,
         },
     });
-    console.log(newUser);
     req.session.user = newUser;
     //TODO: Update size on the problem page
     res.json(update);

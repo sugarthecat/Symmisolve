@@ -31,7 +31,6 @@ function ProblemPage() {
         const req = await makeGetRequest(`problem/${problemId}/file`);
         if (req.status === 200) {
             const data = (await req.json()).problem;
-            console.log(data);
             downloadTxtFile(data.file.problem_file, data.name);
             downloadTxtFile(data.file.solution_file, data.name, "symsln");
         } else {

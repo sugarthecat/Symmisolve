@@ -28,7 +28,6 @@ function SolverPage() {
         const res = await makeGetRequest(`problem/${problemId}/file`);
         if (res.status === 200) {
             const data = await res.json();
-            console.log(data);
             if (data.problem.is_active) {
                 setProblem(data.problem);
                 setIsLoaded(true);
