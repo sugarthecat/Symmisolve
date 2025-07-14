@@ -246,7 +246,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 }
             }
             if (!validLogic) {
-                badRequestError(res, "Invalid solution", 400);
+                badRequestError(res, "Invalid Resolution", 400);
                 return;
             }
             //so we're good!

@@ -117,7 +117,8 @@ function SolverPage() {
         let newClausesList = clauses.slice(); //slice to make a copy, triggering re-render;
         let newSolutionSteps = solutionSteps;
         while (toAdd.length > 0) {
-            let newClause = toAdd.pop();
+            //format clause by sorting
+            let newClause = toAdd.pop().sort((a, b) => Math.abs(a) - Math.abs(b));
             let add = true;
             for (let i = 0; i < newClausesList.length; i++) {
                 if (
