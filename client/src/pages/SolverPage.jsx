@@ -4,6 +4,7 @@ import { makeGetRequest, makePutRequest } from "../logic/requestTemplates";
 import "./SolverPage.css";
 import { getSizeCNF, isEqual, isSubclause, resolve } from "../logic/boolsat";
 import PartialSolveMenu from "../components/PartialSolveMenu";
+import SymmetryMenu from "../components/SymmetryMenu";
 const SOLVER_PAGE = {
     STEPS: 1,
     PARTIAL_SOLVE: 2,
@@ -313,6 +314,9 @@ function SolverPage() {
                                 clauses={clauses}
                                 submitPartialSolve={submitPartialSolve}
                             />
+                        )}
+                        {sidePage === SOLVER_PAGE.SYMMETRY_BREAKING && (
+                            <SymmetryMenu clauses={clauses} submtiSymmetry={() => { }} />
                         )}
                     </div>
                 </div>
