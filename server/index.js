@@ -391,6 +391,10 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
                 //if active, parse the CNF file for the solver.
                 //Otherwise, don't parse it and leave it to be downloaded
                 problem.file.problem_file = parseCNF(problem.file.problem_file);
+            }else{
+                let CNF = parseCNF(problem.file.problem_file);
+                let satisfied = CNF.length === 1 && CNF[0].length === 0;
+                problem.satisfied = satisfied;
             }
             res.json({ problem: problem });
         }
