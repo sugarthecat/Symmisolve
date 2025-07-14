@@ -92,6 +92,10 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
         setImpliedAssignments(implications);
         return implications
     };
+    const submitConflictToSolver = () => {
+        submitConflict(assignments)
+        setAssignments([])
+    }
     const verifyCurrAssignment = () => {
         let conflictingClauses = [];
         let impliedAssignments = updateImplications();
@@ -139,7 +143,9 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
             //keep it like this, nothing happens. Nothing EVER happens.
         } else if (lostCause) {
             errorNode = (
-                <>This partial assignment is not satisfiable: {JSON.stringify(lostCause)}</>
+                <>This partial assignment is not satisfiable: {JSON.stringify(lostCause)}
+                    <button onClick={submitConflictToSolver}>Submit Conflict</button>
+                </>
             );
         } else if (conflictingClauses.length > 0) {
             errorNode = (
@@ -196,7 +202,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
             </p>
             <p>
                 <button onClick={() => setAssignments([])}>Clear</button>
-                <button onClick={verifyCurrAssignment}>Submit Partial Solve</button>
+                <button onClick={verifyCurrAssignment}>Check Partial Solve</button>
             </p>
         </div>
     );

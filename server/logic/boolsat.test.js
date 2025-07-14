@@ -6,6 +6,7 @@ import testVerifySymmetry from './testSuites/testVerifySymmetry.test.js';
 import assert from 'node:assert/strict';
 import { getSizeCNF, optimizeCNF, sortClauses, stringifyCNF, validateSymmetry } from './boolsat.js';
 import testVerifyAssignment from './testSuites/testVerifyAssignment.test.js';
+import testVerifyConflict from './testSuites/testVerifyConflict.test.js';
 
 describe('CNF Validation', testCNFValidation);
 
@@ -16,6 +17,8 @@ describe('CNF Reduction', testCNFReduction);
 describe('CNF Symmetry', testVerifySymmetry);
 
 describe('CNF Partial assignment', testVerifyAssignment);
+
+describe('CNF Conflict Verification', testVerifyConflict);
 
 describe('CNF Stringification', () => {
     it('Correctly stringifies CNF formulas', () => {

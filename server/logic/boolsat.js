@@ -540,8 +540,17 @@ function verifyPartialAssignment(clauses, assignments) {
     return true;
 }
 
+function verifyConflict(clauses, assignments) {
+    let newClauses = assignments.map((assignment) => {return [assignment]});
+    let reducedForm = reduceCNF(newClauses,clauses)
+    if (reducedForm.length === 1 && reducedForm[0].length === 0) {
+        return true;
+    }
+    return false;
+}
 module.exports = {
     verifyPartialAssignment,
+    verifyConflict,
     CURR_ALGO_VER,
     validateCNF,
     parseCNF,

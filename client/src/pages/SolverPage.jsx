@@ -71,6 +71,12 @@ function SolverPage() {
                     <p>Partial Solve (Assignments: {step.assignments.join(", ")})</p>
                 </div>
             );
+        } else if (step.type === "conflict") {
+            return (
+                <div>
+                    <p>Conflict Found (Driven By: {step.assignments.join(", ")})</p>
+                </div>
+            );
         } else {
             return (
                 <div>
@@ -95,6 +101,16 @@ function SolverPage() {
         });
         addClauses(assignmentClauses);
         setSidePage(SOLVER_PAGE.STEPS);
+    };
+    const submitConflict = (assignments) => {
+        let conflict = []
+        let newSolutionSteps = solutionSteps;
+        for (const literal of assignments) {
+            conflict.push(-literal);
+        }
+        newSolutionSteps.push({ type: "conflict", assignments });
+        setSolutionSteps(newSolutionSteps);
+        addClauses([conflict]);
     };
     const addClauses = (newClauses) => {
         let toAdd = newClauses;
@@ -312,6 +328,7 @@ function SolverPage() {
                             <PartialSolveMenu
                                 clauses={clauses}
                                 submitPartialSolve={submitPartialSolve}
+                                submitConflict={submitConflict}
                             />
                         )}
                         {sidePage === SOLVER_PAGE.SYMMETRY_BREAKING && (

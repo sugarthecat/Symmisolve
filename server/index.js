@@ -265,6 +265,18 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 return;
             }
             solutionFile += `Partial ${step.assignments.join(" / ")}\n`;
+        } else if (step.type === "partial-solve") {
+            if (verifyConflict(problemCNF, step.assignments)) {
+                let newClause = [];
+                for (const assignment of step.assignments) {
+                    newClause.push(-assignment);
+                }
+                problemCNF = reduceCNF([newClause], problemCNF);
+            } else {
+                badRequestError(res, "Invalid partial solve", 400);
+                return;
+            }
+            solutionFile += `Partial ${step.assignments.join(" / ")}\n`;
         } else {
             badRequestError(res, `Invalid step type - What is ${step.type}?`, 400);
             return;
