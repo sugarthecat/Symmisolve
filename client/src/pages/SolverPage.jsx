@@ -4,11 +4,9 @@ import { makeGetRequest, makePutRequest } from "../logic/requestTemplates";
 import "./SolverPage.css";
 import { getSizeCNF, isEqual, isSubclause, resolve } from "../logic/boolsat";
 import PartialSolveMenu from "../components/PartialSolveMenu";
-import SymmetryMenu from "../components/SymmetryMenu";
 const SOLVER_PAGE = {
     STEPS: 1,
     PARTIAL_SOLVE: 2,
-    SYMMETRY_BREAKING: 3,
 };
 function SolverPage() {
     const navigate = useNavigate();
@@ -300,13 +298,6 @@ function SolverPage() {
                             >
                                 Partial Solve
                             </button>
-                            <button
-                                onClick={() => {
-                                    setSidePage(SOLVER_PAGE.SYMMETRY_BREAKING);
-                                }}
-                            >
-                                Symmetry Breaking
-                            </button>
                         </div>
                         {sidePage === SOLVER_PAGE.STEPS && (
                             <>
@@ -332,9 +323,6 @@ function SolverPage() {
                                 submitPartialSolve={submitPartialSolve}
                                 submitConflict={submitConflict}
                             />
-                        )}
-                        {sidePage === SOLVER_PAGE.SYMMETRY_BREAKING && (
-                            <SymmetryMenu clauses={clauses} submtiSymmetry={() => { }} />
                         )}
                     </div>
                 </div>
