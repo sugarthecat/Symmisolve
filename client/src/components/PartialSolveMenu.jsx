@@ -88,14 +88,14 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                 }
             }
         }
-        implications = implications.sort((a, b) => Math.abs(a) - Math.abs(b))
+        implications = implications.sort((a, b) => Math.abs(a) - Math.abs(b));
         setImpliedAssignments(implications);
-        return implications
+        return implications;
     };
     const submitConflictToSolver = () => {
-        submitConflict(assignments)
-        setAssignments([])
-    }
+        submitConflict(assignments);
+        setAssignments([]);
+    };
     const verifyCurrAssignment = () => {
         let conflictingClauses = [];
         let impliedAssignments = updateImplications();
@@ -147,7 +147,8 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
             //keep it like this, nothing happens. Nothing EVER happens.
         } else if (lostCause) {
             errorNode = (
-                <>This partial assignment is not satisfiable: {JSON.stringify(lostCause)}
+                <>
+                    This partial assignment is not satisfiable: {JSON.stringify(lostCause)}
                     <button onClick={submitConflictToSolver}>Submit Conflict</button>
                 </>
             );
