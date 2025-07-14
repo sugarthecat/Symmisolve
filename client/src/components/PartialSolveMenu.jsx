@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import "./PartialSolveMenu.css";
 import VariableAssignmentComponent from "./VariableAssignment";
-function PartialSolveMenu({ clauses, submitPartialSolve }) {
+function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
     const [assignments, setAssignments] = useState([]);
+    const [impliedAssignments, setImpliedAssignments] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [error, setError] = useState("");
 
@@ -61,9 +62,39 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
         assignmentsLocal.splice(index, 1);
         setAssignments(assignmentsLocal);
     };
+    const updateImplications = () => {
+        let implications = [];
+        let activeSearch = true;
+        while (activeSearch) {
+            activeSearch = false;
+            for (const clause of clauses) {
+                let satisfied = false;
+                let conflicts = 0;
+                let implication = null;
+                for (const literal of clause) {
+                    if (assignments.includes(literal) || implications.includes(literal)) {
+                        satisfied = true;
+                        break;
+                    } else if (assignments.includes(-literal) || implications.includes(-literal)) {
+                        conflicts++;
+                    } else {
+                        implication = literal;
+                    }
+                }
+
+                if (conflicts === clause.length - 1 && !satisfied && clause.length !== 1) {
+                    implications.push(implication);
+                    activeSearch = true;
+                }
+            }
+        }
+        implications = implications.sort((a, b) => Math.abs(a) - Math.abs(b))
+        setImpliedAssignments(implications);
+        return implications
+    };
     const verifyCurrAssignment = () => {
         let conflictingClauses = [];
-        let implications = [];
+        let impliedAssignments = updateImplications();
         let lostCause = false; // if no solution exists with these assignments
         for (const clause of clauses) {
             let satisfied = false;
@@ -80,15 +111,22 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
                         hasConflict = true;
                     }
                 }
+                for (const impliedAssignment of impliedAssignments) {
+                    if (impliedAssignment === literal) {
+                        satisfied = true;
+                        break;
+                    } else if (impliedAssignment === -literal) {
+                        conflicting++;
+                        hasConflict = true;
+                    }
+                }
                 if (!hasConflict && !satisfied) {
                     nonconflict = literal;
                 }
             }
             if (conflicting > 0 && !satisfied) {
                 conflictingClauses.push(clause);
-                if (conflicting + 1 === clause.length) {
-                    implications.push(nonconflict);
-                } else if (conflicting === clause.length) {
+                if (conflicting === clause.length) {
                     lostCause = clause;
                     break;
                     //no possible solution with these assignments
@@ -103,33 +141,6 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
             errorNode = (
                 <>This partial assignment is not satisfiable: {JSON.stringify(lostCause)}</>
             );
-        } else if (implications.length > 0) {
-            const setImplications = () => {
-                let newAssignments = assignments.slice();
-                for (const implication of implications) {
-                    let found = false;
-                    for (const prevAssignment of newAssignments) {
-                        if (Math.abs(prevAssignment) === Math.abs(implication)) {
-                            found = true;
-                        }
-                    }
-                    if (!found) {
-                        newAssignments.push(implication);
-                    }
-                }
-                setAssignments(newAssignments.sort((a, b) => Math.abs(a) - Math.abs(b)));
-                setError("");
-                verifyCurrAssignment();
-            };
-
-            errorNode = (
-                <>
-                    This partial assignment is not fully satisfying ({conflictingClauses.length}{" "}
-                    altered unsatisfied clauses): {JSON.stringify(conflictingClauses[0])} <br />
-                    Some implications exist, would you like to add them as assignments?{" "}
-                    <button onClick={setImplications}>Add</button>
-                </>
-            );
         } else if (conflictingClauses.length > 0) {
             errorNode = (
                 <>
@@ -138,7 +149,8 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
                 </>
             );
         } else {
-            submitPartialSolve(assignments);
+            let allAssignments = assignments.concat(impliedAssignments);
+            submitPartialSolve(allAssignments);
             errorNode = <></>;
         }
         setError(errorNode);
@@ -160,6 +172,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
                 <button onClick={attemptAssignment}>Add</button>
             </p>
             <p className="error">{error}</p>
+            Chosen
             <p id="assignments">
                 {assignments.map((assignment, index) => (
                     <VariableAssignmentComponent
@@ -168,6 +181,16 @@ function PartialSolveMenu({ clauses, submitPartialSolve }) {
                         removeFunction={() => {
                             removeAssignment(index);
                         }}
+                    ></VariableAssignmentComponent>
+                ))}
+            </p>
+            Implied
+            <p id="implied-assignments">
+                {impliedAssignments.map((assignment, index) => (
+                    <VariableAssignmentComponent
+                        key={assignment}
+                        assignment={assignment}
+                        removeFunction={() => { }}
                     ></VariableAssignmentComponent>
                 ))}
             </p>
