@@ -277,7 +277,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 badRequestError(res, "Invalid partial solve", 400);
                 return;
             }
-            solutionFile += `Partial ${step.assignments.join(" / ")}\n`;
+            solutionFile += `Conflict ${step.assignments.join(" / ")}\n`;
         } else {
             badRequestError(res, `Invalid step type - What is ${step.type}?`, 400);
             return;

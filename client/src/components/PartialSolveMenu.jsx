@@ -104,6 +104,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
             let satisfied = false;
             let conflicting = 0;
             let nonconflict = 0;
+            let unsatisfiedLiterals = [];
             for (const literal of clause) {
                 let hasConflict = false;
                 for (const assignment of assignments) {
@@ -113,6 +114,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                     } else if (assignment === -literal) {
                         conflicting++;
                         hasConflict = true;
+                        continue;
                     }
                 }
                 for (const impliedAssignment of impliedAssignments) {
@@ -122,14 +124,16 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                     } else if (impliedAssignment === -literal) {
                         conflicting++;
                         hasConflict = true;
+                        continue;
                     }
                 }
                 if (!hasConflict && !satisfied) {
                     nonconflict = literal;
+                    unsatisfiedLiterals.push(literal);
                 }
             }
             if (conflicting > 0 && !satisfied) {
-                conflictingClauses.push(clause);
+                conflictingClauses.push(unsatisfiedLiterals);
                 if (conflicting === clause.length) {
                     lostCause = clause;
                     break;

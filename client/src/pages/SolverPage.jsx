@@ -29,6 +29,7 @@ function SolverPage() {
         const res = await makeGetRequest(`problem/${problemId}/file`);
         if (res.status === 200) {
             const data = await res.json();
+            console.log(data);
             if (data.problem.is_active) {
                 setProblem(data.problem);
                 setIsLoaded(true);
@@ -230,23 +231,23 @@ function SolverPage() {
             }
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
+            console.log(clauses);
             clauseList = clauses; //.filter((clause) => { return clause.length > 1; });
             clauseList = clauseList
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
-                    if (index)
-                        return (
-                            <div key={stringifyClause(clause)}>
-                                {stringifyClause(clause)}{" "}
-                                <button
-                                    onClick={() => {
-                                        setSelectedClause(clause);
-                                    }}
-                                >
-                                    Select
-                                </button>
-                            </div>
-                        );
+                    return (
+                        <div key={stringifyClause(clause)}>
+                            {stringifyClause(clause)}{" "}
+                            <button
+                                onClick={() => {
+                                    setSelectedClause(clause);
+                                }}
+                            >
+                                Select
+                            </button>
+                        </div>
+                    );
                 });
             resultCount = clauses.length;
         }
