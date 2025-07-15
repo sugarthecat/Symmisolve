@@ -138,7 +138,7 @@ async function main() {
     console.log("\t(3) Examine output of reducing a specific problem");
     let input = await getConsoleInput();
     while (!["1", "2", "3", "4"].includes(input)) {
-        console.log("Invalid input. Please enter a, b, c, or d");
+        console.log("Invalid input. Please enter 1, 2, 3, or 4");
         input = await getConsoleInput();
     }
     if (input === "1") {
