@@ -1,4 +1,4 @@
-const CURR_ALGO_VER = 5;
+const CURR_ALGO_VER = 4;
 
 /**
  * Validates the formatting of a CNF formula
@@ -80,13 +80,39 @@ function parseCNF(formulaText) {
     }
     return clauses;
 }
-
 /**
- * Performs all self-subsuming resolution steps, removes tautologies, and sorts the clauses
- * @param {*} clauses
- * @returns
+ * Reduces a CNF formula, removing redundant clauses and subclauses, and taking simple resolution-rule steps to shrink the size of the formula.
+ * Strictly inverse non-destructive, so any solution to this formula is a solution to the original formula.
+ * @param {List<Clause>} clauses New Clauses to be added to the CNF formula / reduced
+ * @param {List<Clause>} alreadyReducedClauses A collection of clauses that have already been reduced.
+ * @returns A list of reduced clauses
  */
 function reduceCNF(clauses) {
+    function getImplication(clause, assignments) {
+        let conflicts = 0;
+        let nonConflictingLiteral = null;
+        let satisfied = false;
+        for (const literal of clause) {
+            if (assignments.has(literal)) {
+                satisfied = true;
+                break;
+            } else if (assignments.has(-literal)) {
+                conflicts++;
+            } else {
+                nonConflictingLiteral = literal;
+            }
+        }
+        if (satisfied) {
+            return true;
+        }
+        if (satisfied || conflicts < clause.length - 1) {
+            return null;
+        }
+        if (conflicts === clause.length) {
+            return false;
+        }
+        return nonConflictingLiteral;
+    }
     let toAdd = [];
     let newClauses = [];
     let modified = true;
@@ -119,6 +145,7 @@ function reduceCNF(clauses) {
             toAdd.push(clause);
         }
     }
+    //console.log(relatingToLiteral)
     //every iteration moves everything from oldClauses to newClauses
     //note: the 'modified' flag is used to trigger a run-back to remove subclauses that have already been added,
     //since the relating to literal structure is updated, but the newClauses array is not
@@ -129,7 +156,6 @@ function reduceCNF(clauses) {
             //if we have the empty clause, we can stop
             return [[]];
         }
-
         for (const literal of newClause) {
             const absLiteral = Math.abs(literal);
             const relatingClauses = relatingToLiteral[absLiteral];
@@ -189,6 +215,77 @@ function reduceCNF(clauses) {
             }
             newClauses = [];
         }
+        if (toAdd.length == 0) {
+            const allLiterals = new Set();
+            //literal implications are the other literals implied by a literal
+            //directly or indirecly
+            const literalImplications = {};
+            for (const clause of newClauses) {
+                if (clause.length === 0) {
+                    continue;
+                    //skip unit clauses, they are not useful for implication
+                }
+                for (const literal of clause) {
+                    allLiterals.add(literal);
+                    if (!(literal in literalImplications)) {
+                        literalImplications[literal] = new Set();
+                    }
+                }
+            }
+            for (const literal of allLiterals) {
+                let implied = literalImplications[literal];
+                implied.add(literal);
+                let progressing = false;
+                for (const clasue of relatingToLiteral[Math.abs(literal)]) {
+                    let implication = getImplication(clasue, implied);
+                    if(implication === true) {
+                        continue;
+                    }
+                    if (implication === false) {
+                        toAdd.push([-literal]);
+                        progressing = false;
+                        break;
+                    }else if (implication !== null) {
+                        implied.add(implication);
+                        progressing = true;
+                    }
+                }
+                let partialSolution = true;
+
+
+                while (progressing) {
+                    progressing = false;
+                    partialSolution = true;
+                    for (const clause of newClauses) {
+                        if(clause.length === 1){
+                            continue;
+                        }
+                        let implication = getImplication(clause, implied);
+                        if(implication !== true){
+                            partialSolution = false;
+                        }
+                        if (implication === false) {
+                            toAdd.push([-literal]);
+                            progressing = false;
+                            partialSolution = false;
+                            break;
+                        } else if (implication === true) {
+                            //pass
+                        } else if (implication !== null) {
+                            implied.add(implication);
+                            progressing = true;
+                        }
+                    }
+                }
+                if (partialSolution && implied.size > 1) {
+                    for (const literal2 of implied) {
+                        toAdd.push([literal2]);
+                    }
+                    console.log(toAdd)
+                    break;
+                }
+            }
+        }
     }
     //remove duplicates & sort
     newClauses = sortClauses(newClauses);
@@ -200,135 +297,15 @@ function reduceCNF(clauses) {
     }
     return finalClauses;
 }
+
 /**
- * Reduces a CNF formula, removing redundant clauses and subclauses, and taking simple resolution-rule steps to shrink the size of the formula.
- * Strictly inverse non-destructive, so any solution to this formula is a solution to the original formula.
- * @param {List<Clause>} clauses New Clauses to be added to the CNF formula / reduced
- * @param {List<Clause>} alreadyReducedClauses A collection of clauses that have already been reduced.
- * @returns A list of reduced clauses
+ * Uses all tools to reduce the size of a CNF formula.
+ * @param {*} clauses
+ * @returns
  */
 function optimizeCNF(clauses) {
-    function getImplication(clause, assignments) {
-        let conflicts = 0;
-        let nonConflictingLiteral = null;
-        let satisfied = false;
-        for (const literal of clause) {
-            if (assignments.has(literal)) {
-                satisfied = true;
-                break;
-            } else if (assignments.has(-literal)) {
-                conflicts++;
-            } else {
-                nonConflictingLiteral = literal;
-            }
-        }
-        if (satisfied) {
-            return true;
-        }
-        if (conflicts === clause.length) {
-            return false;
-        }
-        if (conflicts < clause.length - 1) {
-            return null;
-        }
-        return nonConflictingLiteral;
-    }
-    let toAdd = reduceCNF(clauses);
-    let relatingToLiteral = {};
-    const literalImplications = new Map();
-    for (let clasue of toAdd) {
-        for (const literal of clasue) {
-            if (!(Math.abs(literal) in relatingToLiteral)) {
-                relatingToLiteral[Math.abs(literal)] = [];
-            }
-            relatingToLiteral[Math.abs(literal)].push(clasue);
-            if (!(literal in literalImplications)) {
-                literalImplications.set(literal, new Set());
-                literalImplications.get(literal).add(literal);
-            }
-        }
-    }
-    //every iteration moves everything from oldClauses to newClauses
-    //note: the 'modified' flag is used to trigger a run-back to remove subclauses that have already been added,
-    //since the relating to literal structure is updated, but the newClauses array is not
-    let oldSize = getSizeCNF(toAdd) + 1;
-    let newSize = oldSize - 1;
-
-    let mapping = new Map();
-    function getFinalLiteralMapping(inputLiteral) {
-        let literal = inputLiteral;
-        while (mapping.has(literal)) {
-            literal = mapping.get(literal);
-        }
-        return literal;
-    }
-    while (newSize < oldSize) {
-        let newClauses = [];
-        while (toAdd.length > 0) {
-            let clause = toAdd.pop();
-            //mapping stuff
-            for (let i = 0; i < clause.length; i++) {
-                for (let j = 0; j < clause.length; j++) {
-                    if (j == i) {
-                        continue;
-                    }
-                }
-            }
-
-            newClauses.push(clause);
-        }
-        toAdd = reduceCNF(newClauses);
-        //literal implications are the other literals implied by a literal
-        //directly or indirecly
-        oldSize = newSize;
-        newSize = getSizeCNF(toAdd);
-    }
-    /* OLD CODE FOR CONFLICT FINDING
-    for (const [literal, implied] of literalImplications) {
-        //console.log("------------------", literal, "------------------");
-        let progressing = false;
-        for (const clasue of relatingToLiteral[Math.abs(literal)]) {
-            let implication = getImplication(clasue, implied);
-            if (implication === true) {
-                continue;
-            }
-            if (implication === false) {
-                toAdd.push([-literal]);
-                progressing = false;
-                break;
-            } else if (implication !== null) {
-                implied.add(implication);
-                //add implication to implied
-                progressing = true;
-            }
-        }
-
-        let notSatisfied = toAdd.slice();
-        let newNotSatisfied = [];
-        while (progressing) {
-            progressing = false;
-            for (const clause of notSatisfied) {
-                let implication = getImplication(clause, implied);
-                if (implication === true) {
-                    continue;
-                }
-                newNotSatisfied.push(clause);
-                if (implication === false) {
-                    toAdd.push([-literal]);
-                    progressing = false;
-                    unsatisfiable = true;
-                    break;
-                } else if (implication !== null) {
-                    //console.log(literal,"->",implication);
-                    implied.add(implication);
-                    progressing = true;
-                }
-            }
-            notSatisfied = newNotSatisfied;
-            newNotSatisfied = [];
-        }
-    }*/
-    return toAdd;
+    // TODO add symmetry reduction
+    return reduceCNF(clauses);
 }
 
 /**
