@@ -1,4 +1,4 @@
-const CURR_ALGO_VER = 4;
+const e = require("express");
 
 /**
  * Validates the formatting of a CNF formula
@@ -88,31 +88,6 @@ function parseCNF(formulaText) {
  * @returns A list of reduced clauses
  */
 function reduceCNF(clauses) {
-    function getImplication(clause, assignments) {
-        let conflicts = 0;
-        let nonConflictingLiteral = null;
-        let satisfied = false;
-        for (const literal of clause) {
-            if (assignments.has(literal)) {
-                satisfied = true;
-                break;
-            } else if (assignments.has(-literal)) {
-                conflicts++;
-            } else {
-                nonConflictingLiteral = literal;
-            }
-        }
-        if (satisfied) {
-            return true;
-        }
-        if (satisfied || conflicts < clause.length - 1) {
-            return null;
-        }
-        if (conflicts === clause.length) {
-            return false;
-        }
-        return nonConflictingLiteral;
-    }
     let toAdd = [];
     let newClauses = [];
     let modified = true;
@@ -166,11 +141,13 @@ function reduceCNF(clauses) {
                     //relating clause is a subclause of new clause
                     relatingClauses.splice(i, 1);
                     i--;
+                    modified = true;
                     continue;
                 }
                 if (isSubclause(newClause, relatingClause)) {
                     //new clause is a subclause of related clause
                     add = false;
+                    modified = true;
                     break;
                 }
                 //nice resolutions
@@ -190,6 +167,7 @@ function reduceCNF(clauses) {
                         //it does mean the new clause can replace it, but we have to check relations with all other clauses now
                         toAdd.push(resolvedClause);
                         add = false;
+                        modified = true;
                         break;
                     }
                 }
@@ -215,79 +193,8 @@ function reduceCNF(clauses) {
             }
             newClauses = [];
         }
-        if (toAdd.length == 0) {
-            const allLiterals = new Set();
-            //literal implications are the other literals implied by a literal
-            //directly or indirecly
-            const literalImplications = {};
-            for (const clause of newClauses) {
-                if (clause.length === 0) {
-                    continue;
-                    //skip unit clauses, they are not useful for implication
-                }
-                for (const literal of clause) {
-                    allLiterals.add(literal);
-                    if (!(literal in literalImplications)) {
-                        literalImplications[literal] = new Set();
-                    }
-                }
-            }
-            for (const literal of allLiterals) {
-                let implied = literalImplications[literal];
-                implied.add(literal);
-                let progressing = false;
-                for (const clasue of relatingToLiteral[Math.abs(literal)]) {
-                    let implication = getImplication(clasue, implied);
-                    if(implication === true) {
-                        continue;
-                    }
-                    if (implication === false) {
-                        toAdd.push([-literal]);
-                        progressing = false;
-                        break;
-                    }else if (implication !== null) {
-                        implied.add(implication);
-                        progressing = true;
-                    }
-                }
-                let partialSolution = true;
-
-
-                while (progressing) {
-                    progressing = false;
-                    partialSolution = true;
-                    for (const clause of newClauses) {
-                        if(clause.length === 1){
-                            continue;
-                        }
-                        let implication = getImplication(clause, implied);
-                        if(implication !== true){
-                            partialSolution = false;
-                        }
-                        if (implication === false) {
-                            toAdd.push([-literal]);
-                            progressing = false;
-                            partialSolution = false;
-                            break;
-                        } else if (implication === true) {
-                            //pass
-                        } else if (implication !== null) {
-                            implied.add(implication);
-                            progressing = true;
-                        }
-                    }
-                }
-                if (partialSolution && implied.size > 1) {
-                    for (const literal2 of implied) {
-                        toAdd.push([literal2]);
-                    }
-                    console.log(toAdd)
-                    break;
-                }
-            }
-        }
     }
-    //remove duplicates & sort
+    //remove duplicates
     newClauses = sortClauses(newClauses);
     let finalClauses = [];
     for (let i = 0; i < newClauses.length; i++) {
@@ -563,6 +470,7 @@ function getSizeCNF(clauses) {
     return size;
 }
 
+const CURR_ALGO_VER = 3;
 //poorly optimized, but it works
 
 /**
