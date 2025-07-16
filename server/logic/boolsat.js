@@ -296,16 +296,6 @@ function optimizeCNF(clauses) {
 }
 
 /**
- * Uses all tools to reduce the size of a CNF formula.
- * @param {*} clauses
- * @returns
- */
-function optimizeCNF(clauses) {
-    // TODO add symmetry reduction
-    return reduceCNF(clauses);
-}
-
-/**
  * Finds a symmetry of a CNF formula.
  * @param {*} clauses The CNF formula
  * @returns A symmetry of the formula, or null if no symmetry is found.
