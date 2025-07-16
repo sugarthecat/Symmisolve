@@ -10,22 +10,22 @@ function NavBar({ accessLevel, username }) {
             <Link to="/help">
                 <button>How To SAT Solve</button>
             </Link>
-            {accessLevel == ACCESS_LEVELS.LOGGED_OUT && (
+            {accessLevel === ACCESS_LEVELS.LOGGED_OUT && (
                 <Link to="/login">
                     <button>Log In</button>
                 </Link>
             )}
-            {accessLevel == ACCESS_LEVELS.LOGGED_OUT && (
+            {accessLevel === ACCESS_LEVELS.LOGGED_OUT && (
                 <Link to="/signup">
                     <button>Sign Up</button>
                 </Link>
             )}
-            {accessLevel >= ACCESS_LEVELS.RESEARCHER && (
+            {(accessLevel === ACCESS_LEVELS.RESEARCHER || accessLevel === ACCESS_LEVELS.ADMIN) && (
                 <Link to="/upload">
                     <button>Upload Problem</button>
                 </Link>
             )}
-            {accessLevel >= ACCESS_LEVELS.USER && (
+            {accessLevel != ACCESS_LEVELS.LOGGED_OUT && (
                 <Link to={`/user/${username}`}>
                     <button>My Profile</button>
                 </Link>
