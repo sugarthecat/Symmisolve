@@ -185,13 +185,13 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
         if (add) {
             newClauses.push(newClause);
         }
-        if (modified && toAdd.length == 0) {
+        if (modified && toAdd.length === 0) {
             modified = false;
             // reload the toAdd stack
             newClauses = sortClauses(newClauses);
             toAdd = [];
             for (let i = 0; i < newClauses.length; i++) {
-                if (i == 0 || !isEqual(newClauses[i], newClauses[i - 1])) {
+                if (i === 0 || !isEqual(newClauses[i], newClauses[i - 1])) {
                     toAdd.push(newClauses[i]);
                 }
             }
@@ -202,7 +202,7 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
     newClauses = sortClauses(newClauses);
     let finalClauses = [];
     for (let i = 0; i < newClauses.length; i++) {
-        if (i == 0 || !isEqual(newClauses[i], newClauses[i - 1])) {
+        if (i === 0 || !isEqual(newClauses[i], newClauses[i - 1])) {
             finalClauses.push(newClauses[i]);
         }
     }
@@ -259,7 +259,7 @@ function optimizeCNF(clauses) {
                 let implications = literalImplications.get(sourceLiteral);
                 let nonconflictingLiterals = [];
                 for (let j = 0; j < clause.length; j++) {
-                    if (j == i) {
+                    if (j === i) {
                         continue;
                     }
                     let currLiteral = clause[j];
@@ -274,7 +274,7 @@ function optimizeCNF(clauses) {
                         nonconflictingLiterals.push(currLiteral);
                     }
                 }
-                if (!satisfied && nonconflictingLiterals.length == 1) {
+                if (!satisfied && nonconflictingLiterals.length === 1) {
                     if (clause.length > 2) {
                         newClauses.push([-sourceLiteral, nonconflictingLiterals[0]]);
                     }
