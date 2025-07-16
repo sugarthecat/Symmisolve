@@ -265,7 +265,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 for (const assignment of step.assignments) {
                     newClauses.push([assignment]);
                 }
-                problemCNF = reduceCNF(problemCNF.concat(newClauses));
+                problemCNF = reduceCNF(newClauses, problemCNF);
             } else {
                 badRequestError(res, "Invalid partial solve", 400);
                 return;
@@ -282,7 +282,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 for (const assignment of step.assignments) {
                     newClause.push(-assignment);
                 }
-                problemCNF = reduceCNF(problemCNF.concat([newClause]));
+                problemCNF = reduceCNF([newClause], problemCNF);
             } else {
                 badRequestError(res, "Invalid partial solve", 400);
                 return;

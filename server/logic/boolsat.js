@@ -1,4 +1,4 @@
-const CURR_ALGO_VER = 5;
+const e = require("express");
 
 /**
  * Validates the formatting of a CNF formula
@@ -292,52 +292,17 @@ function optimizeCNF(clauses) {
         oldSize = newSize;
         newSize = getSizeCNF(toAdd);
     }
-    /* OLD CODE FOR CONFLICT FINDING - n^2, not feasible
-    for (const [literal, implied] of literalImplications) {
-        //console.log("------------------", literal, "------------------");
-        let progressing = false;
-        for (const clasue of relatingToLiteral[Math.abs(literal)]) {
-            let implication = getImplication(clasue, implied);
-            if (implication === true) {
-                continue;
-            }
-            if (implication === false) {
-                toAdd.push([-literal]);
-                progressing = false;
-                break;
-            } else if (implication !== null) {
-                implied.add(implication);
-                //add implication to implied
-                progressing = true;
-            }
-        }
+    return sortClauses(toAdd);
+}
 
-        let notSatisfied = toAdd.slice();
-        let newNotSatisfied = [];
-        while (progressing) {
-            progressing = false;
-            for (const clause of notSatisfied) {
-                let implication = getImplication(clause, implied);
-                if (implication === true) {
-                    continue;
-                }
-                newNotSatisfied.push(clause);
-                if (implication === false) {
-                    toAdd.push([-literal]);
-                    progressing = false;
-                    unsatisfiable = true;
-                    break;
-                } else if (implication !== null) {
-                    //console.log(literal,"->",implication);
-                    implied.add(implication);
-                    progressing = true;
-                }
-            }
-            notSatisfied = newNotSatisfied;
-            newNotSatisfied = [];
-        }
-    }*/
-    return toAdd;
+/**
+ * Uses all tools to reduce the size of a CNF formula.
+ * @param {*} clauses
+ * @returns
+ */
+function optimizeCNF(clauses) {
+    // TODO add symmetry reduction
+    return reduceCNF(clauses);
 }
 
 /**
@@ -446,7 +411,7 @@ function formatClause(clause) {
  * @param {Clause} clause2 The possible superclause
  */
 function isSubclause(clause1, clause2) {
-    if (clause1.length <= clause2.length) {
+    if (clause1.length < clause2.length) {
         return false;
     }
     let index1 = 0;
@@ -595,6 +560,7 @@ function getSizeCNF(clauses) {
     return size;
 }
 
+const CURR_ALGO_VER = 3;
 //poorly optimized, but it works
 
 /**
@@ -631,7 +597,7 @@ function verifyConflict(clauses, assignments) {
     let newClauses = assignments.map((assignment) => {
         return [assignment];
     });
-    let reducedForm = reduceCNF(clauses, newClauses);
+    let reducedForm = reduceCNF(newClauses, clauses);
     if (reducedForm.length === 1 && reducedForm[0].length === 0) {
         return true;
     }
