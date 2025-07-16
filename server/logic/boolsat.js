@@ -86,14 +86,14 @@ function parseCNF(formulaText) {
  * @param {*} clauses
  * @returns
  */
-function reduceCNF(clauses) {
+function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
     let toAdd = [];
     let newClauses = [];
     let modified = true;
     let relatingToLiteral = {};
     //set up relatingToLiteral, contains all clauses relating to each literal
-    for (let i = 0; i < clauses.length; i++) {
-        const clause = formatClause(clauses[i]);
+    for (let clause of clauses.concat(alreadyReduced)) {
+        clause = formatClause(clause);
         let skip = false;
         if (clause === null) {
             continue;
@@ -119,12 +119,19 @@ function reduceCNF(clauses) {
             toAdd.push(clause);
         }
     }
+    let toCompare = justCompare.slice();
     //every iteration moves everything from oldClauses to newClauses
     //note: the 'modified' flag is used to trigger a run-back to remove subclauses that have already been added,
     //since the relating to literal structure is updated, but the newClauses array is not
-    while (toAdd.length > 0) {
+    while (toAdd.length > 0 || toCompare.length > 0) {
         let add = true;
-        let newClause = toAdd.pop();
+        let newClause;
+        if (toAdd.length > 0) {
+            newClause = toAdd.pop();
+        } else {
+            newClause = justCompare.pop();
+            add = false;
+        }
         if (newClause.length === 0) {
             //if we have the empty clause, we can stop
             return [[]];
@@ -140,6 +147,7 @@ function reduceCNF(clauses) {
                     //relating clause is a subclause of new clause
                     relatingClauses.splice(i, 1);
                     i--;
+                    add = true;
                     continue;
                 }
                 if (isSubclause(newClause, relatingClause)) {
@@ -208,31 +216,6 @@ function reduceCNF(clauses) {
  * @returns A list of reduced clauses
  */
 function optimizeCNF(clauses) {
-    function getImplication(clause, assignments) {
-        let conflicts = 0;
-        let nonConflictingLiteral = null;
-        let satisfied = false;
-        for (const literal of clause) {
-            if (assignments.has(literal)) {
-                satisfied = true;
-                break;
-            } else if (assignments.has(-literal)) {
-                conflicts++;
-            } else {
-                nonConflictingLiteral = literal;
-            }
-        }
-        if (satisfied) {
-            return true;
-        }
-        if (conflicts === clause.length) {
-            return false;
-        }
-        if (conflicts < clause.length - 1) {
-            return null;
-        }
-        return nonConflictingLiteral;
-    }
     let toAdd = reduceCNF(clauses);
     let relatingToLiteral = {};
     const literalImplications = new Map();
@@ -242,15 +225,14 @@ function optimizeCNF(clauses) {
                 relatingToLiteral[Math.abs(literal)] = [];
             }
             relatingToLiteral[Math.abs(literal)].push(clasue);
-            if (!(literal in literalImplications)) {
-                literalImplications.set(literal, new Set());
-                literalImplications.get(literal).add(literal);
+            if (!literalImplications.has(literal)) {
+                literalImplications.set(literal, new Set([literal]));
+            }
+            if (!literalImplications.has(-literal)) {
+                literalImplications.set(-literal, new Set([-literal]));
             }
         }
     }
-    //every iteration moves everything from oldClauses to newClauses
-    //note: the 'modified' flag is used to trigger a run-back to remove subclauses that have already been added,
-    //since the relating to literal structure is updated, but the newClauses array is not
     let oldSize = getSizeCNF(toAdd) + 1;
     let newSize = oldSize - 1;
 
@@ -263,27 +245,54 @@ function optimizeCNF(clauses) {
         return literal;
     }
     while (newSize < oldSize) {
+        let oldClauses = [];
         let newClauses = [];
+        let extraClauses = [];
         while (toAdd.length > 0) {
             let clause = toAdd.pop();
+            let add = true;
             //mapping stuff
             for (let i = 0; i < clause.length; i++) {
+                let conflicts = 0;
+                let satisfied = false;
+                let sourceLiteral = -clause[i];
+                let implications = literalImplications.get(sourceLiteral);
+                let nonconflictingLiterals = [];
                 for (let j = 0; j < clause.length; j++) {
                     if (j == i) {
                         continue;
                     }
+                    let currLiteral = clause[j];
+                    if (implications === undefined) {
+                        console.log(sourceLiteral);
+                    }
+                    if (implications.has(currLiteral)) {
+                        satisfied = true;
+                    } else if (implications.has(-currLiteral)) {
+                        conflicts++;
+                    } else {
+                        nonconflictingLiterals.push(currLiteral);
+                    }
                 }
+                if (!satisfied && nonconflictingLiterals.length == 1) {
+                    if (clause.length > 2) {
+                        newClauses.push([-sourceLiteral, nonconflictingLiterals[0]]);
+                    }
+                    implications = implications.union(
+                        literalImplications.get(nonconflictingLiterals[0])
+                    );
+                }
+                literalImplications.set(sourceLiteral, implications);
             }
-
-            newClauses.push(clause);
+            oldClauses.push(clause);
         }
-        toAdd = reduceCNF(newClauses);
+        toAdd = reduceCNF(newClauses, oldClauses, extraClauses);
         //literal implications are the other literals implied by a literal
         //directly or indirecly
         oldSize = newSize;
         newSize = getSizeCNF(toAdd);
     }
-    /* OLD CODE FOR CONFLICT FINDING
+    /* OLD CODE FOR CONFLICT FINDING - n^2, not feasible
     for (const [literal, implied] of literalImplications) {
         //console.log("------------------", literal, "------------------");
         let progressing = false;
@@ -622,7 +631,7 @@ function verifyConflict(clauses, assignments) {
     let newClauses = assignments.map((assignment) => {
         return [assignment];
     });
-    let reducedForm = reduceCNF(newClauses.concat(clauses));
+    let reducedForm = reduceCNF(clauses, newClauses);
     if (reducedForm.length === 1 && reducedForm[0].length === 0) {
         return true;
     }
