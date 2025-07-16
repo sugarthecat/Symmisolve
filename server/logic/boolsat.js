@@ -181,7 +181,7 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
         if (willAdd) {
             writtenClauses.push(currClause);
         }
-        if (toAdd.length == 0) {
+        if (toAdd.length === 0) {
             //check all mappings - If a variable is supposed to be swapped to a lexically earlier variable, swap it.
             //at the same time, check for variables that can be set positive or negative
             let unmappedClauses = [];
@@ -190,7 +190,7 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                 const writtenClause = writtenClauses.pop();
                 //if this equality relation has no lexically-first variable, set the first variable to be as first as possible
                 if (
-                    writtenClause.length == 2 &&
+                    writtenClause.length === 2 &&
                     writtenClause[0] in mappings &&
                     writtenClause[1] in mappings &&
                     getFinalLiteralMapping(writtenClause[0]) !== writtenClause[0] &&
@@ -202,7 +202,7 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                 }
                 //if this equality relation is in the right form (earliest, other), keep it
                 if(
-                    writtenClause.length == 2 &&
+                    writtenClause.length === 2 &&
                     getFinalLiteralMapping(writtenClause[1]) === -writtenClause[0]
                 ){
                     unmappedClauses.push(writtenClause);
