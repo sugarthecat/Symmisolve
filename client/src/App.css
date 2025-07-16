@@ -1,14 +1,16 @@
 :root {
-    --background-dark: #1c1c1c;
-    --background-light: #555;
-    --midground-light: #999;
+    --background-element: #3c3c3c;
+    --background-light: #888;
+    --background-medium: #666;
+    --background-primary: #000;
     --foreground-light: #fff;
+    --page-background: #222;
 }
 body {
     font-family: Arial, Helvetica, sans-serif;
     margin: 0px;
     overflow-x: hidden;
-    background-color: var(--background-light);
+    background-color: var(--background-primary);
 }
 
 #root,
@@ -24,11 +26,12 @@ body,
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
+    background-color: var(--page-background);
 }
 
 #upper-container {
     width: 100%;
-    background-color: white;
+    background-color: var(--page-background);
 }
 
 header#doc-header,
@@ -36,8 +39,11 @@ footer#doc-footer {
     box-sizing: border-box;
     padding: 30px;
     width: 100%;
-    color: white;
-    background-color: var(--background-light);
+    color: var(--foreground-light);
+    background-color: var(--background-primary);
+}
+#doc-header {
+    text-align: center;
 }
 
 #content {
@@ -48,7 +54,7 @@ footer#doc-footer {
 
 span.code-segment {
     position: relative;
-    background-color: var(--background-light);
+    background-color: var(--background-primary);
     color: var(--foreground-light);
     font-family: monospace;
     padding: 6px;
@@ -75,9 +81,22 @@ button {
     border: none;
     margin: 5px;
     color: var(--foreground-light);
-    background-color: var(--background-dark);
+    background-color: var(--background-element);
     cursor: pointer;
+    transition-duration: 500ms;
 }
 button:hover {
+    color: var(--foreground-light);
+    background-color: var(--background-medium);
+}
 
+#title-1 {
+    font-style: italic;
+    margin-right: 2px;
+}
+.rainbow-text {
+    background: linear-gradient(135deg, #f00 20%, #f80 20%,#f80 40%, #ff0 40%,#ff0 60%, #0f0 60%, #0f0 80%, #0cf 80%,#0cf 100%);
+    background-color: white;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
