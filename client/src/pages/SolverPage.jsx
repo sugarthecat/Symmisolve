@@ -101,7 +101,7 @@ function SolverPage() {
         setSidePage(SOLVER_PAGE.STEPS);
     };
     const submitConflict = (assignments) => {
-        let conflict = []
+        let conflict = [];
         let newSolutionSteps = solutionSteps;
         for (const literal of assignments) {
             conflict.push(-literal);
@@ -112,7 +112,7 @@ function SolverPage() {
     };
     const addClauses = (newClauses) => {
         let toAdd = newClauses;
-        let newClausesList = clauses.slice(); //slice to make a copy, triggering re-render;
+        let newClausesList = clauses.filter((clause) => clause.length > 1).slice(); //slice to make a copy, triggering re-render;
         let newSolutionSteps = solutionSteps;
         while (toAdd.length > 0) {
             //format clause by sorting
@@ -229,7 +229,9 @@ function SolverPage() {
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
             console.log(clauses);
-            clauseList = clauses.filter((clause) => { return clause.length > 1; }); //filter out unit clauses
+            clauseList = clauses.filter((clause) => {
+                return clause.length > 1;
+            }); //filter out unit clauses
             clauseList = clauseList
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
