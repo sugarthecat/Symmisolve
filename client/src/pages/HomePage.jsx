@@ -40,8 +40,9 @@ function HomePage({ updateUser }) {
   } else {
     return (
       <div className="home-page">
-        <h1>Home</h1>
-        Welcome, {username}
+        <h1>Open Problems</h1>
+        <p>Welcome, {username}. Which problem would you like to solve?</p>
+
         <div id="problem-grid">
           {problems.map((problem) => {
             return <ProblemCard key={problem.id} problem={problem}></ProblemCard>;

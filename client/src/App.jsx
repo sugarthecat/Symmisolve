@@ -40,7 +40,8 @@ function App() {
             <header id="doc-header">
               <h1>
                 <span id="title-1">Symmi</span>
-                <span className="rainbow-text">Solve</span>
+                <span id="title-2">Solve</span>
+                {accessLevel === ACCESS_LEVELS.RESEARCHER && " For Research"}
               </h1>
               <p>Meta University - Engineering</p>
               <p>A Community Based SAT Solver</p>

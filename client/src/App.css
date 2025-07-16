@@ -50,6 +50,8 @@ footer#doc-footer {
     box-sizing: border-box;
     width: 100%;
     padding: 30px;
+    text-align: center;
+    color:white
 }
 
 span.code-segment {
@@ -93,6 +95,10 @@ button:hover {
 #title-1 {
     font-style: italic;
     margin-right: 2px;
+}
+#title-2 {
+    font-weight: bold;
+    color:#d22;
 }
 .rainbow-text {
     background: linear-gradient(135deg, #f00 20%, #f80 20%,#f80 40%, #ff0 40%,#ff0 60%, #0f0 60%, #0f0 80%, #0cf 80%,#0cf 100%);
