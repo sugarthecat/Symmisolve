@@ -189,7 +189,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                     <VariableAssignmentComponent
                         key={assignment}
                         assignment={assignment}
-                        removeFunction={() => {
+                        clickFunc={() => {
                             removeAssignment(index);
                         }}
                     ></VariableAssignmentComponent>
@@ -201,7 +201,11 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                     <VariableAssignmentComponent
                         key={assignment}
                         assignment={assignment}
-                        removeFunction={() => { }}
+                        clickFunc={() => {
+                            let assignmentsLocal = assignments.slice();
+                            assignmentsLocal.push(assignment);
+                            setAssignments(assignmentsLocal);
+                        }}
                     ></VariableAssignmentComponent>
                 ))}
             </p>
