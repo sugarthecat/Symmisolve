@@ -1,6 +1,11 @@
-#problem-grid{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  flex-wrap: wrap;
+#problem-grid {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.home-page {
+    text-align: center;
+    color: white;
 }
