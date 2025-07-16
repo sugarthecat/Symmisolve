@@ -1,59 +1,83 @@
+:root {
+    --background-dark: #1c1c1c;
+    --background-light: #555;
+    --midground-light: #999;
+    --foreground-light: #fff;
+}
 body {
-  font-family: Arial, Helvetica, sans-serif;
-  margin: 0px;
-  overflow-x: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0px;
+    overflow-x: hidden;
+    background-color: var(--background-light);
 }
 
 #root,
 body,
 #app {
-  min-height: 100vh;
+    min-height: 100vh;
 }
 
 #app {
-  display: flex;
-  width: 100%;
-  min-height: 100vh;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
 }
 
 #upper-container {
-  width: 100%;
+    width: 100%;
+    background-color: white;
 }
 
-header#doc-header, footer#doc-footer{
-  box-sizing: border-box;
-  padding: 30px;
-  width: 100%;
-  color: white;
-  background-color: darkblue;
+header#doc-header,
+footer#doc-footer {
+    box-sizing: border-box;
+    padding: 30px;
+    width: 100%;
+    color: white;
+    background-color: var(--background-light);
 }
 
-#content{
-  box-sizing: border-box;
-  width: 100%;
-  padding: 30px;
+#content {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 30px;
 }
 
-span.code-segment{
-  position: relative;
-  background-color: lightgray;
-  font-family: monospace;
-  padding:4px;
-  border-radius: 5px;
-  top:-1px;
-  margin-left:2px;
-  margin-right: 2px;
+span.code-segment {
+    position: relative;
+    background-color: var(--background-light);
+    color: var(--foreground-light);
+    font-family: monospace;
+    padding: 6px;
+    border-radius: 5px;
+    top: -1px;
+    margin-left: 2px;
+    margin-right: 2px;
 }
 
-.overline{
-  text-decoration: overline;
-  text-decoration-thickness: 2px;
+.overline {
+    text-decoration: overline;
+    text-decoration-thickness: 2px;
 }
 
-.error{
-  color:red;
-  font-weight: bolder;
+.error {
+    color: red;
+    font-weight: bolder;
+}
+
+button {
+    padding: 12px;
+    border-radius: 8px;
+    outline: none;
+    border: none;
+    margin: 5px;
+    color: var(--foreground-light);
+    background-color: var(--background-dark);
+    cursor: pointer;
+}
+button:hover {
+
 }
