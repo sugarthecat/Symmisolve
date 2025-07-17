@@ -1,3 +1,11 @@
-.assignment{
-
+.assignment {
+    padding: 12px;
+    margin: 8px;
+    border-radius: 12px;
+    background-color: var(--background-element);
+    font-family: monospace;
+    font-size: large;
+}
+.assignment:hover {
+    background-color: var(--background-medium);
 }

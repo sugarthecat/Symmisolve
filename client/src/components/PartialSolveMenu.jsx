@@ -6,7 +6,6 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
     const [impliedAssignments, setImpliedAssignments] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [error, setError] = useState("");
-
     useEffect(() => {
         verifyCurrAssignment();
     }, [JSON.stringify(assignments)]);

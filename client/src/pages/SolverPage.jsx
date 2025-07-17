@@ -319,6 +319,7 @@ function SolverPage() {
                         )}
                         {sidePage === SOLVER_PAGE.PARTIAL_SOLVE && (
                             <PartialSolveMenu
+
                                 clauses={clauses}
                                 submitPartialSolve={submitPartialSolve}
                                 submitConflict={submitConflict}
