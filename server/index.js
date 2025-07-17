@@ -295,7 +295,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
     }
     const newSize = getSizeCNF(problemCNF);
     const sizeReduction = oldSize - newSize;
-    if (sizeReduction > 0) {
+    if (sizeReduction <= 0) {
         badRequestError(res, "Size Not Reduced", 400);
         return;
     }
