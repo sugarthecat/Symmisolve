@@ -112,7 +112,7 @@ function SolverPage() {
     };
     const addClauses = (newClauses) => {
         let toAdd = newClauses;
-        let newClausesList = clauses.filter((clause) => clause.length > 1).slice(); //slice to make a copy, triggering re-render;
+        let newClausesList = clauses; //slice to make a copy, triggering re-render;
         let newSolutionSteps = solutionSteps;
         while (toAdd.length > 0) {
             //format clause by sorting
@@ -162,9 +162,9 @@ function SolverPage() {
                 newClausesList.push(newClause);
             }
         }
-        setClauses(newClausesList);
+        setClauses(newClausesList.slice());
         setSolutionSteps(newSolutionSteps);
-        setStartIndex(Math.floor(newClausesList.length / 100));
+        setStartIndex(Math.floor(newClausesList.filter((clause) => clause.length > 1).length / 100));
     };
 
     const sendReduction = async () => {
