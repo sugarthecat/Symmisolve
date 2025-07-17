@@ -288,6 +288,7 @@ function SolverPage() {
                                     Previous
                                 </button>
                             )}
+                            ({startIndex + 1}/{Math.floor(resultCount / 100) + 1})
                             {startIndex < Math.floor(resultCount / 100) && (
                                 <button
                                     onClick={() => {
@@ -299,7 +300,7 @@ function SolverPage() {
                             )}
                             <button
                                 onClick={() => {
-                                    setStartIndex(Math.floor((resultCount.length - 1) / 100));
+                                    setStartIndex(Math.floor((resultCount - 1) / 100));
                                 }}
                             >
                                 To End

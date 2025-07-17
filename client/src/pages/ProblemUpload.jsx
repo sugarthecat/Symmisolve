@@ -42,7 +42,7 @@ function ProblemUpload() {
                 <p className="problem-upload-message">Problem size automatically reduced
                     {` (${reductionData.original_size} -> ${reductionData.reduced_size}, `}
                     {` ${((reductionData.original_size - reductionData.reduced_size) * 100 / Math.max(1, reductionData.original_size)).toFixed(2)}% reduction)`}<br />
-                    <Link to={`/problem/${resJson.uploadId}`}>{resJson.message}</Link>
+                    <Link className="return-link" to={`/problem/${resJson.uploadId}`}>{resJson.message}</Link>
                 </p>)
             setUploaded(true)
         } else {
@@ -54,11 +54,11 @@ function ProblemUpload() {
         <div>
             <h1>Problem Upload</h1>
             <p>Upload a problem to the database.</p>
-            <p><input placeholder="Title..." value={title} onChange={updateTitle} /></p>
+            <p><input placeholder="Title..." className="title-input" value={title} onChange={updateTitle} /></p>
             <p><textarea placeholder="Description..." className="description" value={description} onChange={updateDescription} /></p>
             <p>
                 <input accept=".cnf" id="problem-file-upload" type="file" onChange={updateSelectedFile} />
-                <button onClick={publishProblem}>Publish</button>
+                {!uploaded && <button onClick={publishProblem}>Publish</button>}
             </p>
             <p className="error">{error}</p>
             {message}

@@ -1,9 +1,15 @@
 #problem-file-upload {
+
 }
 .description {
     resize: none;
     width: 400px;
     height: 250px;
+    background-color: #333;
+    border: none;
+    border-radius: 12px;
+    padding:8px;
+    color: var(--foreground-light)
 }
 
 .button-label {
@@ -13,4 +19,12 @@
 
 .label-button {
     pointer-events: none;
+}
+
+.title-input {
+    background-color: #333;
+    border: none;
+    border-radius: 12px;
+    padding:8px;
+    color: var(--foreground-light)
 }

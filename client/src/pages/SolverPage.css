@@ -9,4 +9,5 @@
 .clauses {
     display: flex;
     flex-wrap: wrap;
+    min-height: 800px;
 }
