@@ -4,6 +4,7 @@ import { makeGetRequest, makePutRequest } from "../logic/requestTemplates";
 import "./SolverPage.css";
 import { getSizeCNF, isEqual, isSubclause, resolve } from "../logic/boolsat";
 import PartialSolveMenu from "../components/PartialSolveMenu";
+import ClauseComponent from "../components/ClauseComponent";
 const SOLVER_PAGE = {
     STEPS: 1,
     PARTIAL_SOLVE: 2,
@@ -236,16 +237,10 @@ function SolverPage() {
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
                     return (
-                        <div key={stringifyClause(clause)}>
-                            {stringifyClause(clause)}{" "}
-                            <button
-                                onClick={() => {
-                                    setSelectedClause(clause);
-                                }}
-                            >
-                                Select
-                            </button>
-                        </div>
+                        <ClauseComponent key={stringifyClause(clause)} clickFunc={() => {
+                            setSelectedClause(clause)
+                        }} clause={clause}>
+                        </ClauseComponent>
                     );
                 });
             resultCount = clauses.length;

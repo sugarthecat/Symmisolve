@@ -304,7 +304,6 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             //console.error("Invalid Clause (string, end)", JSON.stringify(clause));
         }
         if (clause.length > 2) {
-            console.log("Unsolved Clause", JSON.stringify(clause));
             isSolved = false;
             break;
         }

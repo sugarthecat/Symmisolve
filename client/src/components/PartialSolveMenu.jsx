@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./PartialSolveMenu.css";
-import VariableAssignmentComponent from "./VariableAssignment";
+import VariableComponent from "./VariableComponent";
 function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
     const [assignments, setAssignments] = useState([]);
     const [impliedAssignments, setImpliedAssignments] = useState([]);
@@ -194,19 +194,19 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
             Chosen
             <p id="assignments">
                 {assignments.map((assignment, index) => (
-                    <VariableAssignmentComponent
+                    <VariableComponent
                         key={assignment}
                         assignment={assignment}
                         clickFunc={() => {
                             removeAssignment(index);
                         }}
-                    ></VariableAssignmentComponent>
+                    ></VariableComponent>
                 ))}
             </p>
             Implied
             <p id="implied-assignments">
                 {impliedAssignments.map((assignment, index) => (
-                    <VariableAssignmentComponent
+                    <VariableComponent
                         key={assignment}
                         assignment={assignment}
                         clickFunc={() => {
@@ -214,7 +214,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                             assignmentsLocal.push(assignment);
                             setAssignments(assignmentsLocal);
                         }}
-                    ></VariableAssignmentComponent>
+                    ></VariableComponent>
                 ))}
             </p>
             <p>

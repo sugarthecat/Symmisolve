@@ -1,4 +1,5 @@
-const VariableAssignmentComponent = ({ assignment, clickFunc }) => {
+import "./VariableComponent.css"
+const VariableComponent = ({ assignment, clickFunc }) => {
     return (
         <button
             className={assignment < 0 ? "assignment assignment-overline" : "assignment"}
@@ -11,4 +12,4 @@ const VariableAssignmentComponent = ({ assignment, clickFunc }) => {
     );
 };
 
-export default VariableAssignmentComponent;
+export default VariableComponent;
