@@ -229,7 +229,6 @@ function SolverPage() {
             }
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
-            console.log(clauses);
             clauseList = clauses.filter((clause) => {
                 return clause.length !== 1;
             }); //filter out unit clauses
