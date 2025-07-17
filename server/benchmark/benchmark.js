@@ -35,10 +35,27 @@ function runBenchmarkOn(problem, file, directory) {
     let benchmarkTime = Date.now();
     const prevSize = getSizeCNF(problem);
     const optimized = optimizeCNF(problem);
+    let isFullyReduced = true;
+    let isSatisfaible = true;
+    for (const clause of optimized) {
+        if(clause.length === 0) {
+            isSatisfaible = false
+        }
+        if (clause.length > 1) {
+            isFullyReduced = false;
+        }
+    }
     const newSize = getSizeCNF(optimized);
     benchmarkTime = Date.now() - benchmarkTime;
     data.push({ prevSize, newSize, benchmarkTime, file, pset: directory, algoVer: CURR_ALGO_VER });
-    console.log(`${file}, ${prevSize} -> ${newSize} (${benchmarkTime}ms)`);
+
+    let problemStatusString = "Indeterminate";
+    if(isFullyReduced && isSatisfaible) {
+        problemStatusString = "Satisfiable";
+    }else if(isFullyReduced && !isSatisfaible) {
+        problemStatusString = "Unsatisfiable";
+    }
+    console.log(`${file}, ${prevSize} -> ${newSize} (${benchmarkTime}ms, ${problemStatusString})`);
 }
 
 function runBenchmarkOnPset(pset) {
