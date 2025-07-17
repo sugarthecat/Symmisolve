@@ -190,9 +190,10 @@ function SolverPage() {
 
         let resultCount = 0;
         let clauseList = [];
+        let specialClause = <></>;
         //set clause list
         if (hasSelectedClause) {
-            clauseList.push(
+            specialClause = (
                 <p key={stringifyClause(selectedClause)}>
                     {stringifyClause(selectedClause)}{" "}
                     <button
@@ -253,14 +254,18 @@ function SolverPage() {
         if (startIndex * 100 >= clauses.length) {
             setStartIndex(0);
         }
+
         return (
             <div>
-                <p >
-                    <Link className="return-link" to={`/problem/${problemId}`}>Return to Problem Page</Link>
+                <p>
+                    <Link className="return-link" to={`/problem/${problemId}`}>
+                        Return to Problem Page
+                    </Link>
                 </p>
                 <div id="solver-pages">
                     <div className="solver-side-page">
                         <h1>{problem.name}</h1>
+                        {specialClause}
                         <div className="clauses">{clauseList}</div>
                         <div>
                             {startIndex != 0 && (
@@ -305,15 +310,15 @@ function SolverPage() {
                                 <b>
                                     Steps {`(${problemSize} Size -> ${getSizeCNF(clauses)} Size)`}
                                 </b>
-                                <div className="solution-steps">
-                                    {solutionSteps.map((step, index) => {
-                                        return <div>{formatStep(step)} </div>;
-                                    })}
-                                </div>
                                 <div>
                                     {problemSize > getSizeCNF(clauses) && (
                                         <button onClick={sendReduction}>Send Reduction</button>
                                     )}
+                                </div>
+                                <div className="solution-steps">
+                                    {solutionSteps.map((step, index) => {
+                                        return <div>{formatStep(step)} </div>;
+                                    })}
                                 </div>
                                 <p className="error">{error}</p>
                             </>
