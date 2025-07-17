@@ -54,7 +54,7 @@ function ProblemPage() {
     } else {
         return (
             <div className="centering">
-                <Link to="/">
+                <Link className="return-link" to="/">
                     {" "}
                     <p>Return Home</p>
                 </Link>

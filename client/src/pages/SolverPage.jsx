@@ -230,7 +230,7 @@ function SolverPage() {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
             console.log(clauses);
             clauseList = clauses.filter((clause) => {
-                return clause.length > 1;
+                return clause.length !== 1;
             }); //filter out unit clauses
             clauseList = clauseList
                 .slice(startIndex * 100, startIndex * 100 + 100)
@@ -255,8 +255,8 @@ function SolverPage() {
         }
         return (
             <div>
-                <p>
-                    <Link to={`/problem/${problemId}`}>Return to Problem Page</Link>
+                <p >
+                    <Link className="return-link" to={`/problem/${problemId}`}>Return to Problem Page</Link>
                 </p>
                 <div id="solver-pages">
                     <div className="solver-side-page">

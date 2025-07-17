@@ -1,13 +1,9 @@
 .assignment{
     margin:5px;
-    background-color: #ccc;
-    padding: 5px;
+    padding: 10px;
     border-radius: 5px;
     transition-duration: 500ms;
     cursor: pointer;
-}
-.assignment:hover{
-    background-color: #eee;
 }
 .assignment-overline{
     text-decoration: overline 3px;
