@@ -4,9 +4,9 @@ import "./ProblemCard.css";
 function ProblemCard({ problem }) {
     return (
         <Link className="no-decor" to={`problem/${problem.id}`}>
-            <div className="problem-card">
+            <div className={`problem-card${!problem.is_active ? " solved" : ""}`}>
                 <h3>
-                    {problem.name} {!problem.is_active && `[SOLVED]`}
+                    {problem.name}
                 </h3>
                 <p>
                     <b>Created By {problem.user.username}</b>
@@ -17,6 +17,7 @@ function ProblemCard({ problem }) {
                         ? problem.description.substring(0, 100) + "..."
                         : problem.description}
                 </p>
+                {!problem.is_active && <div className="problem-card-solve-tag">Solved</div>}
             </div>
         </Link>
     );
