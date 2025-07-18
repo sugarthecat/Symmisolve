@@ -1,5 +1,15 @@
 #problem-file-upload {
-
+    display: none;
+}
+#problem-file-label{
+    padding: 10px;
+    cursor: pointer;
+    background-color: var(--background-element);
+    border-radius: 8px;
+    transition-duration: 500ms;
+}
+#problem-file-label:hover{
+    background-color: #555;
 }
 .description {
     resize: none;

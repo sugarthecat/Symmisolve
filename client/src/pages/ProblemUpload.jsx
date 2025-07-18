@@ -58,6 +58,7 @@ function ProblemUpload() {
             <p><textarea placeholder="Description..." className="description" value={description} onChange={updateDescription} /></p>
             <p>
                 <input accept=".cnf" id="problem-file-upload" type="file" onChange={updateSelectedFile} />
+                <label htmlFor="problem-file-upload" id="problem-file-label">{file === null ? "Choose a problem file" : `[${file.name}]`}</label>
                 {!uploaded && <button onClick={publishProblem}>Publish</button>}
             </p>
             <p className="error">{error}</p>
