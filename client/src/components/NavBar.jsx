@@ -25,6 +25,11 @@ function NavBar({ accessLevel, username }) {
                     <button>Upload Problem</button>
                 </Link>
             )}
+            {accessLevel === ACCESS_LEVELS.ADMIN && (
+                <Link to={`/admin`}>
+                    <button>Admin Panel</button>
+                </Link>
+            )}
             {accessLevel != ACCESS_LEVELS.LOGGED_OUT && (
                 <Link to={`/user/${username}`}>
                     <button>My Profile</button>

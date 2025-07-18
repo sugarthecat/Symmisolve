@@ -12,6 +12,7 @@ import NavBar from "./components/NavBar";
 import { makeGetRequest } from "./logic/requestTemplates";
 import ACCESS_LEVELS from "./logic/accessLevels";
 import SolverPage from "./pages/SolverPage";
+import AdminPanelPage from "./pages/AdminPanel";
 
 function App() {
   const [accessLevel, setAccessLevel] = useState(-1);
@@ -65,6 +66,10 @@ function App() {
                 <Route
                   path="/signup"
                   element={<SignupPage updateUser={updateUser} />}
+                />
+                <Route
+                  path="/admin"
+                  element={<AdminPanelPage updateUser={updateUser} />}
                 />
                 <Route path="/help" element={<HowToSatSolvePage />} />
               </Routes>
