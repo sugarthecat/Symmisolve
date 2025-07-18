@@ -6,6 +6,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const app = express();
 const PORT = 3000;
+const productionEnv = process.env.NODE_ENV === "production";
 const { PrismaClient } = require("./generated/prisma");
 const prisma = new PrismaClient();
 const { hashPassword, verifyPassword } = require("./logic/auth");
@@ -22,24 +23,25 @@ const {
     verifyConflict,
 } = require("./logic/boolsat");
 
+app.set('trust proxy', 1);
 app.use(
     cors({
         origin: process.env.FRONTEND_URL,
         credentials: true,
     })
 );
-const productionEnv = process.env.NODE_ENV === "production";
 let sessionConfig = {
     name: "sessionId",
     secret: "secret text",
     cookie: {
         maxAge: 1000 * 60 * 60 * 6, // 6 hours, since security isn't a huge problem
         secure: productionEnv,
-        httpOnly: !productionEnv,
+        httpOnly: true,
+        sameSite: productionEnv ? "none": "lax",
     },
     rolling: true,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
 };
 
 app.use(session(sessionConfig));
