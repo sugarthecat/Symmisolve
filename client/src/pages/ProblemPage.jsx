@@ -1,41 +1,59 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { makeGetRequest } from "../logic/requestTemplates";
+import { getSizeCNF } from "../logic/boolsat";
 function ProblemPage() {
     const navigate = useNavigate();
     const { problemId } = useParams();
     const [isLoaded, setIsLoaded] = useState(false);
     const [problem, setProblem] = useState({});
+    const [downloadButton, setDownloadButton] = useState(<></>);
 
     const getProblem = async () => {
         const res = await makeGetRequest(`problem/${problemId}`);
         if (res.status === 200) {
             const data = await res.json();
             setProblem(data.problem);
+            if (!data.problem.is_active) {
+                await setupDownloadButton();
+            }
             setIsLoaded(true);
         } else {
             navigate("/");
         }
     };
     // Modified code from stack overflow
-    // https://stackoverflow.com/questions/44656610/download-a-string-as-txt-file-in-react
-    const downloadTxtFile = (text, filename, extension = "cnf") => {
-        const element = document.createElement("a");
-        const file = new Blob([text], { type: "text/plain" });
-        element.href = URL.createObjectURL(file);
-        element.download = `${filename}.${extension}`;
-        document.body.appendChild(element); // Required for this to work in FireFox
-        element.click();
-    };
-    const downloadSolution = async () => {
+    // https://stackoverflow.com/questions/44656610/download-a-string-as-txt-file-in-react/76922730#76922730
+    const setupDownloadButton = async () => {
         const req = await makeGetRequest(`problem/${problemId}/file`);
         if (req.status === 200) {
             const data = (await req.json()).problem;
-            if (data.satisfied) {
-                downloadTxtFile(data.file.problem_file, data.name);
-            } else {
-                downloadTxtFile(data.file.solution_file, data.name, "symsln");
+            let problemFile = data.file.problem_file;
+            let fileToDownload = data.file.problem_file;
+            let isSolvable = true;
+            if (problemFile.substring(0, 9) === "p cnf 0 1") {
+                //this means the problem is unsolvable, download the justification
+                isSolvable = false;
+                fileToDownload = data.file.solution_file;
             }
+            const file = new Blob([fileToDownload], { type: "text/plain" });
+
+            setDownloadButton(
+                <button variant="outlined">
+                    <a
+                        download={isSolvable ? "solution.cnf" : "justification.txt"}
+                        target="_blank"
+                        rel="noreferrer"
+                        href={URL.createObjectURL(file)}
+                        style={{
+                            textDecoration: "inherit",
+                            color: "inherit",
+                        }}
+                    >
+                        Download
+                    </a>
+                </button>
+            );
         } else {
             navigate("/");
         }
@@ -67,7 +85,7 @@ function ProblemPage() {
                         <button>Solve</button>
                     </Link>
                 ) : (
-                    <button onClick={downloadSolution}>Download Solution </button>
+                    downloadButton
                 )}
             </div>
         );
