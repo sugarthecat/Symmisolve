@@ -27,13 +27,14 @@ app.use(
         credentials: true,
     })
 );
+const productionEnv = process.env.NODE_ENV === "production";
 let sessionConfig = {
     name: "sessionId",
     secret: "secret text",
     cookie: {
         maxAge: 1000 * 60 * 60 * 6, // 6 hours, since security isn't a huge problem
-        secure: false,
-        httpOnly: true,
+        secure: true,
+        httpOnly: !productionEnv,
     },
     rolling: true,
     resave: false,
