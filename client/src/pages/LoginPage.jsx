@@ -43,7 +43,7 @@ function LoginPage({ updateUser }) {
                 <br />
                 <button onClick={sendLoginRequest} >Log in</button>
             </div>
-            <p> If you don't have an account, you can <Link to="../signup">Sign Up here</Link>.</p>
+            <p> If you don't have an account, you can <Link className='return-link' to="../signup">Sign Up here</Link>.</p>
             <br />
             <p className='error'>
                 {error}

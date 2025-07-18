@@ -1,13 +1,13 @@
-const VariableAssignmentComponent = ({ assignment, removeFunction }) => {
+const VariableAssignmentComponent = ({ assignment, clickFunc }) => {
     return (
-        <span
+        <button
             className={assignment < 0 ? "assignment assignment-overline" : "assignment"}
             onClick={() => {
-                removeFunction();
+                clickFunc();
             }}
         >
             {Math.abs(assignment)}
-        </span>
+        </button>
     );
 };
 

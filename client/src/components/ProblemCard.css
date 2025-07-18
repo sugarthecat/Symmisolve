@@ -1,4 +1,6 @@
-.problem-card{
+.problem-card {
+    text-align: left;
+    position: relative;
     width: 300px;
     height: 300px;
     display: flex;
@@ -6,6 +8,33 @@
     padding: 20px;
     margin: 20px;
     border-radius: 25px;
-    background-color: #e5e5e5;
-    border: #ccc 2px solid;
+    color: var(--foreground-light);
+    border: var(--background-element) 4px solid;
+    transition-duration: 500ms;
+    background-image: repeating-linear-gradient(45deg, #300, #300 10px, #100 10px, #100  20px );
+}
+.problem-card.solved {
+    background-image: repeating-linear-gradient(45deg, #030, #030 10px, #010 10px, #010  20px );
+}
+.problem-card h3 {
+    margin-top: 10px;
+    font-size: 1.5rem;
+}
+.problem-card:hover {
+    background-image: repeating-linear-gradient(45deg, #633, #633 10px, #522 10px, #522  20px );
+}
+.problem-card.solved:hover {
+    background-image: repeating-linear-gradient(45deg, #363, #363 10px, #252 10px, #252  20px );
+}
+.problem-card-solve-tag{
+    position:absolute;
+    right: 15px;
+    bottom: 15px;
+    padding: 5px;
+    border-radius: 10px;
+    background-color: darkgreen;
+    outline: 3px solid green;
+}
+.no-decor{
+    text-decoration: none !important;
 }

@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { makeGetRequest } from "../logic/requestTemplates";
 import ProblemCard from "../components/ProblemCard";
-import "./HomePage.css"
+import "./HomePage.css";
 
 function HomePage({ updateUser }) {
   const [accessLevel, setAccessLevel] = useState(-1);
-  const [username, setUsername] = useState("")
+  const [username, setUsername] = useState("");
   const [problems, setProblems] = useState([]);
   async function getUserStatus() {
     const res = await makeGetRequest("whoami");
@@ -26,24 +26,31 @@ function HomePage({ updateUser }) {
   }
   useEffect(() => {
     getUserStatus();
-  }, [])
+  }, []);
   if (accessLevel === -1) {
-    return <div>
-      <h2>Home</h2>
-      <p>Please <Link to="./login">Log In</Link> or <Link to="./signup">Sign Up</Link> to view open problems.</p>
-    </div>
-  } else {
-    return <div>
-      <h1>Home</h1>
-      Welcome, {username}
-      <h2>Open Problems</h2>
-      <div id="problem-grid">
-        {problems.map(problem => {
-          return <ProblemCard key={problem.id} problem={problem}></ProblemCard>
-        })}
+    return (
+      <div className="home-page">
+        <h2>Home</h2>
+        <p>
+          Please <Link className="return-link" to="./login">Log In</Link> or <Link className="return-link" to="./signup">Sign Up</Link> to
+          view open problems.
+        </p>
       </div>
-    </div>
+    );
+  } else {
+    return (
+      <div className="home-page">
+        <h1>Open Problems</h1>
+        <p>Welcome, {username}. Which problem would you like to solve?</p>
+
+        <div id="problem-grid">
+          {problems.map((problem) => {
+            return <ProblemCard key={problem.id} problem={problem}></ProblemCard>;
+          })}
+        </div>
+      </div>
+    );
   }
 }
 
-export default HomePage
+export default HomePage;

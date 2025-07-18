@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'
 import { makePostRequest } from '../logic/requestTemplates.jsx';
-function SignupPage({updateUser}) {
+function SignupPage({ updateUser }) {
     const navigate = useNavigate();
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
@@ -12,7 +12,7 @@ function SignupPage({updateUser}) {
         if (res.status === 200) {
             const json = await res.json()
             //Succesful
-            updateUser(json.username,json.accessLevel)
+            updateUser(json.username, json.accessLevel)
             navigate('/')
             setError('')
             //TODO: On succesful signup, redirect to login page
@@ -31,7 +31,7 @@ function SignupPage({updateUser}) {
                 <br />
                 <button onClick={sendSignupRequest} >Sign Up</button>
             </div>
-            <p> If you already have an account, you can <Link to="../login">Log In</Link>.</p>
+            <p> If you already have an account, you can <Link className='return-link' to="../login">Log In</Link>.</p>
             <p className='error'> {error} </p>
             <p> {message}</p>
 

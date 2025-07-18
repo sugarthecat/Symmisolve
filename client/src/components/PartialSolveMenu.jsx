@@ -42,6 +42,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                 return;
             }
         }
+        let found = false;
         for (const clause of clauses) {
             if (clause.length === 1 && clause[0] === value) {
                 setError("This assignment is already included in the problem");
@@ -51,6 +52,13 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                 setError("The negation of this assignment is already included in the problem");
                 return;
             }
+            if (clause.includes(value) || clause.includes(-value)) {
+                found = true;
+            }
+        }
+        if (!found) {
+            setError("This varable is not included in the problem");
+            return;
         }
         setError("");
         setInputValue("");
@@ -189,7 +197,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                     <VariableAssignmentComponent
                         key={assignment}
                         assignment={assignment}
-                        removeFunction={() => {
+                        clickFunc={() => {
                             removeAssignment(index);
                         }}
                     ></VariableAssignmentComponent>
@@ -201,7 +209,11 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                     <VariableAssignmentComponent
                         key={assignment}
                         assignment={assignment}
-                        removeFunction={() => { }}
+                        clickFunc={() => {
+                            let assignmentsLocal = assignments.slice();
+                            assignmentsLocal.push(assignment);
+                            setAssignments(assignmentsLocal);
+                        }}
                     ></VariableAssignmentComponent>
                 ))}
             </p>

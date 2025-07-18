@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 function HowToSatSolvePage() {
   return (
     <div >
-      <p><Link to={"/.."}>Return Home</Link></p>
+      <p><Link className="return-link" to={"/.."}>Return Home</Link></p>
       <h1>What is boolean satisfiability?</h1>
       <h2>Video Introduction</h2>
       <iframe
