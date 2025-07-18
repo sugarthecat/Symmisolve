@@ -252,7 +252,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             }
             //so we're good!
             solutionFile += `Res ${step.old[0]} / ${step.old[1]} -> ${step.new}\n`;
-            problemCNF = reduceCNF([step.new], problemCNF);
+            problemCNF = reduceCNF([step.new],problemCNF);
         } else if (step.type === "auto-reduction") {
             //we already do that! Happily pass through
         } else if (step.type === "partial-solve") {

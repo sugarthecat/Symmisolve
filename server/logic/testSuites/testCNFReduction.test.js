@@ -1,6 +1,6 @@
 import { it } from "node:test";
 import assert from 'node:assert/strict';
-import { reduceCNF } from "../boolsat.js";
+import { isSubclause, reduceCNF } from "../boolsat.js";
 
 const testCNFReduction = () => {
 
@@ -30,6 +30,13 @@ const testCNFReduction = () => {
     it('It should remove tautological clauses', () => {
         assert.deepEqual(reduceCNF([[-1,1]]), [])
         assert.deepEqual(reduceCNF([[12,3,9,-1,23,1,2],[7]]), [[7]])
+    })
+    it('It should detect subclauses', () => {
+        assert.equal(isSubclause([1,2,3],[1,2]), true)
+        assert.equal(isSubclause([1,2],[1,2]), false)
+        assert.equal(isSubclause([1,2],[1,2,3]), false)
+        assert.equal(isSubclause([1,2,3],[1]), true)
+        assert.equal(isSubclause([1,2,3],[]), true)
     })
 }
 export default testCNFReduction
