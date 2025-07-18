@@ -101,7 +101,7 @@ function SolverPage() {
         setSidePage(SOLVER_PAGE.STEPS);
     };
     const submitConflict = (assignments) => {
-        let conflict = []
+        let conflict = [];
         let newSolutionSteps = solutionSteps;
         for (const literal of assignments) {
             conflict.push(-literal);
@@ -112,7 +112,7 @@ function SolverPage() {
     };
     const addClauses = (newClauses) => {
         let toAdd = newClauses;
-        let newClausesList = clauses.slice(); //slice to make a copy, triggering re-render;
+        let newClausesList = clauses.filter((clause) => clause.length > 1).slice(); //slice to make a copy, triggering re-render;
         let newSolutionSteps = solutionSteps;
         while (toAdd.length > 0) {
             //format clause by sorting
@@ -190,9 +190,10 @@ function SolverPage() {
 
         let resultCount = 0;
         let clauseList = [];
+        let specialClause = <></>;
         //set clause list
         if (hasSelectedClause) {
-            clauseList.push(
+            specialClause = (
                 <p key={stringifyClause(selectedClause)}>
                     {stringifyClause(selectedClause)}{" "}
                     <button
@@ -229,7 +230,9 @@ function SolverPage() {
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
             console.log(clauses);
-            clauseList = clauses; //.filter((clause) => { return clause.length > 1; });
+            clauseList = clauses.filter((clause) => {
+                return clause.length !== 1;
+            }); //filter out unit clauses
             clauseList = clauseList
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
@@ -251,14 +254,18 @@ function SolverPage() {
         if (startIndex * 100 >= clauses.length) {
             setStartIndex(0);
         }
+
         return (
             <div>
                 <p>
-                    <Link to={`/problem/${problemId}`}>Return to Problem Page</Link>
+                    <Link className="return-link" to={`/problem/${problemId}`}>
+                        Return to Problem Page
+                    </Link>
                 </p>
                 <div id="solver-pages">
                     <div className="solver-side-page">
                         <h1>{problem.name}</h1>
+                        {specialClause}
                         <div className="clauses">{clauseList}</div>
                         <div>
                             {startIndex != 0 && (
@@ -303,15 +310,15 @@ function SolverPage() {
                                 <b>
                                     Steps {`(${problemSize} Size -> ${getSizeCNF(clauses)} Size)`}
                                 </b>
-                                <div className="solution-steps">
-                                    {solutionSteps.map((step, index) => {
-                                        return <div>{formatStep(step)} </div>;
-                                    })}
-                                </div>
                                 <div>
                                     {problemSize > getSizeCNF(clauses) && (
                                         <button onClick={sendReduction}>Send Reduction</button>
                                     )}
+                                </div>
+                                <div className="solution-steps">
+                                    {solutionSteps.map((step, index) => {
+                                        return <div>{formatStep(step)} </div>;
+                                    })}
                                 </div>
                                 <p className="error">{error}</p>
                             </>
