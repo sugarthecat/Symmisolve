@@ -29,13 +29,12 @@ app.use(
     })
 );
 const productionEnv = process.env.NODE_ENV === "production";
-console.log("Production env: ", productionEnv);
 let sessionConfig = {
     name: "sessionId",
     secret: "secret text",
     cookie: {
         maxAge: 1000 * 60 * 60 * 6, // 6 hours, since security isn't a huge problem
-        secure: false,
+        secure: productionEnv,
         httpOnly: !productionEnv,
     },
     rolling: true,
@@ -253,12 +252,12 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             }
             //so we're good!
             solutionFile += `Res ${step.old[0]} / ${step.old[1]} -> ${step.new}\n`;
-            problemCNF = reduceCNF([step.new],problemCNF);
+            problemCNF = reduceCNF([step.new], problemCNF);
         } else if (step.type === "auto-reduction") {
             //we already do that! Happily pass through
         } else if (step.type === "partial-solve") {
-            for(const assignment of step.assignments) {
-                if((typeof assignment) !== "number") {
+            for (const assignment of step.assignments) {
+                if (typeof assignment !== "number") {
                     badRequestError(res, "Invalid partial solve", 400);
                 }
             }
@@ -274,8 +273,8 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             }
             solutionFile += `Partial ${step.assignments.join(" / ")}\n`;
         } else if (step.type === "conflict") {
-            for(const assignment of step.assignments) {
-                if((typeof assignment) !== "number") {
+            for (const assignment of step.assignments) {
+                if (typeof assignment !== "number") {
                     badRequestError(res, "Invalid conflict", 400);
                 }
             }
@@ -430,4 +429,5 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
+    console.log("Production env: ", productionEnv);
 });
