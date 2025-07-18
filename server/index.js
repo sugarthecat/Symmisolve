@@ -295,7 +295,8 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         }
     }
     const newSize = getSizeCNF(problemCNF);
-    if (newSize >= oldSize) {
+    const sizeReduction = oldSize - newSize;
+    if (sizeReduction <= 0) {
         badRequestError(res, "Size Not Reduced", 400);
         return;
     }
@@ -305,12 +306,10 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             //console.error("Invalid Clause (string, end)", JSON.stringify(clause));
         }
         if (clause.length > 2) {
-            console.log("Unsolved Clause", JSON.stringify(clause));
             isSolved = false;
             break;
         }
     }
-    const sizeReduction = oldSize - newSize;
     const newProblemFileData = {
         problem_file: stringifyCNF(problemCNF),
         solution_file: solutionFile,
@@ -327,7 +326,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         data: newProblemFileData,
     });
 
-    let newTotalReduction = req.session.user.total_size_reduced + (oldSize - newSize);
+    let newTotalReduction = req.session.user.total_size_reduced + sizeReduction;
     const newUser = await prisma.user.update({
         where: { id: req.session.user.id },
         data: {

@@ -1,7 +1,7 @@
 #solver-pages {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 .solver-side-page {
     width: 40%;
@@ -9,4 +9,5 @@
 .clauses {
     display: flex;
     flex-wrap: wrap;
+    min-height: 800px;
 }

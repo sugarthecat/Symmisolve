@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import "./PartialSolveMenu.css";
-import VariableAssignmentComponent from "./VariableAssignment";
+import VariableComponent from "./VariableComponent";
+import LiteralComponent from "./LiteralComponent";
 function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
     const [assignments, setAssignments] = useState([]);
     const [impliedAssignments, setImpliedAssignments] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [error, setError] = useState("");
-
     useEffect(() => {
         verifyCurrAssignment();
     }, [JSON.stringify(assignments)]);
@@ -100,6 +100,11 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
         setImpliedAssignments(implications);
         return implications;
     };
+    const addAssignment = (assignment) => {
+        let assignmentsLocal = assignments.slice();
+        assignmentsLocal.push(assignment);
+        setAssignments(assignmentsLocal);
+    };
     const submitConflictToSolver = () => {
         submitConflict(assignments);
         setAssignments([]);
@@ -163,8 +168,26 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
         } else if (conflictingClauses.length > 0) {
             errorNode = (
                 <>
-                    This partial assignment is not fully satisfying ({conflictingClauses.length}{" "}
-                    altered unsatisfied clauses): {JSON.stringify(conflictingClauses[0])}{" "}
+                    <p>This partial assignment is not fully satisfying ({conflictingClauses.length}{" "}
+                        altered unsatisfied clauses). Please select add a variable or its negation,
+                        Satisfying variables are on the left.</p>
+                    <div>
+                        {conflictingClauses[0].map((literal, index) => (
+                            <>
+                                <VariableComponent
+                                    assignment={literal}
+                                    clickFunc={() => {
+                                        addAssignment(literal);
+                                    }}
+                                ></VariableComponent>
+                                <VariableComponent
+                                    assignment={-literal}
+                                    clickFunc={() => {
+                                        addAssignment(literal);
+                                    }}
+                                ></VariableComponent>
+                            </>
+                        ))}</div>
                 </>
             );
         } else {
@@ -190,23 +213,24 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                 />
                 <button onClick={attemptAssignment}>Add</button>
             </p>
-            <p className="error">{error}</p>
-            Chosen
+            <div className="error">{error}</div>
+
+            <p>Chosen Assignments</p>
             <p id="assignments">
                 {assignments.map((assignment, index) => (
-                    <VariableAssignmentComponent
+                    <VariableComponent
                         key={assignment}
                         assignment={assignment}
                         clickFunc={() => {
                             removeAssignment(index);
                         }}
-                    ></VariableAssignmentComponent>
+                    ></VariableComponent>
                 ))}
             </p>
-            Implied
+            <p>Implied Assignments</p>
             <p id="implied-assignments">
                 {impliedAssignments.map((assignment, index) => (
-                    <VariableAssignmentComponent
+                    <VariableComponent
                         key={assignment}
                         assignment={assignment}
                         clickFunc={() => {
@@ -214,7 +238,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                             assignmentsLocal.push(assignment);
                             setAssignments(assignmentsLocal);
                         }}
-                    ></VariableAssignmentComponent>
+                    ></VariableComponent>
                 ))}
             </p>
             <p>

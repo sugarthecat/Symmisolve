@@ -1,9 +1,25 @@
 #problem-file-upload {
+    display: none;
+}
+#problem-file-label{
+    padding: 10px;
+    cursor: pointer;
+    background-color: var(--background-element);
+    border-radius: 8px;
+    transition-duration: 500ms;
+}
+#problem-file-label:hover{
+    background-color: #555;
 }
 .description {
     resize: none;
     width: 400px;
     height: 250px;
+    background-color: #333;
+    border: none;
+    border-radius: 12px;
+    padding:8px;
+    color: var(--foreground-light)
 }
 
 .button-label {
@@ -13,4 +29,12 @@
 
 .label-button {
     pointer-events: none;
+}
+
+.title-input {
+    background-color: #333;
+    border: none;
+    border-radius: 12px;
+    padding:8px;
+    color: var(--foreground-light)
 }

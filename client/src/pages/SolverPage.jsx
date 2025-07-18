@@ -4,6 +4,8 @@ import { makeGetRequest, makePutRequest } from "../logic/requestTemplates";
 import "./SolverPage.css";
 import { getSizeCNF, isEqual, isSubclause, resolve } from "../logic/boolsat";
 import PartialSolveMenu from "../components/PartialSolveMenu";
+import ClauseComponent from "../components/ClauseComponent";
+import LiteralComponent from "../components/LiteralComponent";
 const SOLVER_PAGE = {
     STEPS: 1,
     PARTIAL_SOLVE: 2,
@@ -48,31 +50,39 @@ function SolverPage() {
         return `[${clause.join(", ")}]`;
     };
 
-    const formatClause = (step) => {
-        return stringifyClause(step);
-        //TODO: Actually make JSX elements for the clause
-    };
-
     const formatStep = (step) => {
         if (step.type === "resolution") {
             return (
                 <div>
                     <p>
-                        Resolving {formatClause(step.old[0])} and {formatClause(step.old[1])} yields{" "}
-                        {formatClause(step.new)}
+                        Resolving <ClauseComponent clause={step.old[0]} /> and{" "}
+                        <ClauseComponent clause={step.old[1]} /> yields{" "}
+                        <ClauseComponent clause={step.new} />
                     </p>
                 </div>
             );
         } else if (step.type === "partial-solve") {
             return (
                 <div>
-                    <p>Partial Solve (Assignments: {step.assignments.join(", ")})</p>
+                    <p>
+                        Partial Solve (
+                        {step.assignments.map((x) => (
+                            <LiteralComponent assignment={x} />
+                        ))}
+                        )
+                    </p>
                 </div>
             );
         } else if (step.type === "conflict") {
             return (
                 <div>
-                    <p>Conflict Found (Driven By: {step.assignments.join(", ")})</p>
+                    <p>
+                        Conflict Found (Driven By:{" "}
+                        {step.assignments.map((x) => (
+                            <LiteralComponent assignment={x} />
+                        ))}
+                        )
+                    </p>
                 </div>
             );
         } else {
@@ -112,7 +122,7 @@ function SolverPage() {
     };
     const addClauses = (newClauses) => {
         let toAdd = newClauses;
-        let newClausesList = clauses.filter((clause) => clause.length > 1).slice(); //slice to make a copy, triggering re-render;
+        let newClausesList = clauses; //slice to make a copy, triggering re-render;
         let newSolutionSteps = solutionSteps;
         while (toAdd.length > 0) {
             //format clause by sorting
@@ -162,9 +172,11 @@ function SolverPage() {
                 newClausesList.push(newClause);
             }
         }
-        setClauses(newClausesList);
+        setClauses(newClausesList.slice());
         setSolutionSteps(newSolutionSteps);
-        setStartIndex(Math.floor(newClausesList.length / 100));
+        setStartIndex(
+            Math.floor(newClausesList.filter((clause) => clause.length > 1).length / 100)
+        );
     };
 
     const sendReduction = async () => {
@@ -195,14 +207,12 @@ function SolverPage() {
         if (hasSelectedClause) {
             specialClause = (
                 <p key={stringifyClause(selectedClause)}>
-                    {stringifyClause(selectedClause)}{" "}
-                    <button
-                        onClick={() => {
+                    <ClauseComponent
+                        clause={selectedClause}
+                        clickFunc={() => {
                             setSelectedClause(null);
                         }}
-                    >
-                        Deselect
-                    </button>
+                    />
                 </p>
             );
             for (let i = 0; i < clauses.length; i++) {
@@ -215,21 +225,18 @@ function SolverPage() {
                 }
                 clauseList.push(
                     <div key={stringifyClause(clauses[i])}>
-                        {stringifyClause(clauses[i])}{" "}
-                        <button
-                            onClick={() => {
+                        <ClauseComponent
+                            clause={clauses[i]}
+                            clickFunc={() => {
                                 resolveClauses(selectedClause, clauses[i]);
                                 setSelectedClause(null);
                             }}
-                        >
-                            Resolve
-                        </button>
+                        />
                     </div>
                 );
             }
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
-            console.log(clauses);
             clauseList = clauses.filter((clause) => {
                 return clause.length !== 1;
             }); //filter out unit clauses
@@ -237,16 +244,13 @@ function SolverPage() {
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
                     return (
-                        <div key={stringifyClause(clause)}>
-                            {stringifyClause(clause)}{" "}
-                            <button
-                                onClick={() => {
-                                    setSelectedClause(clause);
-                                }}
-                            >
-                                Select
-                            </button>
-                        </div>
+                        <ClauseComponent
+                            key={stringifyClause(clause)}
+                            clickFunc={() => {
+                                setSelectedClause(clause);
+                            }}
+                            clause={clause}
+                        ></ClauseComponent>
                     );
                 });
             resultCount = clauses.length;
@@ -268,6 +272,13 @@ function SolverPage() {
                         {specialClause}
                         <div className="clauses">{clauseList}</div>
                         <div>
+                            <button
+                                onClick={() => {
+                                    setStartIndex(0);
+                                }}
+                            >
+                                To Beginning
+                            </button>
                             {startIndex != 0 && (
                                 <button
                                     onClick={() => {
@@ -277,6 +288,7 @@ function SolverPage() {
                                     Previous
                                 </button>
                             )}
+                            ({startIndex + 1}/{Math.floor(resultCount / 100) + 1})
                             {startIndex < Math.floor(resultCount / 100) && (
                                 <button
                                     onClick={() => {
@@ -286,6 +298,13 @@ function SolverPage() {
                                     Next
                                 </button>
                             )}
+                            <button
+                                onClick={() => {
+                                    setStartIndex(Math.floor((resultCount - 1) / 100));
+                                }}
+                            >
+                                To End
+                            </button>
                         </div>
                     </div>
                     <div className="solver-side-page">
