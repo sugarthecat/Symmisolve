@@ -34,8 +34,8 @@ let sessionConfig = {
     secret: "secret text",
     cookie: {
         maxAge: 1000 * 60 * 60 * 6, // 6 hours, since security isn't a huge problem
-        secure: true,
-        httpOnly: !productionEnv,
+        secure: false,
+        httpOnly: true,
     },
     rolling: true,
     resave: false,
