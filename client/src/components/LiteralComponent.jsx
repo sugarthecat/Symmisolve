@@ -1,4 +1,4 @@
-import "./literalComponent.css";
+import "./LiteralComponent.css";
 const LiteralComponent = ({ assignment }) => {
     return (
         <span
