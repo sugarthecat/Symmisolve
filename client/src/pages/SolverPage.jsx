@@ -23,15 +23,19 @@ function SolverPage() {
     const [solutionSteps, setSolutionSteps] = useState([]);
     const [error, setError] = useState("");
     const [sidePage, setSidePage] = useState(SOLVER_PAGE.STEPS);
-    const [sidePageData, setSidePageData] = useState({});
+
     const getProblem = async () => {
         const res = await makeGetRequest(`problem/${problemId}/file`);
         if (res.status === 200) {
             const data = await res.json();
-            setProblem(data.problem);
-            setIsLoaded(true);
-            setClauses(data.problem.file.problem_file);
-            setProblemSize(getSizeCNF(data.problem.file.problem_file));
+            if (data.problem.is_active) {
+                setProblem(data.problem);
+                setIsLoaded(true);
+                setClauses(data.problem.file.problem_file);
+                setProblemSize(getSizeCNF(data.problem.file.problem_file));
+            } else {
+                navigate("/");
+            }
         } else {
             navigate("/");
         }
@@ -63,9 +67,7 @@ function SolverPage() {
         } else if (step.type === "partial-solve") {
             return (
                 <div>
-                    <p>
-                        Partial Solve (Assignments: {step.assignments.join(", ")})
-                    </p>
+                    <p>Partial Solve (Assignments: {step.assignments.join(", ")})</p>
                 </div>
             );
         } else {
@@ -82,15 +84,17 @@ function SolverPage() {
         newSolutionSteps.push({ type: "resolution", old: [clause1, clause2], new: newClause });
         setSolutionSteps(newSolutionSteps);
         addClauses([newClause]);
-    }
+    };
     const submitPartialSolve = (assignments) => {
         let newSolutionSteps = solutionSteps;
-        newSolutionSteps.push({ type: "partial-solve", assignments, });
+        newSolutionSteps.push({ type: "partial-solve", assignments });
         setSolutionSteps(newSolutionSteps);
-        let assignmentClauses = assignments.map((assignment) => { return [assignment]; });
+        let assignmentClauses = assignments.map((assignment) => {
+            return [assignment];
+        });
         addClauses(assignmentClauses);
-        setSidePage(SOLVER_PAGE.STEPS)
-    }
+        setSidePage(SOLVER_PAGE.STEPS);
+    };
     const addClauses = (newClauses) => {
         let toAdd = newClauses;
         let newClausesList = clauses.slice(); //slice to make a copy, triggering re-render;
@@ -208,7 +212,7 @@ function SolverPage() {
             }
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
-            clauseList = clauses //.filter((clause) => { return clause.length > 1; });
+            clauseList = clauses; //.filter((clause) => { return clause.length > 1; });
             clauseList = clauseList
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
@@ -265,7 +269,6 @@ function SolverPage() {
                         <div>
                             <button
                                 onClick={() => {
-                                    setSidePageData({});
                                     setSidePage(SOLVER_PAGE.STEPS);
                                 }}
                             >
@@ -273,9 +276,6 @@ function SolverPage() {
                             </button>
                             <button
                                 onClick={() => {
-                                    setSidePageData({
-                                        assignments: [],
-                                    });
                                     setSidePage(SOLVER_PAGE.PARTIAL_SOLVE);
                                 }}
                             >
@@ -308,7 +308,10 @@ function SolverPage() {
                             </>
                         )}
                         {sidePage === SOLVER_PAGE.PARTIAL_SOLVE && (
-                            <PartialSolveMenu clauses={clauses} submitPartialSolve={submitPartialSolve} />
+                            <PartialSolveMenu
+                                clauses={clauses}
+                                submitPartialSolve={submitPartialSolve}
+                            />
                         )}
                     </div>
                 </div>

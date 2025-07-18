@@ -87,7 +87,7 @@ app.post("/api/signup", express.json(), async (req, res) => {
 
 app.post("/api/login", express.json(), async (req, res) => {
     const { username, password: plainPassword } = req.body;
-    if(!username || !plainPassword) {
+    if (!username || !plainPassword) {
         badRequestError(res, "Username and password required", 400);
         return;
     }
@@ -115,7 +115,7 @@ app.post("/api/logout", express.json(), (req, res) => {
 app.get("/api/user/:username", express.json(), async (req, res) => {
     const { username } = req.params;
     let isMe = req.session.user?.username === username;
-    if(!username) {
+    if (!username) {
         badRequestError(res, "Invalid request", 400);
         return;
     }
@@ -161,7 +161,8 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
             badRequestError(res, "Invalid CNF", 400);
         } else {
             let originalProblem = fileContents;
-            let reducedProblem = stringifyCNF(reduceCNF(parseCNF(fileContents)));
+            let reducedProblemCNF = reduceCNF(parseCNF(fileContents));
+            let reducedProblem = stringifyCNF(reducedProblemCNF);
             const reductionData = {
                 original_size: getSizeCNF(parseCNF(originalProblem)),
                 reduced_size: getSizeCNF(parseCNF(reducedProblem)),
@@ -170,10 +171,17 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                 problem_file: reducedProblem,
                 solution_file: "",
             };
-
+            let solved = true;
+            for(const clause of reducedProblemCNF){
+                if(clause.length > 1){
+                    solved = false;
+                    break;
+                }
+            }
             const newUploadData = {
                 name: title,
                 description,
+                is_active: !solved,
                 current_size: getSizeCNF(parseCNF(reducedProblem)),
                 file: { create: problemFileData },
                 user: { connect: { id: req.session.user.id } },
@@ -201,15 +209,15 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         badRequestError(res, "No solution provided", 400);
         return;
     }
-    if(isNaN(parseInt(problemId))){
+    if (isNaN(parseInt(problemId))) {
         badRequestError(res, "Invalid problem ID", 400);
         return;
     }
-    const problem = await prisma.problem.findUnique({
-        where: { id: parseInt(problemId) },
+    const problem = await prisma.problem.findFirst({
+        where: { id: parseInt(problemId), is_active: true },
         include: { file: true },
     });
-    if(!problem){
+    if (!problem) {
         badRequestError(res, "Problem not found", 404);
         return;
     }
@@ -249,14 +257,15 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         } else if (step.type === "partial-solve") {
             if (verifyPartialAssignment(problemCNF, step.assignments)) {
                 let newClauses = [];
-                for(const assignment of step.assignments) {
-                    newClauses.push([assignment])
+                for (const assignment of step.assignments) {
+                    newClauses.push([assignment]);
                 }
                 problemCNF = reduceCNF(newClauses, problemCNF);
             } else {
                 badRequestError(res, "Invalid partial solve", 400);
                 return;
             }
+            solutionFile += `Partial ${step.assignments.join(" / ")}\n`;
         } else {
             badRequestError(res, `Invalid step type - What is ${step.type}?`, 400);
             return;
@@ -267,15 +276,38 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         badRequestError(res, "Size Not Reduced", 400);
         return;
     }
+    let isSolved = true;
+    for (const clause in problemCNF) {
+        if (clause.length > 2) {
+            isSolved = false;
+            break;
+        }
+    }
     const sizeReduction = oldSize - newSize;
     const newProblemFileData = {
         problem_file: stringifyCNF(problemCNF),
         solution_file: solutionFile,
+        problem_post: {
+            update: {
+                current_size: getSizeCNF(problemCNF),
+                date_modified: new Date(),
+                is_active: !isSolved,
+            },
+        },
     };
     const update = await prisma.problemFile.update({
         where: { id: problem.file.id },
         data: newProblemFileData,
     });
+
+    let newTotalReduction = req.session.user.total_size_reduced + (oldSize - newSize);
+    const newUser = await prisma.user.update({
+        where: { id: req.session.user.id },
+        data: {
+            total_size_reduced: newTotalReduction,
+        },
+    });
+    req.session.user = newUser;
     //TODO: Update size on the problem page
     res.json(update);
 });
@@ -286,6 +318,16 @@ app.get("/api/problems", express.json(), async (req, res) => {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
         const problems = await prisma.problem.findMany({
+            where: {
+                OR: [
+                    {
+                        user_id: session.user.id,
+                    },
+                    {
+                        is_active: true,
+                    },
+                ],
+            },
             include: {
                 user: true,
             },
@@ -300,8 +342,18 @@ app.get("/api/problem/:problemId", express.json(), async (req, res) => {
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
-        const problem = await prisma.problem.findUnique({
-            where: { id: parseInt(problemId) },
+        const problem = await prisma.problem.findFirst({
+            where: {
+                id: parseInt(problemId),
+                OR: [
+                    {
+                        user_id: session.user.id,
+                    },
+                    {
+                        is_active: true,
+                    },
+                ],
+            },
             include: { user: true },
         });
         if (!problem) {
@@ -318,14 +370,28 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
-        const problem = await prisma.problem.findUnique({
-            where: { id: parseInt(problemId) },
+        const problem = await prisma.problem.findFirst({
+            where: {
+                id: parseInt(problemId),
+                OR: [
+                    {
+                        user_id: session.user.id,
+                    },
+                    {
+                        is_active: true,
+                    },
+                ],
+            },
             include: { file: true },
         });
         if (!problem) {
             badRequestError(res, "Problem Not Found", 404);
         } else {
-            problem.file.problem_file = parseCNF(problem.file.problem_file);
+            if (problem.is_active) {
+                //if active, parse the CNF file for the solver.
+                //Otherwise, don't parse it and leave it to be downloaded
+                problem.file.problem_file = parseCNF(problem.file.problem_file);
+            }
             res.json({ problem: problem });
         }
     }

@@ -14,11 +14,11 @@ CREATE TABLE "Problem" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
-    "poster" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "date_created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "date_modified" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "current_size" INTEGER NOT NULL,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "Problem_pkey" PRIMARY KEY ("id")
 );

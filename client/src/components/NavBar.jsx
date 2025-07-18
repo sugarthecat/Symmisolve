@@ -1,49 +1,37 @@
-import { Link, } from 'react-router-dom'
-import ACCESS_LEVELS from '../logic/accessLevels'
-
+import { Link } from "react-router-dom";
+import ACCESS_LEVELS from "../logic/accessLevels";
 
 function NavBar({ accessLevel, username }) {
     return (
         <nav>
-            <Link to='/'>
-                <button>
-                    Home
-                </button>
+            <Link to="/">
+                <button>Home</button>
             </Link>
-            {
-                accessLevel == ACCESS_LEVELS.LOGGED_OUT &&
-                <Link to='/login'>
-                    <button>
-                        Log In
-                    </button>
+            <Link to="/help">
+                <button>How To SAT Solve</button>
+            </Link>
+            {accessLevel === ACCESS_LEVELS.LOGGED_OUT && (
+                <Link to="/login">
+                    <button>Log In</button>
                 </Link>
-            }
-            {
-                accessLevel == ACCESS_LEVELS.LOGGED_OUT &&
-                <Link to='/signup'>
-                    <button>
-                        Sign Up
-                    </button>
+            )}
+            {accessLevel === ACCESS_LEVELS.LOGGED_OUT && (
+                <Link to="/signup">
+                    <button>Sign Up</button>
                 </Link>
-            }
-            {
-                accessLevel >= ACCESS_LEVELS.RESEARCHER &&
-                <Link to='/upload'>
-                    <button>
-                        Upload Problem
-                    </button>
+            )}
+            {(accessLevel === ACCESS_LEVELS.RESEARCHER || accessLevel === ACCESS_LEVELS.ADMIN) && (
+                <Link to="/upload">
+                    <button>Upload Problem</button>
                 </Link>
-            }
-            {
-                accessLevel >= ACCESS_LEVELS.USER &&
+            )}
+            {accessLevel != ACCESS_LEVELS.LOGGED_OUT && (
                 <Link to={`/user/${username}`}>
-                    <button>
-                        My Profile
-                    </button>
+                    <button>My Profile</button>
                 </Link>
-            }
+            )}
         </nav>
-    )
+    );
 }
 
-export default NavBar
+export default NavBar;
