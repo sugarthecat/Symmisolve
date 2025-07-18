@@ -7,7 +7,6 @@ import PartialSolveMenu from "../components/PartialSolveMenu";
 const SOLVER_PAGE = {
     STEPS: 1,
     PARTIAL_SOLVE: 2,
-    SYMMETRY_BREAKING: 3,
 };
 function SolverPage() {
     const navigate = useNavigate();
@@ -70,6 +69,12 @@ function SolverPage() {
                     <p>Partial Solve (Assignments: {step.assignments.join(", ")})</p>
                 </div>
             );
+        } else if (step.type === "conflict") {
+            return (
+                <div>
+                    <p>Conflict Found (Driven By: {step.assignments.join(", ")})</p>
+                </div>
+            );
         } else {
             return (
                 <div>
@@ -95,12 +100,23 @@ function SolverPage() {
         addClauses(assignmentClauses);
         setSidePage(SOLVER_PAGE.STEPS);
     };
+    const submitConflict = (assignments) => {
+        let conflict = []
+        let newSolutionSteps = solutionSteps;
+        for (const literal of assignments) {
+            conflict.push(-literal);
+        }
+        newSolutionSteps.push({ type: "conflict", assignments });
+        setSolutionSteps(newSolutionSteps);
+        addClauses([conflict]);
+    };
     const addClauses = (newClauses) => {
         let toAdd = newClauses;
         let newClausesList = clauses.slice(); //slice to make a copy, triggering re-render;
         let newSolutionSteps = solutionSteps;
         while (toAdd.length > 0) {
-            let newClause = toAdd.pop();
+            //format clause by sorting
+            let newClause = toAdd.pop().sort((a, b) => Math.abs(a) - Math.abs(b));
             let add = true;
             for (let i = 0; i < newClausesList.length; i++) {
                 if (
@@ -212,23 +228,23 @@ function SolverPage() {
             }
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
+            console.log(clauses);
             clauseList = clauses; //.filter((clause) => { return clause.length > 1; });
             clauseList = clauseList
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
-                    if (index)
-                        return (
-                            <div key={stringifyClause(clause)}>
-                                {stringifyClause(clause)}{" "}
-                                <button
-                                    onClick={() => {
-                                        setSelectedClause(clause);
-                                    }}
-                                >
-                                    Select
-                                </button>
-                            </div>
-                        );
+                    return (
+                        <div key={stringifyClause(clause)}>
+                            {stringifyClause(clause)}{" "}
+                            <button
+                                onClick={() => {
+                                    setSelectedClause(clause);
+                                }}
+                            >
+                                Select
+                            </button>
+                        </div>
+                    );
                 });
             resultCount = clauses.length;
         }
@@ -281,13 +297,6 @@ function SolverPage() {
                             >
                                 Partial Solve
                             </button>
-                            <button
-                                onClick={() => {
-                                    setSidePage(SOLVER_PAGE.SYMMETRY_BREAKING);
-                                }}
-                            >
-                                Symmetry Breaking
-                            </button>
                         </div>
                         {sidePage === SOLVER_PAGE.STEPS && (
                             <>
@@ -311,6 +320,7 @@ function SolverPage() {
                             <PartialSolveMenu
                                 clauses={clauses}
                                 submitPartialSolve={submitPartialSolve}
+                                submitConflict={submitConflict}
                             />
                         )}
                     </div>

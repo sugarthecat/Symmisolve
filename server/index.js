@@ -19,6 +19,7 @@ const {
     isEqual,
     isSubclause,
     verifyPartialAssignment,
+    verifyConflict,
 } = require("./logic/boolsat");
 
 app.use(
@@ -172,8 +173,8 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                 solution_file: "",
             };
             let solved = true;
-            for(const clause of reducedProblemCNF){
-                if(clause.length > 1){
+            for (const clause of reducedProblemCNF) {
+                if (clause.length > 1) {
                     solved = false;
                     break;
                 }
@@ -246,7 +247,7 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 }
             }
             if (!validLogic) {
-                badRequestError(res, "Invalid solution", 400);
+                badRequestError(res, "Invalid Resolution", 400);
                 return;
             }
             //so we're good!
@@ -255,6 +256,11 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         } else if (step.type === "auto-reduction") {
             //we already do that! Happily pass through
         } else if (step.type === "partial-solve") {
+            for(const assignment of step.assignments) {
+                if((typeof assignment) !== "number") {
+                    badRequestError(res, "Invalid partial solve", 400);
+                }
+            }
             if (verifyPartialAssignment(problemCNF, step.assignments)) {
                 let newClauses = [];
                 for (const assignment of step.assignments) {
@@ -266,6 +272,23 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
                 return;
             }
             solutionFile += `Partial ${step.assignments.join(" / ")}\n`;
+        } else if (step.type === "conflict") {
+            for(const assignment of step.assignments) {
+                if((typeof assignment) !== "number") {
+                    badRequestError(res, "Invalid conflict", 400);
+                }
+            }
+            if (verifyConflict(problemCNF, step.assignments)) {
+                let newClause = [];
+                for (const assignment of step.assignments) {
+                    newClause.push(-assignment);
+                }
+                problemCNF = reduceCNF([newClause], problemCNF);
+            } else {
+                badRequestError(res, "Invalid partial solve", 400);
+                return;
+            }
+            solutionFile += `Conflict ${step.assignments.join(" / ")}\n`;
         } else {
             badRequestError(res, `Invalid step type - What is ${step.type}?`, 400);
             return;
@@ -277,8 +300,12 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
         return;
     }
     let isSolved = true;
-    for (const clause in problemCNF) {
+    for (const clause of problemCNF) {
+        if (typeof clause === "string") {
+            //console.error("Invalid Clause (string, end)", JSON.stringify(clause));
+        }
         if (clause.length > 2) {
+            console.log("Unsolved Clause", JSON.stringify(clause));
             isSolved = false;
             break;
         }
@@ -391,6 +418,10 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
                 //if active, parse the CNF file for the solver.
                 //Otherwise, don't parse it and leave it to be downloaded
                 problem.file.problem_file = parseCNF(problem.file.problem_file);
+            } else {
+                let CNF = parseCNF(problem.file.problem_file);
+                let satisfied = CNF.length === 1 && CNF[0].length === 0;
+                problem.satisfied = satisfied;
             }
             res.json({ problem: problem });
         }

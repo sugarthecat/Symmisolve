@@ -82,6 +82,7 @@ function parseCNF(formulaText) {
 }
 /**
  * Reduces a CNF formula, removing redundant clauses and subclauses, and taking simple resolution-rule steps to shrink the size of the formula.
+ * Strictly inverse non-destructive, so any solution to this formula is a solution to the original formula.
  * @param {List<Clause>} clauses New Clauses to be added to the CNF formula / reduced
  * @param {List<Clause>} alreadyReducedClauses A collection of clauses that have already been reduced.
  * @returns A list of reduced clauses
@@ -180,15 +181,16 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
         if (willAdd) {
             writtenClauses.push(currClause);
         }
-        if (toAdd.length == 0) {
+        if (toAdd.length === 0) {
             //check all mappings - If a variable is supposed to be swapped to a lexically earlier variable, swap it.
             //at the same time, check for variables that can be set positive or negative
             let unmappedClauses = [];
             let literalCount = {};
             while (writtenClauses.length > 0) {
                 const writtenClause = writtenClauses.pop();
+                //if this equality relation has no lexically-first variable, set the first variable to be as first as possible
                 if (
-                    writtenClause.length == 2 &&
+                    writtenClause.length === 2 &&
                     writtenClause[0] in mappings &&
                     writtenClause[1] in mappings &&
                     getFinalLiteralMapping(writtenClause[0]) !== writtenClause[0] &&
@@ -198,6 +200,15 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     toAdd.push(newClause);
                     continue;
                 }
+                //if this equality relation is in the right form (earliest, other), keep it
+                if(
+                    writtenClause.length === 2 &&
+                    getFinalLiteralMapping(writtenClause[1]) === -writtenClause[0]
+                ){
+                    unmappedClauses.push(writtenClause);
+                    continue;
+                }
+
                 let newClause = [];
                 let changed = false;
                 for (const prevLiteral of writtenClause) {
@@ -214,10 +225,11 @@ function reduceCNF(clauses, alreadyReducedClauses = []) {
                     }
                 }
                 if (changed) {
-                    newClause = formatClause(newClause);
-                    if (newClause !== null) {
+                    let formattedClause = formatClause(newClause);
+                    if (formattedClause !== null) {
                         toAdd.push(newClause);
                     }
+
                 } else {
                     unmappedClauses.push(writtenClause);
                 }
@@ -517,22 +529,21 @@ const CURR_ALGO_VER = 3;
  * @returns
  */
 function verifyPartialAssignment(clauses, assignments) {
-    for(const clause of clauses) {
+    for (const clause of clauses) {
         let literalsRemoved = false;
         let satisfied = false;
-        for(const literal of clause) {
-            for(const assignment of assignments) {
-                if(literal === assignment) {
+        for (const literal of clause) {
+            for (const assignment of assignments) {
+                if (literal === assignment) {
                     satisfied = true;
                     break;
-
-                }else if(literal === -assignment) {
+                } else if (literal === -assignment) {
                     literalsRemoved = true;
                     break;
                 }
             }
         }
-        if(literalsRemoved && !satisfied) {
+        if (literalsRemoved && !satisfied) {
             //invalid partial assignment
             return false;
         }
@@ -540,8 +551,19 @@ function verifyPartialAssignment(clauses, assignments) {
     return true;
 }
 
+function verifyConflict(clauses, assignments) {
+    let newClauses = assignments.map((assignment) => {
+        return [assignment];
+    });
+    let reducedForm = reduceCNF(newClauses, clauses);
+    if (reducedForm.length === 1 && reducedForm[0].length === 0) {
+        return true;
+    }
+    return false;
+}
 module.exports = {
     verifyPartialAssignment,
+    verifyConflict,
     CURR_ALGO_VER,
     validateCNF,
     parseCNF,
