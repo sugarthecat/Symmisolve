@@ -187,7 +187,7 @@ function SolverPage() {
         if (res.status === 200) {
             window.location.reload();
         } else {
-            setError(JSON.stringify(data));
+            setError(data);
         }
     };
     if (!isLoaded) {

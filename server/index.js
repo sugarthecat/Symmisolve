@@ -23,7 +23,7 @@ const {
     verifyConflict,
 } = require("./logic/boolsat");
 
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 app.use(
     cors({
         origin: process.env.FRONTEND_URL,
@@ -37,7 +37,7 @@ let sessionConfig = {
         maxAge: 1000 * 60 * 60 * 6, // 6 hours, since security isn't a huge problem
         secure: productionEnv,
         httpOnly: true,
-        sameSite: productionEnv ? "none": "lax",
+        sameSite: productionEnv ? "none" : "lax",
     },
     rolling: true,
     resave: false,
@@ -136,6 +136,7 @@ app.get("/api/user/:username", express.json(), async (req, res) => {
         badRequestError(res, "User Not Found", 404);
     }
 });
+
 app.get("/api/whoami", express.json(), async (req, res) => {
     if (req.session.user) {
         res.json({
@@ -441,5 +442,9 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
-    console.log("Production env: ", productionEnv);
+    if (productionEnv) {
+        console.log("Running in Production Environment");
+    } else {
+        console.log("Running in Development Environment");
+    }
 });
