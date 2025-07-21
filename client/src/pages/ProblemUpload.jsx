@@ -1,10 +1,10 @@
 import { useState } from "react";
 import "./ProblemUpload.css";
-import { makePostRequestWithBodyData } from "../logic/requestTemplates";
+import { makeGetRequest, makePostRequestWithBodyData } from "../logic/requestTemplates";
 import { Link, useNavigate } from "react-router";
 import ACCESS_LEVELS from "../logic/accessLevels";
 import { useEffect } from "react";
-function ProblemUpload() {
+function ProblemUpload({ updateUser }) {
     const navigate = useNavigate();
     const [file, setFile] = useState(null);
     const [title, setTitle] = useState("");
@@ -69,7 +69,7 @@ function ProblemUpload() {
             const data = await res.json();
             if (
                 data.accessLevel !== ACCESS_LEVELS.ADMIN &&
-                data.accessLevel != ACCESS_LEVELS.RESEARCHER
+                data.accessLevel !== ACCESS_LEVELS.RESEARCHER
             ) {
                 failed = true;
             }

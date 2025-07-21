@@ -56,9 +56,9 @@ function App() {
                   element={<HomePage updateUser={updateUser} />}
                 />
                 <Route path="/problem/:problemId" element={<ProblemPage />} />
-                <Route path="/problem/:problemId/solver" element={<SolverPage />} />
+                <Route path="/problem/:problemId/solver" element={<SolverPage updateUser={updateUser} />} />
                 <Route path="/user/:username" element={<AccountPage />} />
-                <Route path="/upload" element={<ProblemUpload />} />
+                <Route path="/upload" element={<ProblemUpload updateUser={updateUser} />} />
                 <Route
                   path="/login"
                   element={<LoginPage updateUser={updateUser} />}
