@@ -32,8 +32,15 @@ function HomePage({ updateUser }) {
       <div className="home-page">
         <h2>Home</h2>
         <p>
-          Please <Link className="return-link" to="./login">Log In</Link> or <Link className="return-link" to="./signup">Sign Up</Link> to
-          view open problems.
+          Please{" "}
+          <Link className="return-link" to="./login">
+            Log In
+          </Link>{" "}
+          or{" "}
+          <Link className="return-link" to="./signup">
+            Sign Up
+          </Link>{" "}
+          to view open problems.
         </p>
       </div>
     );

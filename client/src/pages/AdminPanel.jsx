@@ -42,7 +42,7 @@ function AdminPanelPage({ updateUser }) {
         if (res.status === 200) {
             const data = await res.json();
             if (data.accessLevel !== ACCESS_LEVELS.ADMIN) {
-                failed = true
+                failed = true;
             }
         } else {
             failed = true;

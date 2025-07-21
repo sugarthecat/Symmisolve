@@ -48,9 +48,7 @@ function SolverPage({ updateUser }) {
         let failed = false;
         if (res.status === 200) {
             const data = await res.json();
-            if (
-                data.accessLevel === ACCESS_LEVELS.LOGGED_OUT
-            ) {
+            if (data.accessLevel === ACCESS_LEVELS.LOGGED_OUT) {
                 failed = true;
             }
         } else {
