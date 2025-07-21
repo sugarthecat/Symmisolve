@@ -1,9 +1,11 @@
 import { useState } from "react";
 import "./ProblemUpload.css";
 import { makePostRequestWithBodyData } from "../logic/requestTemplates";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import ACCESS_LEVELS from "../logic/accessLevels";
+import { useEffect } from "react";
 function ProblemUpload() {
+    const navigate = useNavigate();
     const [file, setFile] = useState(null);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
