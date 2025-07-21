@@ -15,7 +15,7 @@ function AdminPanelPage({ updateUser }) {
             setUser(data);
             setError("");
         } else {
-            setUser(null)
+            setUser(null);
             setError(error);
         }
     }
@@ -44,7 +44,7 @@ function AdminPanelPage({ updateUser }) {
                     onChange={onUsernameInputChange}
                     onKeyDown={(event) => {
                         if (event.key == "Enter") {
-                            fetchUser(usernameInput)
+                            fetchUser(usernameInput);
                             event.preventDefault();
                         }
                     }}
@@ -57,13 +57,25 @@ function AdminPanelPage({ updateUser }) {
                     Search
                 </button>
             </p>
-            {user !== null && (
-                <>
-                    <h3>{user.username}</h3>
-                    <p>Access Level: {accessLevels[user.accessLevel]} </p>
-                    <p>Total Contribution: {user.sizeReduction} </p>
-                </>
-            )}
+            <div>
+                {user !== null && (
+                    <>
+                        <h3>{user.username}</h3>
+                        <p>Access Level: {accessLevels[user.accessLevel]} </p>
+                        <p>Total Contribution: {user.sizeReduction} </p>
+                    </>
+                )}
+                {user !== null && user.accessLevel == 0 && (
+                    <button onClick={() => setAccessLevel(user.username, 1)}>
+                        Grant Researcher Status
+                    </button>
+                )}
+                {user !== null && user.accessLevel == 1 && (
+                    <button onClick={() => setAccessLevel(user.username, 0)}>
+                        Remove Researcher Status
+                    </button>
+                )}
+            </div>
             <p className="error">{error}</p>
         </div>
     );
