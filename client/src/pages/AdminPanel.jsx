@@ -1,12 +1,15 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { makeGetRequest, makePutRequest } from "../logic/requestTemplates";
+import { useNavigate } from "react-router";
+import ACCESS_LEVELS from "../logic/accessLevels";
 
 function AdminPanelPage({ updateUser }) {
     const [user, setUser] = useState(null);
     const accessLevels = ["Regular User", "Researcher", "Admin"];
     const [error, setError] = useState("");
     const [usernameInput, setUsernameInput] = useState("");
+    const navigate = useNavigate();
 
     async function fetchUser(username) {
         const res = await makeGetRequest(`user/${username}`);
@@ -33,6 +36,25 @@ function AdminPanelPage({ updateUser }) {
         setUsernameInput(event.target.value);
     }
 
+    const checkWhoIAm = async () => {
+        const res = await makeGetRequest("whoami");
+        let failed = false;
+        if (res.status === 200) {
+            const data = await res.json();
+            if (data.accessLevel !== ACCESS_LEVELS.ADMIN) {
+                failed = true
+            }
+        } else {
+            failed = true;
+        }
+        if (failed) {
+            updateUser("", -1);
+            navigate(`/`);
+        }
+    };
+    useEffect(() => {
+        checkWhoIAm();
+    }, []);
     return (
         <div>
             <h1>Admin Panel</h1>
