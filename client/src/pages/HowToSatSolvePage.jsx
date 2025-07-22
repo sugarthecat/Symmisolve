@@ -1,5 +1,7 @@
 import { Link } from "react-router";
 import "./HowToSatSolvePage.css"
+import VariableComponent from "../components/VariableComponent"
+import ClauseComponent from "../components/ClauseComponent";
 function HowToSatSolvePage() {
   return (
     <div>
@@ -27,63 +29,34 @@ function HowToSatSolvePage() {
           (Conjunctive Normal Form). Each formula consists of clauses, and each clause
           consists of variables.
         </p>
-        <p>
+        <p className="spaced">
           Each literal is a single variable, or the opposite of a single variable.
-          <span className="code-segment">1</span>,
-          <span className="code-segment">
-            <span className="overline">1</span>
-          </span>
+          <VariableComponent assignment={1} />,
+          <VariableComponent assignment={-1} />
           are both literals. Note that 1 isn't a number in this case, but the name for a
           variable that could be either true or false.
-          <span className="code-segment">
-            <span className="overline">1</span>
-          </span>{" "}
+          <VariableComponent assignment={-1} />
           is the opposite of 1, and is also a literal. The opposite is denoted by a line
           over the variable.
         </p>
-        <p>
-          Each clause is a collection of literals, joined by OR (denoted +).
-          <span className="code-segment">
-            (1 + <span className="overline">2</span>)
-          </span>
-          ,
-          <span className="code-segment">
-            (<span className="overline">1</span>)
-          </span>
+        <p className="spaced">
+          Each clause is a collection of literals, joined by OR.
+          <ClauseComponent clause={[1, -2]} />
+          , and
+          <ClauseComponent clause={[1]} />
           are both valid clauses. We can even have the empty clause,
-          <span className="code-segment">()</span>, which is always false.
+          <ClauseComponent clause={[]} />, which is always false.
         </p>
         <p>
-          A formula is a collection of clauses, joined by AND (denoted &times;).
-          <span className="code-segment">
-            (1 + <span className="overline">2</span>) &times; (
-            <span className="overline">1</span>)
-          </span>
-          ,
-          <span className="code-segment">
-            (<span className="overline">1</span>) &times; (1)
-          </span>{" "}
-          are both valid formulas. We can even have the formula containing only the empty
-          clause,
-          <span className="code-segment">(())</span>, which is always false.
-        </p>
-        <p>
-          For example, the formula{" "}
-          <span className="code-segment">
-            (<span className="overline">1</span>) &times; (2 +{" "}
-            <span className="overline">3</span>)
-          </span>{" "}
-          is a valid CNF formula, because it is a joining by "AND" of clauses, and each
-          clause is a joining by "OR" of variables.
+          A formula is a collection of clauses, joined by AND. For a formula to be true, there needs to be some assignment of variables, such that every single clause can be true.
         </p>
         <h2>Your Solving Tools</h2>
-        <p>
+        <p className="spaced">
           In Symmisolve, we use a specific format of Boolean SAT, that being CNF
           (Conjunctive Normal Form). Your goal is to determine if a formula is always
-          false. For example, the formula{" "}
-          <span className="code-segment">
-            (1) &times; (<span className="overline">1</span>)
-          </span>{" "}
+          false. For example, the formula consisting of
+          <VariableComponent assignment={1} /> and
+          <VariableComponent assignment={-1} />
           is always false, since the formula is false if 1 is false, and also false if 1
           is true. If the formula is not always false, you can submit an assignment of
           variables such that it is true.
@@ -91,24 +64,18 @@ function HowToSatSolvePage() {
         <h3>Resolution</h3>
         <p>
           Resolution involves combining two different clauses that contain literals of the
-          same variable, (like the literals <span className="code-segment">1</span> and{" "}
-          <span className="code-segment">
-            <span className="overline">1</span>
-          </span>
+          same variable, (like the literals <VariableComponent assignment={1} /> and <VariableComponent assignment={-1} />
           ) to produce a new clause.{" "}
         </p>
         <p>
-          Suppose you have the formula{" "}
-          <span className="code-segment">
-            (1 + <span className="overline">2</span>) &times; (
-            <span className="overline">1</span> + 2)
-          </span>
+          Suppose you have the formula consisting of
+          <ClauseComponent clause={[1, 2]} />and
+          <ClauseComponent clause={[-1, 2]} />
         </p>
         <p>
           A resolution step would be{" "}
-          <span className="code-segment">
-            (1 + 2) &times; (<span className="overline">1</span> + 2) &rarr; (2)
-          </span>
+          <ClauseComponent clause={[1, 2]} />,
+          <ClauseComponent clause={[-1, 2]} /> &rarr; <ClauseComponent clause={[2]} />
         </p>
         <h3>Partial Solving</h3>
         <p>
@@ -118,14 +85,12 @@ function HowToSatSolvePage() {
         </p>
         <p>For example:</p>
         <p>
-          Suppose you have the formula{" "}
-          <span className="code-segment">
-            (1 + <span className="overline">2</span>) &times; (
-            <span className="overline">1</span> + 3)
-          </span>
+          Suppose you have the formula consisting of
+          <ClauseComponent clause={[1, -2]} /> and
+          <ClauseComponent clause={[-1, 3]} />
         </p>
         <p>
-          A valid partial solution would be <span className="code-segment">3</span>, since
+          A valid partial solution would be <VariableComponent assignment={3} />, since
           by setting 3 true, you satisfy all clauses involving 3.
         </p>
       </section>

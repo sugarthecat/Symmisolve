@@ -7,3 +7,7 @@
 .content-body-article p{
     margin-left: 15px;
 }
+
+.spaced{
+    line-height: 30px;
+}

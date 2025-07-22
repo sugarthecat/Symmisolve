@@ -1,6 +1,6 @@
 import "./VariableComponent.css"
 import "../logic/variableColors.css"
-const VariableComponent = ({ assignment, clickFunc }) => {
+const VariableComponent = ({ assignment, clickFunc = () => { } }) => {
     return (
         <span
             className={
