@@ -22,6 +22,7 @@ const {
     verifyPartialAssignment,
     verifyConflict,
 } = require("./logic/boolsat");
+const { ACCESS_LEVEL } = require("./logic/accessLevels");
 
 app.set("trust proxy", 1);
 app.use(
@@ -77,7 +78,7 @@ app.post("/api/signup", express.json(), async (req, res) => {
             badRequestError(res, "Username taken", 409);
         } else {
             const hash = await hashPassword(plainPassword);
-            const newUserData = { username, password: hash, access_level: 0 };
+            const newUserData = { username, password: hash, access_level: ACCESS_LEVEL.USER };
             const newUser = await prisma.user.create({ data: newUserData });
             req.session.user = newUser; //start logged in
             res.json({
@@ -144,11 +145,11 @@ app.put("/api/user/:username", express.json(), async (req, res) => {
         badRequestError(res, "Invalid User", 400);
         return;
     }
-    if (![0, 1].includes(newAccessLevel)) {
+    if (![ACCESS_LEVEL.USER, ACCESS_LEVEL.RESEARCHER].includes(newAccessLevel)) {
         badRequestError(res, "Invalid Access Level", 400);
         return;
     }
-    if (!req.session.user || req.session.user.access_level !== 2) {
+    if (!req.session.user || req.session.user.access_level !== ACCESS_LEVEL.ADMIN) {
         badRequestError(res, "Unauthorized Request", 403);
         return;
     }
@@ -178,7 +179,7 @@ app.get("/api/whoami", express.json(), async (req, res) => {
     }
 });
 app.get("/api/adminPanel", express.json(), async (req, res) => {
-    if (req.session.user && req.session.user.access_level === 3) {
+    if (req.session.user && req.session.user.access_level === ACCESS_LEVEL.ADMIN) {
         res.json({
             username: req.session.user.username,
             accessLevel: req.session.user.access_level,
@@ -190,7 +191,7 @@ app.get("/api/adminPanel", express.json(), async (req, res) => {
 
 app.post("/api/upload", upload.single("file"), async (req, res) => {
     const { body, file } = req;
-    if (!req.session.user || req.session.user.accessLevel < 2) {
+    if (!req.session.user || req.session.user.accessLevel === ACCESS_LEVEL.USER) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else if (!body.title || !body.description) {
         badRequestError(res, "Title and description required", 400);
@@ -245,7 +246,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
     const { problemId } = req.params;
     const { solution } = req.body;
-    if (!req.session.user || req.session.user.accessLevel < 1) {
+    if (!req.session.user || req.session.user.accessLevel === ACCESS_LEVEL.LOGGED_OUT) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
         return;
     }
