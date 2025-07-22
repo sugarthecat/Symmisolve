@@ -123,7 +123,7 @@ function writeBenchmarkResults() {
     let now = new Date();
     let name = path.join(
         BENCHMARK_OUTPUT_DIR,
-        `bench-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}.csv`
+        `bench-${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}.csv`
     );
     fs.writeFileSync(name, csv, "utf8");
     return name;
