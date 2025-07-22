@@ -23,7 +23,7 @@ function AdminPanelPage({ updateUser }) {
         }
     }
     async function setAccessLevel(username, level) {
-        const res = await makePutRequest(`user/${username}`, { accessLevel: level });
+        const res = await makePutRequest(`user/${username}`, { newAccessLevel: level });
         const data = await res.json();
         if (res.status === 200) {
             setUser(data);

@@ -69,7 +69,7 @@ function HowToSatSolvePage() {
       </p>
       <p>
         For example, the formula{" "}
-        <span class="code-segment">
+        <span className="code-segment">
           (<span className="overline">1</span>) &times; (2 +{" "}
           <span className="overline">3</span>)
         </span>{" "}

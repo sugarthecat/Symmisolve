@@ -137,6 +137,36 @@ app.get("/api/user/:username", express.json(), async (req, res) => {
     }
 });
 
+app.put("/api/user/:username", express.json(), async (req, res) => {
+    const { username } = req.params;
+    const { newAccessLevel } = req.body;
+    if (!username) {
+        badRequestError(res, "Invalid User", 400);
+        return;
+    }
+    if (![0, 1].includes(newAccessLevel)) {
+        badRequestError(res, "Invalid Access Level", 400);
+        return;
+    }
+    if (!req.session.user || req.session.user.access_level !== 2) {
+        badRequestError(res, "Unauthorized Request", 403);
+        return;
+    }
+    const user = await prisma.user.update({
+        where: { username: username },
+        data: { access_level: newAccessLevel },
+    });
+    if (user) {
+        res.json({
+            username: user.username,
+            accessLevel: user.access_level,
+            sizeReduction: user.total_size_reduced,
+        });
+    } else {
+        badRequestError("User Not Found", 404);
+    }
+});
+
 app.get("/api/whoami", express.json(), async (req, res) => {
     if (req.session.user) {
         res.json({
