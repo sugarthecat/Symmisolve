@@ -89,7 +89,6 @@ function parseCNF(formulaText) {
 function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
     let toAdd = [];
     let newClauses = [];
-    let modified = true;
     let relatingToLiteral = {};
     //set up relatingToLiteral, contains all clauses relating to each literal
     for (let clause of clauses.concat(alreadyReduced)) {
@@ -119,9 +118,9 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
             toAdd.push(clause);
         }
     }
+    let toRemove = new Set();
     let toCompare = justCompare.slice();
     //every iteration moves everything from oldClauses to newClauses
-    //note: the 'modified' flag is used to trigger a run-back to remove subclauses that have already been added,
     //since the relating to literal structure is updated, but the newClauses array is not
     while (toAdd.length > 0 || toCompare.length > 0) {
         let add = true;
@@ -145,6 +144,8 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
                 let relatingClause = relatingClauses[i];
                 if (isSubclause(relatingClause, newClause)) {
                     //relating clause is a subclause of new clause
+                    toRemove.add(relatingClause);
+                    console.log(relatingClause,newClause)
                     relatingClauses.splice(i, 1);
                     i--;
                     add = true;
@@ -163,9 +164,9 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
                         //if the new clause is a subclause of the written clause the written clause is redundant
                         //doesn't mean the new clause can replace it, though, so add it to the stack
                         toAdd.push(resolvedClause);
+                        toRemove.add(relatingClause);
                         relatingClauses.splice(i, 1);
                         i--;
-                        modified = true;
                         continue;
                     } else if (isSubclause(newClause, resolvedClause)) {
                         //if the new clause is a subclause of the current clause, the current clause is redundant
@@ -185,26 +186,20 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
         if (add) {
             newClauses.push(newClause);
         }
-        if (modified && toAdd.length === 0) {
-            modified = false;
-            // reload the toAdd stack
-            newClauses = sortClauses(newClauses);
-            toAdd = [];
-            for (let i = 0; i < newClauses.length; i++) {
-                if (i === 0 || !isEqual(newClauses[i], newClauses[i - 1])) {
-                    toAdd.push(newClauses[i]);
-                }
-            }
-            newClauses = [];
-        }
     }
     //remove duplicates & sort
     newClauses = sortClauses(newClauses);
     let finalClauses = [];
     for (let i = 0; i < newClauses.length; i++) {
-        if (i === 0 || !isEqual(newClauses[i], newClauses[i - 1])) {
-            finalClauses.push(newClauses[i]);
+        if (i !== 0 && isEqual(newClauses[i], newClauses[i - 1])) {
+            //continue, this is a duplicate
+            continue;
         }
+        if(toRemove.has(newClauses[i])){
+            //clause flagged for removal
+            continue;
+        }
+        finalClauses.push(newClauses[i]);
     }
     return finalClauses;
 }
@@ -217,82 +212,7 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
  */
 function optimizeCNF(clauses) {
     let toAdd = reduceCNF(clauses);
-    let relatingToLiteral = {};
-    const literalImplications = new Map();
-    for (let clasue of toAdd) {
-        for (const literal of clasue) {
-            if (!(Math.abs(literal) in relatingToLiteral)) {
-                relatingToLiteral[Math.abs(literal)] = [];
-            }
-            relatingToLiteral[Math.abs(literal)].push(clasue);
-            if (!literalImplications.has(literal)) {
-                literalImplications.set(literal, new Set([literal]));
-            }
-            if (!literalImplications.has(-literal)) {
-                literalImplications.set(-literal, new Set([-literal]));
-            }
-        }
-    }
-    let oldSize = getSizeCNF(toAdd) + 1;
-    let newSize = oldSize - 1;
-
-    let mapping = new Map();
-    function getFinalLiteralMapping(inputLiteral) {
-        let literal = inputLiteral;
-        while (mapping.has(literal)) {
-            literal = mapping.get(literal);
-        }
-        return literal;
-    }
-    while (newSize < oldSize) {
-        let oldClauses = [];
-        let newClauses = [];
-        let extraClauses = [];
-        while (toAdd.length > 0) {
-            let clause = toAdd.pop();
-            let add = true;
-            //mapping stuff
-            for (let i = 0; i < clause.length; i++) {
-                let conflicts = 0;
-                let satisfied = false;
-                let sourceLiteral = -clause[i];
-                let implications = literalImplications.get(sourceLiteral);
-                let nonconflictingLiterals = [];
-                for (let j = 0; j < clause.length; j++) {
-                    if (j === i) {
-                        continue;
-                    }
-                    let currLiteral = clause[j];
-                    if (implications === undefined) {
-                        console.log(sourceLiteral);
-                    }
-                    if (implications.has(currLiteral)) {
-                        satisfied = true;
-                    } else if (implications.has(-currLiteral)) {
-                        conflicts++;
-                    } else {
-                        nonconflictingLiterals.push(currLiteral);
-                    }
-                }
-                if (!satisfied && nonconflictingLiterals.length === 1) {
-                    if (clause.length > 2) {
-                        newClauses.push([-sourceLiteral, nonconflictingLiterals[0]]);
-                    }
-                    implications = implications.union(
-                        literalImplications.get(nonconflictingLiterals[0])
-                    );
-                }
-                literalImplications.set(sourceLiteral, implications);
-            }
-            oldClauses.push(clause);
-        }
-        toAdd = reduceCNF(newClauses, oldClauses, extraClauses);
-        //literal implications are the other literals implied by a literal
-        //directly or indirecly
-        oldSize = newSize;
-        newSize = getSizeCNF(toAdd);
-    }
-    return sortClauses(toAdd);
+    return toAdd;
 }
 
 /**
@@ -401,7 +321,7 @@ function formatClause(clause) {
  * @param {Clause} clause2 The possible superclause
  */
 function isSubclause(clause1, clause2) {
-    if (clause1.length < clause2.length) {
+    if (clause1.length <= clause2.length) {
         return false;
     }
     let index1 = 0;
