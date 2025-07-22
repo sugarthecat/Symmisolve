@@ -77,6 +77,7 @@ function HowToSatSolvePage() {
           <ClauseComponent clause={[1, 2]} />,
           <ClauseComponent clause={[-1, 2]} /> &rarr; <ClauseComponent clause={[2]} />
         </p>
+        <p>In order to solve based on a resolution step, click on </p>
         <h3>Partial Solving</h3>
         <p>
           If you can find some assignment of variables that satisfies every clause

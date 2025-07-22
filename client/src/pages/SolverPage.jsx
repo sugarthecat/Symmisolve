@@ -256,10 +256,10 @@ function SolverPage({ updateUser }) {
             }
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
-            clauseList = clauses.filter((clause) => {
+            let filteredClauses = clauses.filter((clause) => {
                 return clause.length !== 1;
             }); //filter out unit clauses
-            clauseList = clauseList
+            clauseList = filteredClauses
                 .slice(startIndex * 100, startIndex * 100 + 100)
                 .map((clause, index) => {
                     return (
@@ -272,7 +272,7 @@ function SolverPage({ updateUser }) {
                         ></ClauseComponent>
                     );
                 });
-            resultCount = clauses.length;
+            resultCount = filteredClauses.length;
         }
         if (startIndex * 100 >= clauses.length) {
             setStartIndex(0);
@@ -289,7 +289,9 @@ function SolverPage({ updateUser }) {
                     <div className="solver-side-page">
                         <h1>{problem.name}</h1>
                         {specialClause}
-                        <div className="clauses">{clauseList}</div>
+                        <div className="clause-container">
+                            <div className="clauses">{clauseList}</div>
+                        </div>
                         <div>
                             <button
                                 onClick={() => {
