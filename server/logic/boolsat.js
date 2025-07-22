@@ -1,5 +1,4 @@
-const e = require("express");
-
+const CURR_ALGO_VER = 5;
 /**
  * Validates the formatting of a CNF formula
  * @param {String} formulaText
@@ -108,9 +107,7 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
                     hasDuplicate = true;
                 }
             }
-            if (!hasDuplicate) {
-                relatingToLiteral[absLiteral].push(clause);
-            } else {
+            if (hasDuplicate) {
                 skip = true;
             }
         }
@@ -145,7 +142,7 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
                 if (isSubclause(relatingClause, newClause)) {
                     //relating clause is a subclause of new clause
                     toRemove.add(relatingClause);
-                    console.log(relatingClause,newClause)
+                    //console.log(relatingClause,newClause)
                     relatingClauses.splice(i, 1);
                     i--;
                     add = true;
@@ -470,7 +467,6 @@ function getSizeCNF(clauses) {
     return size;
 }
 
-const CURR_ALGO_VER = 3;
 //poorly optimized, but it works
 
 /**
