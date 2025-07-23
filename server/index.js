@@ -23,6 +23,8 @@ const {
     verifyConflict,
 } = require("./logic/boolsat");
 const { ACCESS_LEVEL } = require("./logic/accessLevels");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client();
 
 app.set("trust proxy", 1);
 app.use(
@@ -46,6 +48,18 @@ let sessionConfig = {
 };
 
 app.use(session(sessionConfig));
+// https://developers.google.com/identity/gsi/web/guides/verify-google-id-token#node.js
+async function verifyGoogleToken(token) {
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    console.log(payload);
+    return payload
+    // If the request specified a Google Workspace domain:
+    // const domain = payload['hd'];
+}
 
 function badRequestError(res, message, code = 400) {
     res.status(code).json(message);
@@ -471,8 +485,25 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
     }
 });
 
-app.post("/api/siwg", async (req, res) => {
-    //TODO: Implement endpoint
+app.post("/api/siwg", express.urlencoded({ extended: true }), express.json(), async (req, res) => {
+    const body = req.body;
+    if (!body.credential || !body.g_csrf_token) {
+        badRequestError(res, "Invalid request", 400);
+        return;
+    }
+    const credential = body.credential;
+    let successful = true;
+    try {
+        await verifyGoogleToken(credential);
+    } catch (err) {
+        successful = false;
+        console.error(err);
+    }
+    if(!successful) {
+        badRequestError(res, "Invalid Google Token", 400);
+        return;
+    }
+    res.redirect(process.env.FRONTEND_URL);
 });
 
 app.listen(PORT, () => {
