@@ -192,7 +192,7 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
             //continue, this is a duplicate
             continue;
         }
-        if(toRemove.has(newClauses[i])){
+        if (toRemove.has(newClauses[i])) {
             //clause flagged for removal
             continue;
         }
@@ -204,12 +204,214 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
  * Reduces a CNF formula, removing redundant clauses and subclauses, and taking simple resolution-rule steps to shrink the size of the formula.
  * Strictly inverse non-destructive, so any solution to this formula is a solution to the original formula.
  * @param {List<Clause>} clauses New Clauses to be added to the CNF formula / reduced
- * @param {List<Clause>} alreadyReducedClauses A collection of clauses that have already been reduced.
  * @returns A list of reduced clauses
  */
 function optimizeCNF(clauses) {
-    let toAdd = reduceCNF(clauses);
-    return toAdd;
+    function getFinalLiteralMapping(literal) {
+        let newLiteral = literal;
+        while (Math.abs(newLiteral) in mappings) {
+            newLiteral = mappings[Math.abs(newLiteral)] * (newLiteral < 0 ? -1 : 1);
+        }
+        return newLiteral;
+    }
+    let toAdd = [];
+    let newClauses = [];
+    let relatingToLiteral = {};
+    let mappings = {}; //used as a dictionary
+    //set up relatingToLiteral, contains all clauses relating to each literal
+    for (let clause of clauses) {
+        clause = formatClause(clause);
+        let skip = false;
+        if (clause === null) {
+            continue;
+        }
+        for (const literal of clause) {
+            const absLiteral = Math.abs(literal);
+            if (!(absLiteral in relatingToLiteral)) {
+                relatingToLiteral[absLiteral] = [];
+            }
+            let hasDuplicate = false;
+            for (const relatingClause of relatingToLiteral[absLiteral]) {
+                if (isEqual(relatingClause, clause)) {
+                    hasDuplicate = true;
+                }
+            }
+            if (hasDuplicate) {
+                skip = true;
+            }
+        }
+        if (!skip) {
+            toAdd.push(clause);
+        }
+    }
+    let toRemove = new Set();
+    //every iteration moves everything from oldClauses to newClauses
+    //since the relating to literal structure is updated, but the newClauses array is not
+    while (toAdd.length > 0) {
+        let add = true;
+        let newClause;
+        newClause = formatClause(toAdd.pop());
+        if (newClause === null) {
+            continue;
+        }
+
+        if (newClause.length === 0) {
+            //if we have the empty clause, we can stop
+            return [[]];
+        }
+
+        for (const literal of newClause) {
+            const absLiteral = Math.abs(literal);
+            const relatingClauses = relatingToLiteral[absLiteral];
+            //console.log("relating clauses", relatingClauses.length);
+            for (let i = 0; i < relatingClauses.length; i++) {
+                let relatingClause = relatingClauses[i];
+                if(toRemove.has(relatingClause)){
+                    relatingClauses.splice(i, 1);
+                    i--;
+                    continue;
+                }
+                if (isSubclause(relatingClause, newClause)) {
+                    //relating clause is a subclause of new clause
+                    toRemove.add(relatingClause);
+                    //console.log(relatingClause,newClause)
+                    relatingClauses.splice(i, 1);
+                    i--;
+                    add = true;
+                    continue;
+                }
+                if (isSubclause(newClause, relatingClause) || isEqual(newClause,relatingClause)) {
+                    //new clause is a subclause of related clause
+                    add = false;
+                    break;
+                }
+                //nice resolutions
+                let resolvedClause = resolve(newClause, relatingClause);
+                if (resolvedClause !== null) {
+                    //if the two clauses resolve to something meaningful, see if it can be used for an immediate size reduction
+                    if (isSubclause(relatingClause, resolvedClause)) {
+                        //if the new clause is a subclause of the written clause the written clause is redundant
+                        //doesn't mean the new clause can replace it, though, so add it to the stack
+                        toAdd.push(resolvedClause);
+                        toRemove.add(relatingClause);
+                        relatingClauses.splice(i, 1);
+                        i--;
+                        continue;
+                    } else if (isSubclause(newClause, resolvedClause)) {
+                        //if the new clause is a subclause of the current clause, the current clause is redundant
+                        //it does mean the new clause can replace it, but we have to check relations with all other clauses now
+                        toAdd.push(resolvedClause);
+                        add = false;
+                        break;
+                    }
+                }
+
+                if (
+                    newClause.length === 2 &&
+                    relatingClause.length === 2 &&
+                    Math.abs(newClause[0]) === Math.abs(relatingClause[0]) &&
+                    Math.abs(newClause[1]) === Math.abs(relatingClause[1]) &&
+                    !isEqual(newClause, relatingClause)
+                ) {
+                    let lit1 = newClause[0];
+                    let lit2 = newClause[1];
+                    let abslit1 = Math.abs(lit1);
+                    let abslit2 = Math.abs(lit2);
+                    let isEqual = lit1 * lit2 < 0; //equality if opposite signs, opposite if same signs
+                    if (abslit2 in mappings && Math.abs(mappings[abslit2]) < abslit1) {
+                        //if the literal is already mapped to a lexically earlier variable, set up the ingredients to map the other way
+                        if (isEqual) {
+                            //insert outselves in the middle of this equality relation and add the new preserving clauses
+                            toAdd.push([-abslit1, mappings[abslit2]]);
+                            toAdd.push([abslit1, -mappings[abslit2]]);
+                        } else {
+                            toAdd.push([abslit1, mappings[abslit2]]);
+                            toAdd.push([-abslit1, -mappings[abslit2]]);
+                        }
+                        //remove the 2 old ones and add the foundations for the new mapping
+                        willAdd = false;
+                        toRemove.add(relatingClause);
+                        relatingClauses.splice(i, 1);
+                        i--;
+                        break;
+                    } else if (isEqual) {
+                        mappings[abslit2] = abslit1;
+                    } else {
+                        mappings[abslit2] = -abslit1;
+                    }
+                }
+            }
+            if (add) {
+                relatingClauses.push(newClause);
+            } else {
+                break;
+            }
+        }
+        if (add) {
+            newClauses.push(newClause);
+        }
+
+        if (toAdd.length == 0) {
+            //check all mappings - If a variable is supposed to be swapped to a lexically earlier variable, swap it.
+            //at the same time, check for variables that can be set positive or negative
+            let unmappedClauses = [];
+            let literalCount = {};
+            while (newClauses.length > 0) {
+                const writtenClause = newClauses.pop();
+                //console.log(newClauses.length, writtenClause);
+                if (
+                    writtenClause.length == 2 &&
+                    writtenClause[0] in mappings &&
+                    writtenClause[1] in mappings &&
+                    getFinalLiteralMapping(writtenClause[0]) !== writtenClause[0] &&
+                    getFinalLiteralMapping(writtenClause[1]) !== writtenClause[1]
+                ) {
+                    let newClause = [getFinalLiteralMapping(writtenClause[0]), writtenClause[1]];
+                    toAdd.push(newClause);
+                    continue;
+                }
+                let newClause = [];
+                let changed = false;
+                for (const prevLiteral of writtenClause) {
+                    //follow the mapping chain until we reach an unmapped variable
+                    let literal = getFinalLiteralMapping(prevLiteral);
+                    if (prevLiteral != literal) {
+                        changed = true;
+                    }
+                    newClause.push(literal);
+                    if (literal in literalCount) {
+                        literalCount[literal]++;
+                    } else if (writtenClause.length > 1) {
+                        literalCount[literal] = 1;
+                    }
+                }
+                if (changed) {
+                    newClause = formatClause(newClause);
+                    if (newClause !== null) {
+                        toAdd.push(newClause);
+                    }
+                } else {
+                    unmappedClauses.push(writtenClause);
+                }
+            }
+            newClauses = unmappedClauses;
+        }
+    }
+    //remove duplicates & sort
+    newClauses = sortClauses(newClauses);
+    let finalClauses = [];
+    for (let i = 0; i < newClauses.length; i++) {
+        if (i !== 0 && isEqual(newClauses[i], newClauses[i - 1])) {
+            //continue, this is a duplicate
+            continue;
+        }
+        if (toRemove.has(newClauses[i])) {
+            //clause flagged for removal
+            continue;
+        }
+        finalClauses.push(newClauses[i]);
+    }
+    return finalClauses;
 }
 
 /**
