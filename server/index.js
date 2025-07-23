@@ -471,6 +471,10 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
     }
 });
 
+app.post("/api/siwg", async (req, res) => {
+    //TODO: Implement endpoint
+});
+
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
     if (productionEnv) {

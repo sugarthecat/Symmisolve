@@ -36,6 +36,8 @@ function SignupPage({ updateUser }) {
 
     return (
         <div>
+            <script src="https://accounts.google.com/gsi/client" async></script>
+
             <h1>Sign up</h1>
             <div>
                 <input
