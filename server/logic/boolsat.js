@@ -358,11 +358,15 @@ function optimizeCNF(clauses) {
             let literalCount = {};
             while (newClauses.length > 0) {
                 const writtenClause = newClauses.pop();
+                if(toRemove.has(writtenClause)){
+                    continue;
+                }
                 //console.log(newClauses.length, writtenClause);
-                if(writtenClause.length === 1){
+                if (writtenClause.length === 1) {
                     unmappedClauses.push(writtenClause);
                     continue;
                 }
+
                 if (
                     writtenClause.length === 2 &&
                     writtenClause[0] in mappings &&
@@ -399,6 +403,24 @@ function optimizeCNF(clauses) {
                 }
             }
             newClauses = unmappedClauses;
+        }
+        if(toAdd.length === 0){
+            //Check for literals that can be set positive or negative
+
+            let allLiterals = new Set();
+            for(const clause of newClauses){
+                if(clause.length === 1){
+                    continue;
+                }
+                for(const literal of clause){
+                    allLiterals.add(literal);
+                }
+            }
+            for (const literal of allLiterals) {
+                if (!allLiterals.has(-literal)) {
+                    toAdd.push([literal]);
+                }
+            }
         }
     }
     //remove duplicates & sort

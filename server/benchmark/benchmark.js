@@ -8,7 +8,6 @@ const {
 const fs = require("fs");
 const path = require("path");
 const readline = require("node:readline");
-const e = require("express");
 
 //readline
 const rl = readline.createInterface({
@@ -135,7 +134,7 @@ async function makeChoice(options) {
     }
     let input = parseInt(await getConsoleInput());
     while (isNaN(input) || input < 1 || input > options.length) {
-        console.log(`Invalid input. Please enter a number between 1 and ${psets.length}`);
+        console.log(`Invalid input. Please enter a number between 1 and ${options.length}`);
         input = await getConsoleInput();
     }
     return options[input - 1];
