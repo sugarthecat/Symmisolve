@@ -253,6 +253,7 @@ function SolverPage({ updateUser }) {
                         />
                     </div>
                 );
+                resultCount++;
             }
         } else {
             //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
@@ -342,7 +343,7 @@ function SolverPage({ updateUser }) {
                                     setSidePage(SOLVER_PAGE.PARTIAL_SOLVE);
                                 }}
                             >
-                                Partial Solve
+                                Partial Solve / Conflicts
                             </button>
                         </div>
                         {sidePage === SOLVER_PAGE.STEPS && (

@@ -9,6 +9,7 @@ function AccountPage() {
     const [accessLevel, setAccessLevel] = useState("Access Level");
     const [sizeReduced, setSizeReduced] = useState(0);
     const [isMe, setIsMe] = useState(false);
+    const [loaded, setLoaded] = useState(false)
     const updateData = async () => {
         const res = await makeGetRequest(`user/${username}`);
         if (res.status === 200) {
@@ -30,6 +31,7 @@ function AccountPage() {
             }
             setIsMe(data.isMe);
             setSizeReduced(data.sizeReduction);
+            setLoaded(true)
         } else if (res.status == 404) {
             navigate('/')
         }
@@ -43,6 +45,9 @@ function AccountPage() {
         if (res.status === 200) {
             navigate('/login')
         }
+    }
+    if (!loaded) {
+        return <div></div>
     }
     return (
         <div>

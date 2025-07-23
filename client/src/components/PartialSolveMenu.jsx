@@ -199,7 +199,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
     };
     return (
         <div>
-            <h2>Partial Solve</h2>
+            <h2>Partial Solve / Conflicts</h2>
             <p>
                 <input
                     onChange={handleInputChange}
