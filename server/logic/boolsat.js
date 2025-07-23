@@ -266,7 +266,7 @@ function optimizeCNF(clauses) {
             //console.log("relating clauses", relatingClauses.length);
             for (let i = 0; i < relatingClauses.length; i++) {
                 let relatingClause = relatingClauses[i];
-                if(toRemove.has(relatingClause)){
+                if (toRemove.has(relatingClause)) {
                     relatingClauses.splice(i, 1);
                     i--;
                     continue;
@@ -280,7 +280,7 @@ function optimizeCNF(clauses) {
                     add = true;
                     continue;
                 }
-                if (isSubclause(newClause, relatingClause) || isEqual(newClause,relatingClause)) {
+                if (isSubclause(newClause, relatingClause) || isEqual(newClause, relatingClause)) {
                     //new clause is a subclause of related clause
                     add = false;
                     break;
@@ -351,7 +351,7 @@ function optimizeCNF(clauses) {
             newClauses.push(newClause);
         }
 
-        if (toAdd.length == 0) {
+        if (toAdd.length === 0) {
             //check all mappings - If a variable is supposed to be swapped to a lexically earlier variable, swap it.
             //at the same time, check for variables that can be set positive or negative
             let unmappedClauses = [];
@@ -359,8 +359,12 @@ function optimizeCNF(clauses) {
             while (newClauses.length > 0) {
                 const writtenClause = newClauses.pop();
                 //console.log(newClauses.length, writtenClause);
+                if(writtenClause.length === 1){
+                    unmappedClauses.push(writtenClause);
+                    continue;
+                }
                 if (
-                    writtenClause.length == 2 &&
+                    writtenClause.length === 2 &&
                     writtenClause[0] in mappings &&
                     writtenClause[1] in mappings &&
                     getFinalLiteralMapping(writtenClause[0]) !== writtenClause[0] &&

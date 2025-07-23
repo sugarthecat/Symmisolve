@@ -49,11 +49,11 @@ function runBenchmarkOn(problem, file, directory) {
     benchmarkTime = Date.now() - benchmarkTime;
     data.push({ prevSize, newSize, benchmarkTime, file, pset: directory, algoVer: CURR_ALGO_VER });
 
-    let problemStatusString = "Indeterminate";
+    let problemStatusString = "indeterminate";
     if(isFullyReduced && isSatisfaible) {
-        problemStatusString = "Satisfiable";
+        problemStatusString = "SAT";
     }else if(isFullyReduced && !isSatisfaible) {
-        problemStatusString = "Unsatisfiable";
+        problemStatusString = "UNSAT";
     }
     console.log(`${file}, ${prevSize} -> ${newSize} (${benchmarkTime}ms, ${problemStatusString})`);
 }
