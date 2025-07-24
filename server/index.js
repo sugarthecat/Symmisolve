@@ -178,16 +178,6 @@ app.get("/api/whoami", express.json(), async (req, res) => {
         badRequestError(res, "User Not Found", 404);
     }
 });
-app.get("/api/adminPanel", express.json(), async (req, res) => {
-    if (req.session.user && req.session.user.access_level === ACCESS_LEVEL.ADMIN) {
-        res.json({
-            username: req.session.user.username,
-            accessLevel: req.session.user.access_level,
-        });
-    } else {
-        badRequestError(res, "Unauthorized", 403);
-    }
-});
 
 app.post("/api/upload", upload.single("file"), async (req, res) => {
     const { body, file } = req;
