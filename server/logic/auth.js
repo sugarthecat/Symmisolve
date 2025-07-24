@@ -11,7 +11,18 @@ async function hashPassword(plainPassword) {
   }
 }
 
+
+/**
+ * Checks if a password is valid and matches a hash
+ * @param {String} plainPassword
+ * @param {String} hash
+ * @returns
+ */
 async function verifyPassword(plainPassword, hash) {
+  if(hash[0] !== '$'){
+    //not a hash
+    return false
+  }
   // on valid password return true
   // on invalid return false
   try{
