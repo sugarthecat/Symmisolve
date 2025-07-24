@@ -1,17 +1,16 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { makePutRequest } from "../logic/requestTemplates";
 import "./Solver.css";
 import { getSizeCNF, isEqual, isSubclause, resolve } from "../logic/boolsat";
 import PartialSolveMenu from "../components/PartialSolveMenu";
 import ClauseComponent from "../components/ClauseComponent";
 import LiteralComponent from "../components/LiteralComponent";
+import { useEffect } from "react";
 const SOLVER_PAGE = {
     STEPS: 1,
     PARTIAL_SOLVE: 2,
 };
-function Solver({ clauses, setClauses, problemName, problemSize, problemId }) {
-
+function Solver({ clauses, setClauses, problemName, problemSize, problemId, demo = false }) {
     const [selectedClause, setSelectedClause] = useState(null);
     const [startIndex, setStartIndex] = useState(0);
     const [solutionSteps, setSolutionSteps] = useState([]);
@@ -21,6 +20,11 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId }) {
     const stringifyClause = (clause) => {
         return `[${clause.join(", ")}]`;
     };
+    useEffect(() => {
+        setSolutionSteps([]);
+        setStartIndex(0);
+        setSelectedClause(null);
+    }, [problemId]);
 
     const formatStep = (step) => {
         if (step.type === "resolution") {
@@ -109,11 +113,13 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId }) {
             //format clause by sorting
             let newClause = toAdd.pop().sort((a, b) => Math.abs(a) - Math.abs(b));
             let add = true;
+
             for (let i = 0; i < newClausesList.length; i++) {
-                if (
-                    isEqual(newClausesList[i], newClause) ||
-                    isSubclause(newClause, newClausesList[i])
-                ) {
+                if (isEqual(newClause, newClausesList[i])) {
+                    add = false;
+                    break;
+                }
+                if (isSubclause(newClause, newClausesList[i])) {
                     //new clause is redundant
                     //Subsume step (not nessecary in proof, will not include for that reason)
                     //solutionSteps.push({ type: "subsume", old: newClause, new: newClausesList[i] });
@@ -126,6 +132,10 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId }) {
                     newClausesList.splice(i, 1);
                     i--;
                     continue;
+                }
+
+                if (demo) {
+                    continue; //skip automated resolution
                 }
                 let resolution = resolve(newClause, newClausesList[i]);
                 if (resolution !== null) {
@@ -209,9 +219,15 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId }) {
         }
     } else {
         //length 1 clauses are useful for data, but not for solving. They can be handled automatically!
-        let filteredClauses = clauses.filter((clause) => {
-            return clause.length !== 1;
-        }); //filter out unit clauses
+
+        let filteredClauses; //filter out unit clauses
+        if (!demo) {
+            filteredClauses = clauses.filter((clause) => {
+                return clause.length !== 1;
+            });
+        } else {
+            filteredClauses = clauses;
+        }
         clauseList = filteredClauses
             .slice(startIndex * 100, startIndex * 100 + 100)
             .map((clause, index) => {
@@ -227,7 +243,7 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId }) {
             });
         resultCount = filteredClauses.length;
     }
-    if (startIndex * 100 >= clauses.length) {
+    if (startIndex * 100 >= clauses.length && startIndex !== 0) {
         setStartIndex(0);
     }
 
@@ -295,11 +311,9 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId }) {
                     </div>
                     {sidePage === SOLVER_PAGE.STEPS && (
                         <>
-                            <b>
-                                Steps {`(${problemSize} Size -> ${getSizeCNF(clauses)} Size)`}
-                            </b>
+                            <b>Steps {`(${problemSize} Size -> ${getSizeCNF(clauses)} Size)`}</b>
                             <div>
-                                {problemSize > getSizeCNF(clauses) && (
+                                {problemSize > getSizeCNF(clauses) && !demo && (
                                     <button onClick={sendReduction}>Send Reduction</button>
                                 )}
                             </div>
@@ -322,7 +336,6 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId }) {
             </div>
         </div>
     );
-
 }
 
 export default Solver;
