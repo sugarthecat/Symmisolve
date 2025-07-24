@@ -512,7 +512,9 @@ app.post("/api/siwg", express.urlencoded({ extended: true }), express.json(), as
     } else {
         let newUserName = loginInfo.name.replaceAll(" ", "");
         newUserName = newUserName.replace(/[^a-zA-Z0-9]/g, ""); //remove all non-alphanumeric characters
-
+        while(newUserName.length < 5) {
+            newUserName += "GUser"; //add a's until it's at least 5 characters
+        }
         //if a user already exists with this name, append a number.
         let duplicateUser = await prisma.user.findFirst({
             where: { username: { equals: newUserName, mode: "insensitive" } },
