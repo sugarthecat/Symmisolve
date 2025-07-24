@@ -115,9 +115,18 @@ function SolverPage({ updateUser }) {
     const resolveClauses = (clause1, clause2) => {
         let newClause = resolve(clause1, clause2);
         let newSolutionSteps = solutionSteps;
-        newSolutionSteps.push({ type: "resolution", old: [clause1, clause2], new: newClause });
-        setSolutionSteps(newSolutionSteps);
-        addClauses([newClause]);
+        let hasDuplicate = false;
+        for (const clause of clauses) {
+            if (isEqual(clause, newClause) || isSubclause(newClause, clause)) {
+                hasDuplicate = true;
+                break;
+            }
+        }
+        if (!hasDuplicate) {
+            newSolutionSteps.push({ type: "resolution", old: [clause1, clause2], new: newClause });
+            setSolutionSteps(newSolutionSteps);
+            addClauses([newClause]);
+        }
     };
     const submitPartialSolve = (assignments) => {
         let newSolutionSteps = solutionSteps;
@@ -193,9 +202,6 @@ function SolverPage({ updateUser }) {
         }
         setClauses(newClausesList.slice());
         setSolutionSteps(newSolutionSteps);
-        setStartIndex(
-            Math.floor(newClausesList.filter((clause) => clause.length > 1).length / 100)
-        );
     };
 
     const sendReduction = async () => {
