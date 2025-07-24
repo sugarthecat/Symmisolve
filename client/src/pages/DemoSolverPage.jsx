@@ -14,6 +14,26 @@ const problemList = [
         ],
     },
     {
+        name: "Simple Choice",
+        clauses: [
+            [1, 2],
+            [-1, -2],
+            [3, -4],
+            [-3, 4],
+        ],
+    },
+    {
+        name: "Transitive Contradiction",
+        clauses: [
+            [-1, 2],
+            [1, -2],
+            [2, 3],
+            [-2, -3],
+            [-1, 3],
+            [1, -3],
+        ],
+    },
+    {
         name: "Pigeonhole Principle (3 pigeons, 2 holes)",
         clauses: [
             [1, 2],
@@ -54,11 +74,19 @@ function DemoSolverPage() {
     return (
         <div>
             <p>
-                <Link className="return-link" to="./help">
+                <Link className="return-link" to="/help">
                     Return to Docs
                 </Link>
             </p>
-            <h2>Problem Selection</h2>
+            <section className="content-body-article">
+                <h2>Problem Selection</h2>
+                <p className="">
+                    Below is a list of select problems to get used to solving! Remember that when
+                    actually solving, a lot of steps are automated. You can tell when you have finished
+                    with a problem, when all clauses are of length one and no two clauses can resolve.
+                    Good luck!
+                </p>
+            </section>
             <div>
                 {problemList.map((problem, index) => (
                     <button
@@ -75,7 +103,7 @@ function DemoSolverPage() {
                 ))}
             </div>
             <h1>Demo Solver</h1>
-            {demoProblemId !== 0 &&
+            {demoProblemId !== 0 && (
                 <Solver
                     clauses={clauses}
                     setClauses={setClauses}
@@ -84,7 +112,7 @@ function DemoSolverPage() {
                     problemId={demoProblemId}
                     demo={true}
                 />
-            }
+            )}
             {demoProblemId === 0 && <p>Select a problem to begin...</p>}
         </div>
     );

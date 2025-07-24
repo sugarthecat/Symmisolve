@@ -51,7 +51,7 @@ footer#doc-footer {
     width: 100%;
     padding: 30px;
     text-align: center;
-    color:white
+    color: white;
 }
 
 span.code-segment {
@@ -98,15 +98,35 @@ button:hover {
 }
 #title-2 {
     font-weight: bold;
-    color:#d22;
+    color: #d22;
 }
 .rainbow-text {
-    background: linear-gradient(135deg, #f00 20%, #f80 20%,#f80 40%, #ff0 40%,#ff0 60%, #0f0 60%, #0f0 80%, #0cf 80%,#0cf 100%);
+    background: linear-gradient(
+        135deg,
+        #f00 20%,
+        #f80 20%,
+        #f80 40%,
+        #ff0 40%,
+        #ff0 60%,
+        #0f0 60%,
+        #0f0 80%,
+        #0cf 80%,
+        #0cf 100%
+    );
     background-color: white;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.return-link{
-  color:#f33;
+.return-link {
+    color: #f33;
+}
+.content-body-article {
+    max-width: 1250px;
+    text-align: left;
+    margin: auto;
+}
+
+.content-body-article p {
+    margin-left: 25px;
 }

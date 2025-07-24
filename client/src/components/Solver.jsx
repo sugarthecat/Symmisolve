@@ -256,41 +256,43 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId, demo
                     <div className="clause-container">
                         <div className="clauses">{clauseList}</div>
                     </div>
-                    <div>
-                        <button
-                            onClick={() => {
-                                setStartIndex(0);
-                            }}
-                        >
-                            To Beginning
-                        </button>
-                        {startIndex != 0 && (
+                    {resultCount > 100 &&
+                        <div>
                             <button
                                 onClick={() => {
-                                    setStartIndex(startIndex - 1);
+                                    setStartIndex(0);
                                 }}
                             >
-                                Previous
+                                To Beginning
                             </button>
-                        )}
-                        ({startIndex + 1}/{Math.floor(resultCount / 100) + 1})
-                        {startIndex < Math.floor(resultCount / 100) && (
+                            {startIndex != 0 && (
+                                <button
+                                    onClick={() => {
+                                        setStartIndex(startIndex - 1);
+                                    }}
+                                >
+                                    Previous
+                                </button>
+                            )}
+                            ({startIndex + 1}/{Math.floor(resultCount / 100) + 1})
+                            {startIndex < Math.floor(resultCount / 100) && (
+                                <button
+                                    onClick={() => {
+                                        setStartIndex(startIndex + 1);
+                                    }}
+                                >
+                                    Next
+                                </button>
+                            )}
                             <button
                                 onClick={() => {
-                                    setStartIndex(startIndex + 1);
+                                    setStartIndex(Math.floor((resultCount - 1) / 100));
                                 }}
                             >
-                                Next
+                                To End
                             </button>
-                        )}
-                        <button
-                            onClick={() => {
-                                setStartIndex(Math.floor((resultCount - 1) / 100));
-                            }}
-                        >
-                            To End
-                        </button>
-                    </div>
+                        </div>
+                    }
                 </div>
                 <div className="solver-side-page">
                     <div>
@@ -318,9 +320,12 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId, demo
                                 )}
                             </div>
                             <div className="solution-steps">
-                                {solutionSteps.map((step, index) => {
-                                    return <div>{formatStep(step)} </div>;
-                                })}
+                                {solutionSteps.length > 8 && <p>(Previous steps hidden)</p>}
+                                {solutionSteps
+                                    .slice(Math.max(0, solutionSteps.length - 8))
+                                    .map((step, index) => {
+                                        return <div>{formatStep(step)} </div>;
+                                    })}
                             </div>
                             <p className="error">{error}</p>
                         </>

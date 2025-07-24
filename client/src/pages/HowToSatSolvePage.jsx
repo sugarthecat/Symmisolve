@@ -158,7 +158,7 @@ function HowToSatSolvePage() {
         <p>
           The demo solver only has the subsumed clause and duplicate clause removal. All other automated features are disabled for simplicity.ƒ
         </p>
-        <p> <Link className="return-link" to="./demo">View the demo here</Link></p>
+        <p> <Link className="return-link" to="/demo">View the demo here</Link></p>
       </section>
     </div>
   );
