@@ -86,22 +86,22 @@ function DemoSolverPage() {
                     with a problem, when all clauses are of length one and no two clauses can resolve.
                     Good luck!
                 </p>
+                <p>
+                    {problemList.map((problem, index) => (
+                        <button
+                            key={index}
+                            onClick={() => {
+                                setProblemName(problem.name);
+                                setClauses(problem.clauses.slice());
+                                setProblemSize(getSizeCNF(problem.clauses));
+                                setDemoProblemId(index + 1);
+                            }}
+                        >
+                            {problem.name}
+                        </button>
+                    ))}
+                </p>
             </section>
-            <div>
-                {problemList.map((problem, index) => (
-                    <button
-                        key={index}
-                        onClick={() => {
-                            setProblemName(problem.name);
-                            setClauses(problem.clauses.slice());
-                            setProblemSize(getSizeCNF(problem.clauses));
-                            setDemoProblemId(index + 1);
-                        }}
-                    >
-                        {problem.name}
-                    </button>
-                ))}
-            </div>
             <h1>Demo Solver</h1>
             {demoProblemId !== 0 && (
                 <Solver
