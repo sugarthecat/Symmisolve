@@ -159,6 +159,7 @@ function HowToSatSolvePage() {
           The demo solver does not have all the automated solving tools fully implemented,
           only the duplicate clause removal, so you can see the process of solving carry out.
         </p>
+        <p> <Link className="return-link" to="./demo">View the demo here</Link></p>
       </section>
     </div>
   );
