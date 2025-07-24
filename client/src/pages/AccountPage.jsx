@@ -6,7 +6,7 @@ function AccountPage() {
     const navigate = useNavigate();
     const { username } = useParams();
     const [displayUsername, setDisplayUsername] = useState(username);
-    const [accessLevel, setAccessLevel] = useState("Access Level");
+    const [accessLevel, setAccessLevel] = useState("");
     const [sizeReduced, setSizeReduced] = useState(0);
     const [isMe, setIsMe] = useState(false);
     const [loaded, setLoaded] = useState(false)
