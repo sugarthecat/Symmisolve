@@ -11,20 +11,20 @@
     color: var(--foreground-light);
     border: var(--background-element) 4px solid;
     transition-duration: 500ms;
-    background-image: repeating-linear-gradient(45deg, #300, #300 10px, #100 10px, #100  20px );
+    background-image: repeating-linear-gradient(45deg, #200, #200 10px, #100 10px, #100  20px );
 }
 .problem-card.solved {
-    background-image: repeating-linear-gradient(45deg, #030, #030 10px, #010 10px, #010  20px );
+    background-image: repeating-linear-gradient(45deg, #020, #020 10px, #010 10px, #010  20px );
 }
 .problem-card h3 {
     margin-top: 10px;
     font-size: 1.5rem;
 }
 .problem-card:hover {
-    background-image: repeating-linear-gradient(45deg, #633, #633 10px, #522 10px, #522  20px );
+    background-image: repeating-linear-gradient(45deg, #451515, #451515 10px, #400000 10px, #400000  20px );
 }
 .problem-card.solved:hover {
-    background-image: repeating-linear-gradient(45deg, #363, #363 10px, #252 10px, #252  20px );
+    background-image: repeating-linear-gradient(45deg, #154515, #154515 10px, #004000 10px, #004000  20px );
 }
 .problem-card-solve-tag{
     position:absolute;
