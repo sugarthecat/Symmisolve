@@ -22,8 +22,9 @@ const {
     verifyPartialAssignment,
     verifyConflict,
 } = require("./logic/boolsat");
+const { ACCESS_LEVEL } = require("./logic/accessLevels");
 
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 app.use(
     cors({
         origin: process.env.FRONTEND_URL,
@@ -37,7 +38,7 @@ let sessionConfig = {
         maxAge: 1000 * 60 * 60 * 6, // 6 hours, since security isn't a huge problem
         secure: productionEnv,
         httpOnly: true,
-        sameSite: productionEnv ? "none": "lax",
+        sameSite: productionEnv ? "none" : "lax",
     },
     rolling: true,
     resave: false,
@@ -77,7 +78,7 @@ app.post("/api/signup", express.json(), async (req, res) => {
             badRequestError(res, "Username taken", 409);
         } else {
             const hash = await hashPassword(plainPassword);
-            const newUserData = { username, password: hash, access_level: 0 };
+            const newUserData = { username, password: hash, access_level: ACCESS_LEVEL.USER };
             const newUser = await prisma.user.create({ data: newUserData });
             req.session.user = newUser; //start logged in
             res.json({
@@ -136,6 +137,37 @@ app.get("/api/user/:username", express.json(), async (req, res) => {
         badRequestError(res, "User Not Found", 404);
     }
 });
+
+app.put("/api/user/:username", express.json(), async (req, res) => {
+    const { username } = req.params;
+    const { newAccessLevel } = req.body;
+    if (!username) {
+        badRequestError(res, "Invalid User", 400);
+        return;
+    }
+    if (![ACCESS_LEVEL.USER, ACCESS_LEVEL.RESEARCHER].includes(newAccessLevel)) {
+        badRequestError(res, "Invalid Access Level", 400);
+        return;
+    }
+    if (!req.session.user || req.session.user.access_level !== ACCESS_LEVEL.ADMIN) {
+        badRequestError(res, "Unauthorized Request", 403);
+        return;
+    }
+    const user = await prisma.user.update({
+        where: { username: username },
+        data: { access_level: newAccessLevel },
+    });
+    if (user) {
+        res.json({
+            username: user.username,
+            accessLevel: user.access_level,
+            sizeReduction: user.total_size_reduced,
+        });
+    } else {
+        badRequestError("User Not Found", 404);
+    }
+});
+
 app.get("/api/whoami", express.json(), async (req, res) => {
     if (req.session.user) {
         res.json({
@@ -146,10 +178,20 @@ app.get("/api/whoami", express.json(), async (req, res) => {
         badRequestError(res, "User Not Found", 404);
     }
 });
+app.get("/api/adminPanel", express.json(), async (req, res) => {
+    if (req.session.user && req.session.user.access_level === ACCESS_LEVEL.ADMIN) {
+        res.json({
+            username: req.session.user.username,
+            accessLevel: req.session.user.access_level,
+        });
+    } else {
+        badRequestError(res, "Unauthorized", 403);
+    }
+});
 
 app.post("/api/upload", upload.single("file"), async (req, res) => {
     const { body, file } = req;
-    if (!req.session.user || req.session.user.accessLevel < 2) {
+    if (!req.session.user || req.session.user.accessLevel === ACCESS_LEVEL.USER) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else if (!body.title || !body.description) {
         badRequestError(res, "Title and description required", 400);
@@ -204,7 +246,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
     const { problemId } = req.params;
     const { solution } = req.body;
-    if (!req.session.user || req.session.user.accessLevel < 1) {
+    if (!req.session.user || req.session.user.accessLevel === ACCESS_LEVEL.LOGGED_OUT) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
         return;
     }
@@ -431,5 +473,9 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
-    console.log("Production env: ", productionEnv);
+    if (productionEnv) {
+        console.log("Running in Production Environment");
+    } else {
+        console.log("Running in Development Environment");
+    }
 });

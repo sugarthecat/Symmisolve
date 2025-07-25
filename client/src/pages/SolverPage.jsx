@@ -6,11 +6,12 @@ import { getSizeCNF, isEqual, isSubclause, resolve } from "../logic/boolsat";
 import PartialSolveMenu from "../components/PartialSolveMenu";
 import ClauseComponent from "../components/ClauseComponent";
 import LiteralComponent from "../components/LiteralComponent";
+import ACCESS_LEVELS from "../logic/accessLevels";
 const SOLVER_PAGE = {
     STEPS: 1,
     PARTIAL_SOLVE: 2,
 };
-function SolverPage() {
+function SolverPage({ updateUser }) {
     const navigate = useNavigate();
     const { problemId } = useParams();
 
@@ -42,8 +43,26 @@ function SolverPage() {
         }
     };
 
+    const checkWhoIAm = async () => {
+        const res = await makeGetRequest("whoami");
+        let failed = false;
+        if (res.status === 200) {
+            const data = await res.json();
+            if (data.accessLevel === ACCESS_LEVELS.LOGGED_OUT) {
+                failed = true;
+            }
+        } else {
+            failed = true;
+        }
+        if (failed) {
+            updateUser("", -1);
+            navigate(`/`);
+        }
+    };
+
     useEffect(() => {
         getProblem();
+        checkWhoIAm();
     }, [problemId]);
 
     const stringifyClause = (clause) => {
@@ -187,7 +206,7 @@ function SolverPage() {
         if (res.status === 200) {
             window.location.reload();
         } else {
-            setError(JSON.stringify(data));
+            setError(data);
         }
     };
     if (!isLoaded) {
