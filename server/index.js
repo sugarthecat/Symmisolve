@@ -390,6 +390,13 @@ app.get("/api/problems", express.json(), async (req, res) => {
     const { session } = req;
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
+    } else if (session.user.access_level === ACCESS_LEVEL.ADMIN) {
+        const problems = await prisma.problem.findMany({
+            include: {
+                user: true,
+            },
+        });
+        res.json({ problems: problems });
     } else {
         const problems = await prisma.problem.findMany({
             where: {
@@ -416,20 +423,30 @@ app.get("/api/problem/:problemId", express.json(), async (req, res) => {
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
-        const problem = await prisma.problem.findFirst({
-            where: {
-                id: parseInt(problemId),
-                OR: [
-                    {
-                        user_id: session.user.id,
-                    },
-                    {
-                        is_active: true,
-                    },
-                ],
-            },
-            include: { user: true },
-        });
+        let problem = null;
+        if (session.user.access_level === ACCESS_LEVEL.ADMIN) {
+            problem = await prisma.problem.findFirst({
+                where: {
+                    id: parseInt(problemId),
+                },
+                include: { user: true },
+            });
+        } else {
+            problem = await prisma.problem.findFirst({
+                where: {
+                    id: parseInt(problemId),
+                    OR: [
+                        {
+                            user_id: session.user.id,
+                        },
+                        {
+                            is_active: true,
+                        },
+                    ],
+                },
+                include: { user: true },
+            });
+        }
         if (!problem) {
             badRequestError(res, "Problem Not Found", 404);
         } else {
@@ -444,20 +461,30 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
-        const problem = await prisma.problem.findFirst({
-            where: {
-                id: parseInt(problemId),
-                OR: [
-                    {
-                        user_id: session.user.id,
-                    },
-                    {
-                        is_active: true,
-                    },
-                ],
-            },
-            include: { file: true },
-        });
+        let problem = null;
+        if (session.user.access_level === ACCESS_LEVEL.ADMIN) {
+            problem = await prisma.problem.findFirst({
+                where: {
+                    id: parseInt(problemId),
+                },
+                include: { file: true },
+            });
+        } else {
+            problem = await prisma.problem.findFirst({
+                where: {
+                    id: parseInt(problemId),
+                    OR: [
+                        {
+                            user_id: session.user.id,
+                        },
+                        {
+                            is_active: true,
+                        },
+                    ],
+                },
+                include: { file: true },
+            });
+        }
         if (!problem) {
             badRequestError(res, "Problem Not Found", 404);
         } else {
@@ -503,7 +530,7 @@ app.post("/api/siwg", express.urlencoded({ extended: true }), express.json(), as
     } else {
         let newUserName = loginInfo.name.replaceAll(" ", "");
         newUserName = newUserName.replace(/[^a-zA-Z0-9]/g, ""); //remove all non-alphanumeric characters
-        while(newUserName.length < 5) {
+        while (newUserName.length < 5) {
             newUserName += "GUser"; //add a's until it's at least 5 characters
         }
         //if a user already exists with this name, append a number.
