@@ -25,6 +25,25 @@ function getConsoleInput() {
     });
 }
 
+function getProblemStatus(problem) {
+    let variables = new Set();
+    let solvedVariables = new Set();
+    for (const clause of problem) {
+        for (const literal of clause) {
+            variables.add(Math.abs(literal));
+        }
+        if (clause.length === 0) {
+            return "UNSAT";
+        }
+        if (clause.length === 1) {
+            solvedVariables.add(Math.abs(clause[0]));
+        }
+    }
+    if (solvedVariables.size === variables.size) {
+        return "SAT";
+    }
+    return `${solvedVariables.size}/${variables.size} OPEN`;
+}
 const PROBLEM_INPUT_DIR = path.join(__dirname, "benchmark-problems");
 const BENCHMARK_OUTPUT_DIR = path.join(__dirname, "benchmark-results");
 const TEST_OUTPUT = path.join(__dirname, "benchmark-results");
@@ -37,8 +56,8 @@ function runBenchmarkOn(problem, file, directory) {
     let isFullyReduced = true;
     let isSatisfaible = true;
     for (const clause of optimized) {
-        if(clause.length === 0) {
-            isSatisfaible = false
+        if (clause.length === 0) {
+            isSatisfaible = false;
         }
         if (clause.length > 1) {
             isFullyReduced = false;
@@ -48,13 +67,7 @@ function runBenchmarkOn(problem, file, directory) {
     benchmarkTime = Date.now() - benchmarkTime;
     data.push({ prevSize, newSize, benchmarkTime, file, pset: directory, algoVer: CURR_ALGO_VER });
 
-    let problemStatusString = "indeterminate";
-    if(isFullyReduced && isSatisfaible) {
-        problemStatusString = "SAT";
-    }else if(isFullyReduced && !isSatisfaible) {
-        problemStatusString = "UNSAT";
-    }
-    console.log(`${file}, ${prevSize} -> ${newSize} (${benchmarkTime}ms, ${problemStatusString})`);
+    console.log(`${file}, ${prevSize} -> ${newSize} (${benchmarkTime}ms, ${getProblemStatus(optimized)})`);
 }
 
 function runBenchmarkOnPset(pset) {
@@ -122,7 +135,9 @@ function writeBenchmarkResults() {
     let now = new Date();
     let name = path.join(
         BENCHMARK_OUTPUT_DIR,
-        `bench-${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}.csv`
+        `bench-${now.getFullYear()}-${
+            now.getMonth() + 1
+        }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}.csv`
     );
     fs.writeFileSync(name, csv, "utf8");
     return name;
