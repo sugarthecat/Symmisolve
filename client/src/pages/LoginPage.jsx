@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { makeGetRequest, makePostRequest } from "../logic/requestTemplates.jsx";
+import "./LoginPage.css"
 function LoginPage({ updateUser }) {
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
@@ -35,6 +36,7 @@ function LoginPage({ updateUser }) {
     }, []);
     return (
         <div>
+            <script src="https://accounts.google.com/gsi/client" async></script>
             <h1>Log in</h1>
             <div>
                 <input
@@ -52,6 +54,26 @@ function LoginPage({ updateUser }) {
                 />
                 <br />
                 <button onClick={sendLoginRequest}>Log in</button>
+                <br />
+                <br />
+                <div>
+                    <div id="siwg">
+                        <div id="g_id_onload"
+                            data-client_id={import.meta.env.VITE_GOOGLE_CLIENT_ID}
+                            data-login_uri={import.meta.env.VITE_API_SRC + "/api/siwg"}
+                            data-auto_prompt="false">
+                        </div>
+                        <div className="g_id_signin"
+                            data-type="standard"
+                            data-size="large"
+                            data-theme="filled_blue"
+                            data-text="sign_in_with"
+                            data-shape="rectangular"
+                            data-width="200"
+                            data-logo_alignment="left">
+                        </div>
+                    </div>
+                </div>
             </div>
             <p>
                 {" "}

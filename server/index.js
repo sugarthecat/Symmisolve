@@ -23,6 +23,8 @@ const {
     verifyConflict,
 } = require("./logic/boolsat");
 const { ACCESS_LEVEL } = require("./logic/accessLevels");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client();
 
 app.set("trust proxy", 1);
 app.use(
@@ -46,6 +48,17 @@ let sessionConfig = {
 };
 
 app.use(session(sessionConfig));
+// https://developers.google.com/identity/gsi/web/guides/verify-google-id-token#node.js
+async function verifyGoogleToken(token) {
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    return payload;
+    // If the request specified a Google Workspace domain:
+    // const domain = payload['hd'];
+}
 
 function badRequestError(res, message, code = 400) {
     res.status(code).json(message);
@@ -459,6 +472,62 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
             res.json({ problem: problem });
         }
     }
+});
+
+app.post("/api/siwg", express.urlencoded({ extended: true }), express.json(), async (req, res) => {
+    const body = req.body;
+    if (!body.credential || !body.g_csrf_token) {
+        badRequestError(res, "Invalid request", 400);
+        return;
+    }
+    const credential = body.credential;
+    let successful = true;
+    let loginInfo = null;
+    try {
+        loginInfo = await verifyGoogleToken(credential);
+    } catch (err) {
+        successful = false;
+        console.error(err);
+    }
+    if (!successful) {
+        badRequestError(res, "Invalid Google Token", 400);
+        return;
+    }
+    //sub is userid - "google says so". We put it in the password field, which seems REALLY weird
+    //BUT! - bcrypt passwords start with a $ and google tokens don't, so we're safe.
+    //Apologies to whoever reviews this PR (probably aly).
+    const user = await prisma.user.findFirst({ where: { password: loginInfo.sub } });
+    if (user) {
+        req.session.user = user;
+    } else {
+        let newUserName = loginInfo.name.replaceAll(" ", "");
+        newUserName = newUserName.replace(/[^a-zA-Z0-9]/g, ""); //remove all non-alphanumeric characters
+        while(newUserName.length < 5) {
+            newUserName += "GUser"; //add a's until it's at least 5 characters
+        }
+        //if a user already exists with this name, append a number.
+        let duplicateUser = await prisma.user.findFirst({
+            where: { username: { equals: newUserName, mode: "insensitive" } },
+        });
+        if (duplicateUser) {
+            newUserName += "";
+        }
+        while (duplicateUser) {
+            newUserName += Math.floor(Math.random() * 10); //add a random digit
+            duplicateUser = await prisma.user.findFirst({
+                where: { username: { equals: newUserName, mode: "insensitive" } },
+            });
+        }
+        const newUser = await prisma.user.create({
+            data: {
+                username: newUserName,
+                password: loginInfo.sub,
+                access_level: ACCESS_LEVEL.USER,
+            },
+        });
+        req.session.user = newUser;
+    }
+    res.redirect(process.env.FRONTEND_URL + "/login");
 });
 
 app.listen(PORT, () => {
