@@ -13,6 +13,7 @@ import { makeGetRequest } from "./logic/requestTemplates";
 import ACCESS_LEVELS from "./logic/accessLevels";
 import SolverPage from "./pages/SolverPage";
 import AdminPanelPage from "./pages/AdminPanel";
+import DemoSolverPage from "./pages/DemoSolverPage";
 
 function App() {
   const [accessLevel, setAccessLevel] = useState(-1);
@@ -56,9 +57,15 @@ function App() {
                   element={<HomePage updateUser={updateUser} />}
                 />
                 <Route path="/problem/:problemId" element={<ProblemPage />} />
-                <Route path="/problem/:problemId/solver" element={<SolverPage updateUser={updateUser} />} />
+                <Route
+                  path="/problem/:problemId/solver"
+                  element={<SolverPage updateUser={updateUser} />}
+                />
                 <Route path="/user/:username" element={<AccountPage />} />
-                <Route path="/upload" element={<ProblemUpload updateUser={updateUser} />} />
+                <Route
+                  path="/upload"
+                  element={<ProblemUpload updateUser={updateUser} />}
+                />
                 <Route
                   path="/login"
                   element={<LoginPage updateUser={updateUser} />}
@@ -72,6 +79,7 @@ function App() {
                   element={<AdminPanelPage updateUser={updateUser} />}
                 />
                 <Route path="/help" element={<HowToSatSolvePage />} />
+                <Route path="/demo" element={<DemoSolverPage />} />
               </Routes>
             </div>
           </div>

@@ -146,12 +146,19 @@ function HowToSatSolvePage() {
             is automatically performed. since at least one of the clauses is subsumed by
             the resolution.
           </p>
+          <li>Unit clauses are hidden</li>
+          <p>
+            Unit clauses are clauses with only one literal. If you have a unit clause,
+            all logic relating to it is automatically performed, so you don't need to
+            see it. For this reason, these clauses are automatically hidden from your
+            view.
+          </p>
         </ul>
         <h2>Demo</h2>
         <p>
-          The demo solver does not have the automated solving tools fully implemented,
-          only the duplicate clause removal, so you can see the process carry out.
+          The demo solver only has the subsumed clause and duplicate clause removal. All other automated features are disabled for simplicity.ƒ
         </p>
+        <p> <Link className="return-link" to="/demo">View the demo here</Link></p>
       </section>
     </div>
   );
