@@ -121,13 +121,13 @@ function Solver({ clauses, setClauses, problemName, problemSize, problemId, demo
                 }
                 if (isSubclause(newClause, newClausesList[i])) {
                     //new clause is redundant
-                    //Subsume step (not nessecary in proof, will not include for that reason)
+                    //Subsume step (not necessary in proof, will not include for that reason)
                     //solutionSteps.push({ type: "subsume", old: newClause, new: newClausesList[i] });
                     add = false;
                     break;
                 } else if (isSubclause(newClausesList[i], newClause)) {
                     //old clause is redundant
-                    //Subsume step (not nessecary in proof, will not include for that reason)
+                    //Subsume step (not necessary in proof, will not include for that reason)
                     //solutionSteps.push({ type: "subsume", old: newClausesList[i], new: newClause });
                     newClausesList.splice(i, 1);
                     i--;
