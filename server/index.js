@@ -21,6 +21,7 @@ const {
     isSubclause,
     verifyPartialAssignment,
     verifyConflict,
+    optimizeCNF,
 } = require("./logic/boolsat");
 const { ACCESS_LEVEL } = require("./logic/accessLevels");
 const { OAuth2Client } = require("google-auth-library");
@@ -209,7 +210,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
             badRequestError(res, "Invalid CNF", 400);
         } else {
             let originalProblem = fileContents;
-            let reducedProblemCNF = reduceCNF(parseCNF(fileContents));
+            let reducedProblemCNF = optimizeCNF(parseCNF(fileContents));
             let reducedProblem = stringifyCNF(reducedProblemCNF);
             const reductionData = {
                 original_size: getSizeCNF(parseCNF(originalProblem)),
