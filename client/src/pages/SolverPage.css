@@ -9,5 +9,7 @@
 .clauses {
     display: flex;
     flex-wrap: wrap;
+}
+.clause-container{
     min-height: 800px;
 }

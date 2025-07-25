@@ -1,0 +1,13 @@
+.content-body-article{
+    max-width: 1250px;
+    text-align: left;
+    margin:auto;
+}
+
+.content-body-article p{
+    margin-left: 25px;
+}
+
+.spaced{
+    line-height: 30px;
+}
