@@ -8,7 +8,6 @@ const {
 const fs = require("fs");
 const path = require("path");
 const readline = require("node:readline");
-const e = require("express");
 
 //readline
 const rl = readline.createInterface({
@@ -49,11 +48,11 @@ function runBenchmarkOn(problem, file, directory) {
     benchmarkTime = Date.now() - benchmarkTime;
     data.push({ prevSize, newSize, benchmarkTime, file, pset: directory, algoVer: CURR_ALGO_VER });
 
-    let problemStatusString = "Indeterminate";
+    let problemStatusString = "indeterminate";
     if(isFullyReduced && isSatisfaible) {
-        problemStatusString = "Satisfiable";
+        problemStatusString = "SAT";
     }else if(isFullyReduced && !isSatisfaible) {
-        problemStatusString = "Unsatisfiable";
+        problemStatusString = "UNSAT";
     }
     console.log(`${file}, ${prevSize} -> ${newSize} (${benchmarkTime}ms, ${problemStatusString})`);
 }
@@ -123,7 +122,7 @@ function writeBenchmarkResults() {
     let now = new Date();
     let name = path.join(
         BENCHMARK_OUTPUT_DIR,
-        `bench-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}.csv`
+        `bench-${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}.csv`
     );
     fs.writeFileSync(name, csv, "utf8");
     return name;
@@ -135,7 +134,7 @@ async function makeChoice(options) {
     }
     let input = parseInt(await getConsoleInput());
     while (isNaN(input) || input < 1 || input > options.length) {
-        console.log(`Invalid input. Please enter a number between 1 and ${psets.length}`);
+        console.log(`Invalid input. Please enter a number between 1 and ${options.length}`);
         input = await getConsoleInput();
     }
     return options[input - 1];
