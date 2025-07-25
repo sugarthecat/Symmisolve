@@ -183,7 +183,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                                 <VariableComponent
                                     assignment={-literal}
                                     clickFunc={() => {
-                                        addAssignment(literal);
+                                        addAssignment(-literal);
                                     }}
                                 ></VariableComponent>
                             </>

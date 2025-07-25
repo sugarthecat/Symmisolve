@@ -5,6 +5,7 @@
     background-color: var(--background-element);
     font-family: monospace;
     font-size: large;
+    user-select: none;
 }
 .assignment:hover {
     background-color: var(--background-medium);
