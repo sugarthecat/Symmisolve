@@ -342,6 +342,8 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             return;
         }
     }
+    //final optimization
+    problemCNF = optimizeCNF(problemCNF);
     const newSize = getSizeCNF(problemCNF);
     const sizeReduction = oldSize - newSize;
     if (sizeReduction <= 0) {
