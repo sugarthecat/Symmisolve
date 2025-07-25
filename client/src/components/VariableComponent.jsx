@@ -5,7 +5,7 @@ const VariableComponent = ({ assignment, clickFunc = () => { } }) => {
     return (
         <span
             className={
-                (assignment < 0 ? "assignment assignment-overline" : "assignment")
+                (assignment < 0 ? "assignment assignment-overline " : "assignment ")
                 + getColorTag(Math.abs(assignment))}
             onClick={() => {
                 clickFunc();
