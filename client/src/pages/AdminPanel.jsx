@@ -1,13 +1,15 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import { makeGetRequest, makePutRequest } from "../logic/requestTemplates";
+import { makeDeleteRequest, makeGetRequest, makePutRequest } from "../logic/requestTemplates";
 import { useNavigate } from "react-router";
 import ACCESS_LEVELS from "../logic/accessLevels";
+import ConfirmWindow from "../components/ConfirmWindow";
 
 function AdminPanelPage({ updateUser }) {
     const [user, setUser] = useState(null);
     const accessLevels = ["Regular User", "Researcher", "Admin"];
     const [error, setError] = useState("");
+    const [popUp, setPopUp] = useState(<></>);
     const [usernameInput, setUsernameInput] = useState("");
     const navigate = useNavigate();
 
@@ -52,6 +54,18 @@ function AdminPanelPage({ updateUser }) {
             navigate(`/`);
         }
     };
+    const clearPopUp = () => {
+        setPopUp(<></>);
+    };
+    const deleteSelectedUser = async () => {
+        const res = await makeDeleteRequest(`user/${user.username}`);
+        if (res.status === 200) {
+            setUser(null);
+        } else {
+            setError("Delete Request Failed");
+        }
+        clearPopUp();
+    };
     useEffect(() => {
         checkWhoIAm();
     }, []);
@@ -87,18 +101,36 @@ function AdminPanelPage({ updateUser }) {
                         <p>Total Contribution: {user.sizeReduction} </p>
                     </>
                 )}
-                {user !== null && user.accessLevel == 0 && (
+                {user !== null && user.accessLevel === ACCESS_LEVELS.USER && (
                     <button onClick={() => setAccessLevel(user.username, 1)}>
                         Grant Researcher Status
                     </button>
                 )}
-                {user !== null && user.accessLevel == 1 && (
+                {user !== null && user.accessLevel === ACCESS_LEVELS.RESEARCHER && (
                     <button onClick={() => setAccessLevel(user.username, 0)}>
                         Remove Researcher Status
                     </button>
                 )}
+                {user !== null &&
+                    (user.accessLevel === ACCESS_LEVELS.RESEARCHER ||
+                        user.accessLevel === ACCESS_LEVELS.USER) && (
+                        <button
+                            onClick={() =>
+                                setPopUp(
+                                    <ConfirmWindow
+                                        message={`Are you sure you want to permanently delete ${user.username}?`}
+                                        action={deleteSelectedUser}
+                                        deleteSelf={clearPopUp}
+                                    />
+                                )
+                            }
+                        >
+                            Delete User
+                        </button>
+                    )}
             </div>
             <p className="error">{error}</p>
+            {popUp}
         </div>
     );
 }

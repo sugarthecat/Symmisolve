@@ -152,6 +152,33 @@ app.get("/api/user/:username", express.json(), async (req, res) => {
     }
 });
 
+app.delete("/api/user/:username", express.json(), async (req, res) => {
+    const { username } = req.params;
+    if (!username) {
+        badRequestError(res, "Invalid request", 404);
+        return;
+    }
+    console.log("username: ",username)
+    if (!req.session || !req.session.user || req.session.user !== ACCESS_LEVEL.ADMIN) {
+        badRequestError(res, "Forbidden", 403);
+        return;
+    }
+    const user = await prisma.user.deleteMany({
+        where: {
+            username: {
+                equals: username,
+                mode: "insensitive",
+            },
+                NOT: { access_level: ACCESS_LEVEL.ADMIN },
+        },
+    });
+    if (user) {
+        res.json({ status: "Success!" });
+    } else {
+        badRequestError(res, "User Not Found", 404);
+    }
+});
+
 app.put("/api/user/:username", express.json(), async (req, res) => {
     const { username } = req.params;
     const { newAccessLevel } = req.body;

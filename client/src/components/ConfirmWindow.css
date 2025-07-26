@@ -9,9 +9,12 @@
     background-color: rgba(0,0,0,0.5);
     justify-content: center;
     align-items: center;
+    cursor: pointer;
 }
 
 .confirm-window-content{
     padding: 20px;
-    background-color: var(--page-background)that ;
+    background-color: var(--page-background);
+    border-radius: 15px;
+    cursor: default;
 }
