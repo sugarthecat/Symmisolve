@@ -1,9 +1,11 @@
 .var-color-1 {
     color: hsl(0, 80%, 60%);
 }
+
 .var-color-2 {
     color: hsl(60, 80%, 60%);
 }
+
 .var-color-3 {
     color: hsl(120, 80%, 60%);
 }
@@ -17,5 +19,5 @@
 }
 
 .var-color-6 {
-    color: hsl(300, 0%, 80%);
+    color: hsl(300, 0%, 90%);
 }

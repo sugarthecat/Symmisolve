@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./PartialSolveMenu.css";
 import VariableComponent from "./VariableComponent";
-import LiteralComponent from "./LiteralComponent";
 function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
     const [assignments, setAssignments] = useState([]);
     const [impliedAssignments, setImpliedAssignments] = useState([]);
@@ -183,7 +182,7 @@ function PartialSolveMenu({ clauses, submitPartialSolve, submitConflict }) {
                                 <VariableComponent
                                     assignment={-literal}
                                     clickFunc={() => {
-                                        addAssignment(literal);
+                                        addAssignment(-literal);
                                     }}
                                 ></VariableComponent>
                             </>

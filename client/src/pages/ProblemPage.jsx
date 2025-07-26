@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { makeGetRequest } from "../logic/requestTemplates";
+import { makeDeleteRequest, makeGetRequest } from "../logic/requestTemplates";
 import { getSizeCNF } from "../logic/boolsat";
+import ConfirmWindow from "../components/ConfirmWindow";
 function ProblemPage() {
     const navigate = useNavigate();
     const { problemId } = useParams();
     const [isLoaded, setIsLoaded] = useState(false);
     const [problem, setProblem] = useState({});
     const [downloadButton, setDownloadButton] = useState(<></>);
+    const [popUp, setPopUp] = useState(<></>);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const getProblem = async () => {
         const res = await makeGetRequest(`problem/${problemId}`);
         if (res.status === 200) {
             const data = await res.json();
+            if (data.isAdmin) {
+                setIsAdmin(true);
+            }
             setProblem(data.problem);
             if (!data.problem.is_active) {
                 await setupDownloadButton();
@@ -58,7 +64,12 @@ function ProblemPage() {
             navigate("/");
         }
     };
-
+    const deleteProblem = async () => {
+        const res = await makeDeleteRequest(`problem/${problemId}`);
+        if (res.status === 200) {
+            navigate("/");
+        }
+    }
     useEffect(() => {
         getProblem();
     }, [problemId]);
@@ -85,8 +96,26 @@ function ProblemPage() {
                         <button>Solve</button>
                     </Link>
                 ) : (
-                    downloadButton
+                    <>
+                        {downloadButton}
+                    </>
                 )}
+                <button
+                    onClick={() => setPopUp(
+                        <ConfirmWindow
+                            deleteSelf={() => {
+                                setPopUp(<></>);
+                            }}
+                            action={
+                                deleteProblem
+                            }
+                            message={"Permanently delete this problem?"}
+                        />
+                    )}
+                >
+                    Delete Problem
+                </button>
+                {popUp}
             </div>
         );
     }

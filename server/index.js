@@ -21,6 +21,7 @@ const {
     isSubclause,
     verifyPartialAssignment,
     verifyConflict,
+    optimizeCNF,
 } = require("./logic/boolsat");
 const { ACCESS_LEVEL } = require("./logic/accessLevels");
 const { OAuth2Client } = require("google-auth-library");
@@ -151,6 +152,32 @@ app.get("/api/user/:username", express.json(), async (req, res) => {
     }
 });
 
+app.delete("/api/user/:username", express.json(), async (req, res) => {
+    const { username } = req.params;
+    if (!username) {
+        badRequestError(res, "Invalid request", 404);
+        return;
+    }
+    if (!req.session || !req.session.user || req.session.user.access_level !== ACCESS_LEVEL.ADMIN) {
+        badRequestError(res, "Forbidden", 403);
+        return;
+    }
+    const user = await prisma.user.deleteMany({
+        where: {
+            username: {
+                equals: username,
+                mode: "insensitive",
+            },
+                NOT: { access_level: ACCESS_LEVEL.ADMIN },
+        },
+    });
+    if (user) {
+        res.json({ status: "Success!" });
+    } else {
+        badRequestError(res, "User Not Found", 404);
+    }
+});
+
 app.put("/api/user/:username", express.json(), async (req, res) => {
     const { username } = req.params;
     const { newAccessLevel } = req.body;
@@ -209,7 +236,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
             badRequestError(res, "Invalid CNF", 400);
         } else {
             let originalProblem = fileContents;
-            let reducedProblemCNF = reduceCNF(parseCNF(fileContents));
+            let reducedProblemCNF = optimizeCNF(parseCNF(fileContents));
             let reducedProblem = stringifyCNF(reducedProblemCNF);
             const reductionData = {
                 original_size: getSizeCNF(parseCNF(originalProblem)),
@@ -341,6 +368,8 @@ app.put("/api/problem/:problemId/reduce", express.json(), async (req, res) => {
             return;
         }
     }
+    //final optimization
+    problemCNF = optimizeCNF(problemCNF);
     const newSize = getSizeCNF(problemCNF);
     const sizeReduction = oldSize - newSize;
     if (sizeReduction <= 0) {
@@ -389,6 +418,13 @@ app.get("/api/problems", express.json(), async (req, res) => {
     const { session } = req;
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
+    } else if (session.user.access_level === ACCESS_LEVEL.ADMIN) {
+        const problems = await prisma.problem.findMany({
+            include: {
+                user: true,
+            },
+        });
+        res.json({ problems: problems });
     } else {
         const problems = await prisma.problem.findMany({
             where: {
@@ -415,25 +451,59 @@ app.get("/api/problem/:problemId", express.json(), async (req, res) => {
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
-        const problem = await prisma.problem.findFirst({
-            where: {
-                id: parseInt(problemId),
-                OR: [
-                    {
-                        user_id: session.user.id,
-                    },
-                    {
-                        is_active: true,
-                    },
-                ],
-            },
-            include: { user: true },
-        });
+        let problem = null;
+        let isAdmin = false
+        if (session.user.access_level === ACCESS_LEVEL.ADMIN) {
+            problem = await prisma.problem.findFirst({
+                where: {
+                    id: parseInt(problemId),
+                },
+                include: { user: true },
+            });
+            isAdmin = true;
+        } else {
+            problem = await prisma.problem.findFirst({
+                where: {
+                    id: parseInt(problemId),
+                    OR: [
+                        {
+                            user_id: session.user.id,
+                        },
+                        {
+                            is_active: true,
+                        },
+                    ],
+                },
+                include: { user: true },
+            });
+        }
         if (!problem) {
             badRequestError(res, "Problem Not Found", 404);
         } else {
-            res.json({ problem: problem });
+            res.json({ problem, isAdmin});
         }
+    }
+});
+
+app.delete("/api/problem/:problemId", express.json(), async (req, res) => {
+    const { problemId } = req.params;
+    if (!problemId || isNaN(parseInt(problemId))) {
+        badRequestError(res, "Invalid request", 404);
+        return;
+    }
+    if (!req.session || !req.session.user || req.session.user.access_level !== ACCESS_LEVEL.ADMIN) {
+        badRequestError(res, "Forbidden", 403);
+        return;
+    }
+    const problem = await prisma.problem.delete({
+        where: {
+            id: parseInt(problemId)
+        },
+    });
+    if (problem) {
+        res.json({ status: "Success!" });
+    } else {
+        badRequestError(res, "User Not Found", 404);
     }
 });
 
@@ -443,20 +513,30 @@ app.get("/api/problem/:problemId/file", express.json(), async (req, res) => {
     if (!session.user) {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
-        const problem = await prisma.problem.findFirst({
-            where: {
-                id: parseInt(problemId),
-                OR: [
-                    {
-                        user_id: session.user.id,
-                    },
-                    {
-                        is_active: true,
-                    },
-                ],
-            },
-            include: { file: true },
-        });
+        let problem = null;
+        if (session.user.access_level === ACCESS_LEVEL.ADMIN) {
+            problem = await prisma.problem.findFirst({
+                where: {
+                    id: parseInt(problemId),
+                },
+                include: { file: true },
+            });
+        } else {
+            problem = await prisma.problem.findFirst({
+                where: {
+                    id: parseInt(problemId),
+                    OR: [
+                        {
+                            user_id: session.user.id,
+                        },
+                        {
+                            is_active: true,
+                        },
+                    ],
+                },
+                include: { file: true },
+            });
+        }
         if (!problem) {
             badRequestError(res, "Problem Not Found", 404);
         } else {
@@ -502,7 +582,7 @@ app.post("/api/siwg", express.urlencoded({ extended: true }), express.json(), as
     } else {
         let newUserName = loginInfo.name.replaceAll(" ", "");
         newUserName = newUserName.replace(/[^a-zA-Z0-9]/g, ""); //remove all non-alphanumeric characters
-        while(newUserName.length < 5) {
+        while (newUserName.length < 5) {
             newUserName += "GUser"; //add a's until it's at least 5 characters
         }
         //if a user already exists with this name, append a number.

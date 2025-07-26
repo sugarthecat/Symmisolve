@@ -1,3 +1,4 @@
 .clause-component {
     margin:10px;
+    user-select: none;
 }
