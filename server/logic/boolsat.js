@@ -8,12 +8,15 @@ function validateCNF(formulaText) {
     const lines = formulaText.replaceAll("\t", " ").replaceAll("\r", "").split("\n");
     let numvars = -1;
     let numclauses = -1;
-    for (const line of lines) {
+    for (let line of lines) {
+        while(line.includes("  ")){
+        line = line.replaceAll("  ", " ");
+        }
         if (line.startsWith("c") || line.length < 2) {
             //skip comment lines AND empty lines
             continue;
         } else if (line.startsWith("p cnf")) {
-            const parts = line.replaceAll("  ", " ").split(" ");
+            const parts = line.split(" ");
             numvars = parseInt(parts[2]);
             numclauses = parseInt(parts[3]);
         } else if (numvars < 0 || numclauses < 1) {
