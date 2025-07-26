@@ -158,8 +158,7 @@ app.delete("/api/user/:username", express.json(), async (req, res) => {
         badRequestError(res, "Invalid request", 404);
         return;
     }
-    console.log("username: ",username)
-    if (!req.session || !req.session.user || req.session.user !== ACCESS_LEVEL.ADMIN) {
+    if (!req.session || !req.session.user || req.session.user.access_level !== ACCESS_LEVEL.ADMIN) {
         badRequestError(res, "Forbidden", 403);
         return;
     }
@@ -453,6 +452,7 @@ app.get("/api/problem/:problemId", express.json(), async (req, res) => {
         badRequestError(res, "Unauthorized - Make sure you're logged in!", 403);
     } else {
         let problem = null;
+        let isAdmin = false
         if (session.user.access_level === ACCESS_LEVEL.ADMIN) {
             problem = await prisma.problem.findFirst({
                 where: {
@@ -460,6 +460,7 @@ app.get("/api/problem/:problemId", express.json(), async (req, res) => {
                 },
                 include: { user: true },
             });
+            isAdmin = true;
         } else {
             problem = await prisma.problem.findFirst({
                 where: {
@@ -479,8 +480,30 @@ app.get("/api/problem/:problemId", express.json(), async (req, res) => {
         if (!problem) {
             badRequestError(res, "Problem Not Found", 404);
         } else {
-            res.json({ problem: problem });
+            res.json({ problem, isAdmin});
         }
+    }
+});
+
+app.delete("/api/problem/:problemId", express.json(), async (req, res) => {
+    const { problemId } = req.params;
+    if (!problemId || isNaN(parseInt(problemId))) {
+        badRequestError(res, "Invalid request", 404);
+        return;
+    }
+    if (!req.session || !req.session.user || req.session.user.access_level !== ACCESS_LEVEL.ADMIN) {
+        badRequestError(res, "Forbidden", 403);
+        return;
+    }
+    const problem = await prisma.problem.delete({
+        where: {
+            id: parseInt(problemId)
+        },
+    });
+    if (problem) {
+        res.json({ status: "Success!" });
+    } else {
+        badRequestError(res, "User Not Found", 404);
     }
 });
 
