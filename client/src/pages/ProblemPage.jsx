@@ -98,23 +98,23 @@ function ProblemPage() {
                 ) : (
                     <>
                         {downloadButton}
-                        <button
-                            onClick={() => setPopUp(
-                                <ConfirmWindow
-                                    deleteSelf={() => {
-                                        setPopUp(<></>);
-                                    }}
-                                    action={
-                                        deleteProblem
-                                    }
-                                    message={"Permanently delete this problem?"}
-                                />
-                            )}
-                        >
-                            Delete Problem
-                        </button>
                     </>
                 )}
+                <button
+                    onClick={() => setPopUp(
+                        <ConfirmWindow
+                            deleteSelf={() => {
+                                setPopUp(<></>);
+                            }}
+                            action={
+                                deleteProblem
+                            }
+                            message={"Permanently delete this problem?"}
+                        />
+                    )}
+                >
+                    Delete Problem
+                </button>
                 {popUp}
             </div>
         );
