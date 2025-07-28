@@ -128,7 +128,7 @@ async function runAllBenchmarks() {
 function writeBenchmarkResults() {
     //write results to file
     //make data into a csv
-    let csv = "prevSize,newSize,benchmarkTime,file,pset,algoVer\n";
+    let csv = "\"Problem Size\",\"Reduced Size\",\"Benchmark Time (ms)\",file,pset,algoVer\n";
     for (const row of data) {
         csv += `${row.prevSize},${row.newSize},${row.benchmarkTime},${row.file},${row.pset},${row.algoVer}\n`;
     }

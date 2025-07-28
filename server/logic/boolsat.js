@@ -264,6 +264,14 @@ function optimizeCNF(clauses) {
             return [[]];
         }
 
+        //Remove everything solved from the implication cycle
+        if (newClause.length === 1) {
+            causedLiterals.delete(newClause[0]);
+            causedLiterals.delete(-newClause[0]);
+            causingLiterals.delete(newClause[0]);
+            causingLiterals.delete(-newClause[0]);
+        }
+
         if (newClause.length === 2) {
             let lit1 = newClause[0];
             let lit2 = newClause[1];
@@ -436,7 +444,9 @@ function optimizeCNF(clauses) {
             }
         }
         if (toAdd.length === 0) {
+            console.log("Running SVC ~", causingLiterals.difference(causedLiterals).size, "");
             let count = 0;
+            const startTime = Date.now();
             for (const literal of causingLiterals) {
                 if (causedLiterals.has(literal)) {
                     continue;
@@ -445,17 +455,18 @@ function optimizeCNF(clauses) {
                     //If it only relates to a unit clause, its not a useful conflict
                     continue;
                 }
+                if(count === 0){
+                    console.log("First iteration runtime", (Date.now() - startTime), "ms");
+                }
                 count++;
+                let reducedClauses = reduceCNF([[literal]], newClauses);
+                if (reducedClauses.length === 1 && getSizeCNF(reducedClauses) === 1) {
+                    toAdd.push([-literal]);
+                }
                 //console.log(reduceCNF([literal], clauses).length)
             }
-            console.log(
-                "checking ",
-                count,
-                "/",
-                causingLiterals.difference(causedLiterals).size,
-                "/",
-                causingLiterals.size
-            );
+            count = Math.max(count, 1);
+            console.log("ran", count, ", avg runtime", (Date.now() - startTime) / count, "ms");
         }
     }
     //remove duplicates & sort
