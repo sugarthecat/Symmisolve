@@ -455,9 +455,6 @@ function optimizeCNF(clauses) {
                     //If it only relates to a unit clause, its not a useful conflict
                     continue;
                 }
-                if(count === 0){
-                    console.log("First iteration runtime", (Date.now() - startTime), "ms");
-                }
                 count++;
                 let reducedClauses = reduceCNF([[literal]], newClauses);
                 if (reducedClauses.length === 1 && getSizeCNF(reducedClauses) === 1) {
