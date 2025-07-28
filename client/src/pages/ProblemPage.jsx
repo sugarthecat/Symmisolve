@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { makeDeleteRequest, makeGetRequest } from "../logic/requestTemplates";
-import { getSizeCNF } from "../logic/boolsat";
 import ConfirmWindow from "../components/ConfirmWindow";
 function ProblemPage() {
     const navigate = useNavigate();
@@ -100,21 +99,23 @@ function ProblemPage() {
                         {downloadButton}
                     </>
                 )}
-                <button
-                    onClick={() => setPopUp(
-                        <ConfirmWindow
-                            deleteSelf={() => {
-                                setPopUp(<></>);
-                            }}
-                            action={
-                                deleteProblem
-                            }
-                            message={"Permanently delete this problem?"}
-                        />
-                    )}
-                >
-                    Delete Problem
-                </button>
+                {isAdmin &&
+                    <button
+                        onClick={() => setPopUp(
+                            <ConfirmWindow
+                                deleteSelf={() => {
+                                    setPopUp(<></>);
+                                }}
+                                action={
+                                    deleteProblem
+                                }
+                                message={"Permanently delete this problem?"}
+                            />
+                        )}
+                    >
+                        Delete Problem
+                    </button>
+                }
                 {popUp}
             </div>
         );
