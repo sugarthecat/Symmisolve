@@ -425,6 +425,9 @@ function optimizeCNF(clauses) {
                 }
             }
         }
+        if(toAdd.length === 0){
+
+        }
     }
     //remove duplicates & sort
     newClauses = sortClauses(newClauses);
@@ -449,7 +452,66 @@ function optimizeCNF(clauses) {
  * @returns A symmetry of the formula, or null if no symmetry is found.
  */
 function findSymmetry(clauses) {
-    //TODO: add symmetry finding algorithm
+    let variables = new Map();
+    let maxClauseLength = 0;
+    for (const clause of clauses) {
+        maxClauseLength = Math.max(clause.length, maxClauseLength);
+        for (const literal of clause) {
+            if (!variables.has(Math.abs(literal))) {
+                variables.set(Math.abs(literal), []);
+            }
+        }
+    }
+    //We map the occurrences of each variable to (number of occurrences in clauses of size N = position 2N (+1 if negated))
+    let defaultArray = [];
+    for (let i = 0; i < maxClauseLength; i++) {
+        defaultArray.push(0);
+        defaultArray.push(0);
+    }
+    for (const variable of variables.keys()) {
+        variables.set(variable, defaultArray.slice());
+    }
+    for (const clause of clauses) {
+        for (const literal of clause) {
+            const abslit = Math.abs(literal);
+            variables.get(abslit)[clause.length * 2 + (abslit === literal ? 1 : 0)]++;
+        }
+    }
+    let relstrings = new Map(); // a mapping of relation keys
+    for (const variable of variables.keys()) {
+        relstrings.set(variable, JSON.stringify(variables.get(variable)));
+    }
+    const checkedSwaps = new Set();
+    for (const clause of clauses) {
+        for (let i = 0; i < clause.length; i++) {
+            const var1 = clause[i];
+            for (let j = i + 1; j < clause.length; j++) {
+                const var2 = clause[j];
+                //remove non-same-positivity
+                if ((var1 < 0 && var2 > 0) || (var1 > 0 && var2 < 0)) {
+                    continue;
+                }
+                const absvar1 = Math.abs(var1);
+                const absvar2 = Math.abs(var2);
+                if (relstrings.get(absvar1) !== relstrings.get(absvar2)) {
+                    continue;
+                }
+                const symmetry = [[absvar1, absvar2]];
+
+                if (checkedSwaps.has(JSON.stringify(symmetry))) {
+                    //already checked
+                    continue;
+                }
+                const validSymmetry = validateSymmetry(clauses, symmetry);
+                if (validSymmetry) {
+                    return symmetry;
+                } else {
+                    checkedSwaps.add(JSON.stringify(symmetry));
+                }
+            }
+        }
+    }
+    return null;
 }
 
 /**
