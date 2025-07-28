@@ -9,8 +9,8 @@ function validateCNF(formulaText) {
     let numvars = -1;
     let numclauses = -1;
     for (let line of lines) {
-        while(line.includes("  ")){
-        line = line.replaceAll("  ", " ");
+        while (line.includes("  ")) {
+            line = line.replaceAll("  ", " ");
         }
         if (line.startsWith("c") || line.length < 2) {
             //skip comment lines AND empty lines
@@ -93,9 +93,8 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
     let newClauses = [];
     let relatingToLiteral = {};
     //set up relatingToLiteral, contains all clauses relating to each literal
-    for (let clause of clauses.concat(alreadyReduced)) {
+    for (let clause of clauses) {
         clause = formatClause(clause);
-        let skip = false;
         if (clause === null) {
             continue;
         }
@@ -104,19 +103,18 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
             if (!(absLiteral in relatingToLiteral)) {
                 relatingToLiteral[absLiteral] = [];
             }
-            let hasDuplicate = false;
-            for (const relatingClause of relatingToLiteral[absLiteral]) {
-                if (isEqual(relatingClause, clause)) {
-                    hasDuplicate = true;
-                }
-            }
-            if (hasDuplicate) {
-                skip = true;
-            }
         }
-        if (!skip) {
-            toAdd.push(clause);
+        toAdd.push(clause);
+    }
+    for (let clause of alreadyReduced) {
+        for (const literal of clause) {
+            const absLiteral = Math.abs(literal);
+            if (!(absLiteral in relatingToLiteral)) {
+                relatingToLiteral[absLiteral] = [];
+            }
+            relatingToLiteral[absLiteral].push(clause);
         }
+        toAdd.push(clause);
     }
     let toRemove = new Set();
     let toCompare = justCompare.slice();
@@ -221,6 +219,9 @@ function optimizeCNF(clauses) {
     let newClauses = [];
     let relatingToLiteral = {};
     let mappings = {}; //used as a dictionary
+    let implications = new Map();
+    let causedLiterals = new Set();
+    let causingLiterals = new Set();
     //set up relatingToLiteral, contains all clauses relating to each literal
     for (let clause of clauses) {
         clause = formatClause(clause);
@@ -261,6 +262,15 @@ function optimizeCNF(clauses) {
         if (newClause.length === 0) {
             //if we have the empty clause, we can stop
             return [[]];
+        }
+
+        if (newClause.length === 2) {
+            let lit1 = newClause[0];
+            let lit2 = newClause[1];
+            causedLiterals.add(lit1);
+            causedLiterals.add(lit2);
+            causingLiterals.add(-lit1);
+            causingLiterals.add(-lit2);
         }
 
         for (const literal of newClause) {
@@ -361,7 +371,7 @@ function optimizeCNF(clauses) {
             let literalCount = {};
             while (newClauses.length > 0) {
                 const writtenClause = newClauses.pop();
-                if(toRemove.has(writtenClause)){
+                if (toRemove.has(writtenClause)) {
                     continue;
                 }
                 //console.log(newClauses.length, writtenClause);
@@ -407,15 +417,15 @@ function optimizeCNF(clauses) {
             }
             newClauses = unmappedClauses;
         }
-        if(toAdd.length === 0){
+        if (toAdd.length === 0) {
             //Check for literals that can be set positive or negative
 
             let allLiterals = new Set();
-            for(const clause of newClauses){
-                if(clause.length === 1){
+            for (const clause of newClauses) {
+                if (clause.length === 1) {
                     continue;
                 }
-                for(const literal of clause){
+                for (const literal of clause) {
                     allLiterals.add(literal);
                 }
             }
@@ -425,8 +435,27 @@ function optimizeCNF(clauses) {
                 }
             }
         }
-        if(toAdd.length === 0){
-
+        if (toAdd.length === 0) {
+            let count = 0;
+            for (const literal of causingLiterals) {
+                if (causedLiterals.has(literal)) {
+                    continue;
+                }
+                if (relatingToLiteral[Math.abs(literal)].length === 1) {
+                    //If it only relates to a unit clause, its not a useful conflict
+                    continue;
+                }
+                count++;
+                //console.log(reduceCNF([literal], clauses).length)
+            }
+            console.log(
+                "checking ",
+                count,
+                "/",
+                causingLiterals.difference(causedLiterals).size,
+                "/",
+                causingLiterals.size
+            );
         }
     }
     //remove duplicates & sort
