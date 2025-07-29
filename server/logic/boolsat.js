@@ -115,7 +115,6 @@ function CheckFullReduction(clauses, alreadyReduced = []) {
             relatingToLiteral[absLiteral].push(clause);
         }
     }
-    let time = Date.now();
     //every iteration moves everything from oldClauses to newClauses
     //since the relating to literal structure is updated, but the newClauses array is not
     while (toAdd.length > 0) {
@@ -325,7 +324,6 @@ function optimizeCNF(clauses) {
     let newClauses = [];
     let relatingToLiteral = {};
     let mappings = {}; //used as a dictionary
-    let implications = new Map();
     let causedLiterals = new Set();
     let causingLiterals = new Set();
     //set up relatingToLiteral, contains all clauses relating to each literal
@@ -849,7 +847,6 @@ function sortClauses(clauses) {
     function compare(clause1, clause2) {
         //literal by literal, compare the clauses lexically
         let swap = false;
-        let reachedEnd = true;
         for (let j = 0; j < clause1.length; j++) {
             if (
                 Math.abs(clause1[j]) > Math.abs(clause2[j]) ||
