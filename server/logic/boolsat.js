@@ -1,4 +1,4 @@
-const CURR_ALGO_VER = 5;
+const CURR_ALGO_VER = 6;
 /**
  * Validates the formatting of a CNF formula
  * @param {String} formulaText
@@ -84,6 +84,112 @@ function parseCNF(formulaText) {
 }
 
 /**
+ * Checks if a formula reduces to 0 when certain clauses are added
+ * @param {*} clauses
+ * @returns
+ */
+function CheckFullReduction(clauses, alreadyReduced = []) {
+    let toAdd = [];
+    let toAddUnit = [];
+    let relatingToLiteral = {};
+    //set up relatingToLiteral, contains all clauses relating to each literal
+    for (let clause of clauses) {
+        clause = formatClause(clause);
+        if (clause === null) {
+            continue;
+        }
+        for (const literal of clause) {
+            const absLiteral = Math.abs(literal);
+            if (!(absLiteral in relatingToLiteral)) {
+                relatingToLiteral[absLiteral] = [];
+            }
+        }
+        toAdd.push(clause);
+    }
+    for (let clause of alreadyReduced) {
+        for (const literal of clause) {
+            const absLiteral = Math.abs(literal);
+            if (!(absLiteral in relatingToLiteral)) {
+                relatingToLiteral[absLiteral] = [];
+            }
+            relatingToLiteral[absLiteral].push(clause);
+        }
+    }
+    let time = Date.now();
+    //every iteration moves everything from oldClauses to newClauses
+    //since the relating to literal structure is updated, but the newClauses array is not
+    while (toAdd.length > 0) {
+        let add = true;
+        let newClause;
+        if (toAddUnit.length > 0) {
+            newClause = toAddUnit.pop();
+        } else {
+            newClause = toAdd.pop();
+        }
+        if (newClause.length === 0) {
+            //if we have the empty clause, we can stop
+            return true;
+        }
+
+        for (const literal of newClause) {
+            const absLiteral = Math.abs(literal);
+            const relatingClauses = relatingToLiteral[absLiteral];
+            //console.log("relating clauses", relatingClauses.length);
+            for (let i = 0; i < relatingClauses.length; i++) {
+                let relatingClause = relatingClauses[i];
+                if (isSubclause(relatingClause, newClause)) {
+                    //relating clause is a subclause of new clause
+                    //console.log(relatingClause,newClause)
+                    relatingClauses.splice(i, 1);
+                    i--;
+                    add = true;
+                    continue;
+                }
+                if (isSubclause(newClause, relatingClause)) {
+                    //new clause is a subclause of related clause
+                    add = false;
+                    break;
+                }
+                //nice resolutions
+                let resolvedClause = resolve(newClause, relatingClause);
+                if (resolvedClause !== null) {
+                    //if the two clauses resolve to something meaningful, see if it can be used for an immediate size reduction
+                    if (isSubclause(relatingClause, resolvedClause)) {
+                        //if the new clause is a subclause of the written clause the written clause is redundant
+                        //doesn't mean the new clause can replace it, though, so add it to the stack
+                        if (resolvedClause.length === 1) {
+                            toAddUnit.push(resolvedClause);
+                        } else {
+                            toAdd.push(resolvedClause);
+                        }
+                        relatingClauses.splice(i, 1);
+                        i--;
+                        continue;
+                    } else if (isSubclause(newClause, resolvedClause)) {
+                        //if the new clause is a subclause of the current clause, the current clause is redundant
+                        //it does mean the new clause can replace it, but we have to check relations with all other clauses now
+                        if (resolvedClause.length === 1) {
+                            toAddUnit.push(resolvedClause);
+                        } else {
+                            toAdd.push(resolvedClause);
+                        }
+                        add = false;
+                        break;
+                    }
+                }
+            }
+            if (add) {
+                relatingClauses.push(newClause);
+            } else {
+                break;
+            }
+        }
+    }
+    //console.log("full", Date.now() - time);
+    return false;
+}
+
+/**
  * Performs all self-subsuming resolution steps, removes tautologies, and sorts the clauses
  * @param {*} clauses
  * @returns
@@ -114,7 +220,7 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
             }
             relatingToLiteral[absLiteral].push(clause);
         }
-        toAdd.push(clause);
+        newClauses.push(clause);
     }
     let toRemove = new Set();
     let toCompare = justCompare.slice();
@@ -444,9 +550,9 @@ function optimizeCNF(clauses) {
             }
         }
         if (toAdd.length === 0) {
-            console.log("Running SVC ~", causingLiterals.difference(causedLiterals).size, "");
-            let count = 0;
-            const startTime = Date.now();
+            //estimated size / (time / coun)t ~ 1100
+            //so size * count ~ 1100 * time
+            //so size * count / 1100 ~ time
             for (const literal of causingLiterals) {
                 if (causedLiterals.has(literal)) {
                     continue;
@@ -455,15 +561,11 @@ function optimizeCNF(clauses) {
                     //If it only relates to a unit clause, its not a useful conflict
                     continue;
                 }
-                count++;
-                let reducedClauses = reduceCNF([[literal]], newClauses);
-                if (reducedClauses.length === 1 && getSizeCNF(reducedClauses) === 1) {
+                if (CheckFullReduction([[literal]], newClauses)) {
+                    //if the reduction is full, its a conflict
                     toAdd.push([-literal]);
                 }
-                //console.log(reduceCNF([literal], clauses).length)
             }
-            count = Math.max(count, 1);
-            console.log("ran", count, ", avg runtime", (Date.now() - startTime) / count, "ms");
         }
     }
     //remove duplicates & sort
