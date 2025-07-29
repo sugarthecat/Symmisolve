@@ -91,6 +91,7 @@ function parseCNF(formulaText) {
 function CheckFullReduction(clauses, alreadyReduced = []) {
     let toAdd = [];
     let toAddUnit = [];
+    const addedUnits = [];
     let relatingToLiteral = {};
     //set up relatingToLiteral, contains all clauses relating to each literal
     for (let clause of clauses) {
@@ -122,6 +123,7 @@ function CheckFullReduction(clauses, alreadyReduced = []) {
         let newClause;
         if (toAddUnit.length > 0) {
             newClause = toAddUnit.pop();
+            addedUnits.push(newClause);
         } else {
             newClause = toAdd.pop();
         }
@@ -185,7 +187,7 @@ function CheckFullReduction(clauses, alreadyReduced = []) {
         }
     }
     //console.log("full", Date.now() - time);
-    return false;
+    return addedUnits;
 }
 
 /**
@@ -559,9 +561,17 @@ function optimizeCNF(clauses) {
                     //If it only relates to a unit clause, its not a useful conflict
                     continue;
                 }
-                if (CheckFullReduction([[literal]], newClauses)) {
+                const reduced = CheckFullReduction([[literal]], newClauses);
+                if (reduced === true) {
                     //if the reduction is full, its a conflict
                     toAdd.push([-literal]);
+                } else {
+                    for (unitClause of reduced) {
+                        if (unitClause[0] === literal) {
+                            continue;
+                        }
+                        causedLiterals.add(unitClause[0]);
+                    }
                 }
             }
         }
