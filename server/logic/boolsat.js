@@ -235,6 +235,10 @@ function optimizeCNF(clauses) {
             if (!(absLiteral in relatingToLiteral)) {
                 relatingToLiteral[absLiteral] = [];
             }
+            if (!(literal in implications)) {
+                implications[literal] = [];
+                implications[-literal] = [];
+            }
             let hasDuplicate = false;
             for (const relatingClause of relatingToLiteral[absLiteral]) {
                 if (isEqual(relatingClause, clause)) {
@@ -271,6 +275,8 @@ function optimizeCNF(clauses) {
             causedLiterals.delete(-newClause[0]);
             causingLiterals.delete(newClause[0]);
             causingLiterals.delete(-newClause[0]);
+            delete implications[-newClause[0]];
+            delete implications[newClause[0]];
         }
 
         if (newClause.length === 2) {
@@ -280,6 +286,10 @@ function optimizeCNF(clauses) {
             causedLiterals.add(lit2);
             causingLiterals.add(-lit1);
             causingLiterals.add(-lit2);
+            if (-lit1 in implications && -lit2 in implications) {
+                implications[-lit1].push(lit2);
+                implications[-lit2].push(lit1);
+            }
         }
 
         for (const literal of newClause) {
@@ -444,7 +454,54 @@ function optimizeCNF(clauses) {
                 }
             }
         }
-
+        if (toAdd.length === 0) {
+            const alreadyImpliedLiterals = new Set();
+            for (const startLiteral of Object.keys(implications)) {
+                const literalsToAdd = [startLiteral];
+                const implied = new Set();
+                if(alreadyImpliedLiterals.has(startLiteral)){
+                    continue;
+                }
+                while (literalsToAdd.length > 0) {
+                    const currLiteral = literalsToAdd.pop();
+                    alreadyImpliedLiterals.add(currLiteral)
+                    if (implied.has(currLiteral)) {
+                        continue;
+                    }
+                    if (relatingToLiteral[Math.abs(currLiteral)].length === 1) {
+                        //console.log(relatingToLiteral[Math.abs(currLiteral)])
+                        continue;
+                    }
+                    if (!(currLiteral in implications)) {
+                        continue;
+                    }
+                    for (const relatedLiteral of implications[currLiteral]) {
+                        if(relatedLiteral === startLiteral){
+                            console.log(currLiteral,"=",startLiteral)
+                            console.log(getFinalLiteralMapping(currLiteral),"=",getFinalLiteralMapping(startLiteral))
+                        }
+                        literalsToAdd.push(relatedLiteral);
+                    }
+                    if (implied.has(-currLiteral)) {
+                        /*console.log(
+                            "Found Contradiction",
+                            currLiteral,
+                            "implies",
+                            currLiteral,
+                            "and",
+                            -currLiteral
+                        );*/
+                        toAdd.push([-startLiteral]);
+                        break;
+                    }
+                    implied.add(currLiteral);
+                }
+                if (implied.size < 2) {
+                    continue;
+                }
+                //console.log(startLiteral, "implies", implied.size, "vars");
+            }
+        }
     }
     //remove duplicates & sort
     newClauses = sortClauses(newClauses);
