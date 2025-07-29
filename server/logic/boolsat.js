@@ -1,4 +1,4 @@
-const CURR_ALGO_VER = 6;
+const CURR_ALGO_VER = 7;
 /**
  * Validates the formatting of a CNF formula
  * @param {String} formulaText
