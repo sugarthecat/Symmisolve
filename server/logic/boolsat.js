@@ -326,6 +326,7 @@ function optimizeCNF(clauses) {
     let newClauses = [];
     let relatingToLiteral = {};
     let mappings = {}; //used as a dictionary
+    let implications = {};
     let causedLiterals = new Set();
     let causingLiterals = new Set();
     //set up relatingToLiteral, contains all clauses relating to each literal
@@ -337,6 +338,7 @@ function optimizeCNF(clauses) {
         }
         for (const literal of clause) {
             const absLiteral = Math.abs(literal);
+
             if (!(absLiteral in relatingToLiteral)) {
                 relatingToLiteral[absLiteral] = [];
             }
@@ -549,32 +551,7 @@ function optimizeCNF(clauses) {
                 }
             }
         }
-        if (toAdd.length === 0) {
-            //estimated size / (time / coun)t ~ 1100
-            //so size * count ~ 1100 * time
-            //so size * count / 1100 ~ time
-            for (const literal of causingLiterals) {
-                if (causedLiterals.has(literal)) {
-                    continue;
-                }
-                if (relatingToLiteral[Math.abs(literal)].length === 1) {
-                    //If it only relates to a unit clause, its not a useful conflict
-                    continue;
-                }
-                const reduced = CheckFullReduction([[literal]], newClauses);
-                if (reduced === true) {
-                    //if the reduction is full, its a conflict
-                    toAdd.push([-literal]);
-                } else {
-                    for (unitClause of reduced) {
-                        if (unitClause[0] === literal) {
-                            continue;
-                        }
-                        causedLiterals.add(unitClause[0]);
-                    }
-                }
-            }
-        }
+
     }
     //remove duplicates & sort
     newClauses = sortClauses(newClauses);
