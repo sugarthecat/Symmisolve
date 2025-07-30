@@ -408,17 +408,11 @@ function optimizeCNF(clauses) {
                     getFinalLiteralMapping(writtenClause[1]) !== writtenClause[1]
                 ) {
                     let newClause = [getFinalLiteralMapping(writtenClause[0]), writtenClause[1]];
+                    //console.log(newClause);
                     toAdd.push(newClause);
                     continue;
                 }
 
-                if (
-                    writtenClause.length === 2 &&
-                    getFinalLiteralMapping(writtenClause[1]) === -writtenClause[0]
-                ) {
-                    unmappedClauses.push(writtenClause);
-                    continue;
-                }
                 let newClause = [];
                 let changed = false;
                 for (const prevLiteral of writtenClause) {
@@ -434,11 +428,9 @@ function optimizeCNF(clauses) {
                         literalCount[literal] = 1;
                     }
                 }
-                if (changed) {
+                if (changed && formatClause(newClause) !== null) {
                     newClause = formatClause(newClause);
-                    if (newClause !== null) {
-                        toAdd.push(newClause);
-                    }
+                    toAdd.push(newClause);
                 } else {
                     unmappedClauses.push(writtenClause);
                 }
@@ -449,17 +441,34 @@ function optimizeCNF(clauses) {
             //Check for literals that can be set positive or negative
 
             let allLiterals = new Set();
+            let toCheck = new Set();
+            let assumed = new Set();
             for (const clause of newClauses) {
                 if (clause.length === 1) {
+                    allLiterals.add(clause[0]);
                     continue;
                 }
+                if (clause.length === 2 && clause[0] === -getFinalLiteralMapping(clause[1])) {
+                    toCheck.add(clause[0]);
+                    toCheck.add(-clause[0]);
+                    allLiterals.add(clause[1]);
+                    allLiterals.add(-clause[1]);
+                    continue;
+                    //check the origin, don't add the ending parts
+                }
                 for (const literal of clause) {
+                    if (literal === getFinalLiteralMapping(literal)) {
+                        //if its a part of a mapping, don't check it
+                        toCheck.add(literal);
+                    }
                     allLiterals.add(literal);
                 }
             }
-            for (const literal of allLiterals) {
-                if (!allLiterals.has(-literal)) {
+            for (const literal of toCheck) {
+                if (!allLiterals.has(-literal) && !assumed.has(-literal)) {
+                    assumed.add(literal);
                     toAdd.push([literal]);
+                    //console.log(literal)
                 }
             }
         }
@@ -485,34 +494,48 @@ function optimizeCNF(clauses) {
                         continue;
                     }
                     for (const relatedLiteral of implications[currLiteral]) {
-                        if (relatedLiteral === startLiteral) {
-                            console.log(currLiteral, "=", startLiteral);
-                            console.log(
-                                getFinalLiteralMapping(currLiteral),
-                                "=",
-                                getFinalLiteralMapping(startLiteral)
-                            );
-                        }
+                        //TODO: Add cyclical equality checks
                         literalsToAdd.push(relatedLiteral);
                     }
                     if (implied.has(-currLiteral)) {
-                        /*console.log(
-                            "Found Contradiction",
-                            currLiteral,
-                            "implies",
-                            currLiteral,
-                            "and",
-                            -currLiteral
-                        );*/
                         toAdd.push([-startLiteral]);
+                        //console.log("Found Contradiction", startLiteral);
                         break;
                     }
                     implied.add(currLiteral);
                 }
-                if (implied.size < 2) {
-                    continue;
+                //check for a valid partial solve with the implied literals
+                implied.add(parseInt(startLiteral))
+                let validPartialSolve = true;
+                for (const variable of implied) {
+                    if(typeof variable !== "number"){
+                        continue;
+                    }
+                    for (const clause of relatingToLiteral[Math.abs(variable)]) {
+                        let satisfied = false;
+                        let altered = false;
+                        for (const literal of clause) {
+                            if (implied.has(literal)) {
+                                satisfied = true;
+                            }
+                            if (implied.has(-literal)) {
+                                altered = true;
+                            }
+                        }
+                        if (altered && !satisfied) {
+                            validPartialSolve = false;
+                            break;
+                        }
+                    }
+                    if (!validPartialSolve) {
+                        break;
+                    }
                 }
-                //console.log(startLiteral, "implies", implied.size, "vars");
+                if (validPartialSolve) {
+                    toAdd.push([parseInt(startLiteral)]);
+                    console.log("Partial solve of ",implied.size, " variables");
+                    break;
+                }
             }
         }
     }
@@ -605,7 +628,6 @@ function findSymmetry(clauses) {
  * Verifies a symmetry of a CNF Formula is valid.
  * Symmetries are to be given in a format of cyclic mapping:
  * For example, [[2,3]] is a symmetry that maps 2->3, 3->2 and everthing else to itself.
- * TODO: implement negative symmetries.
  * precondition: clauses are sorted and formatted
  * @param {List} clauses
  * @param {List} symmetry
