@@ -399,6 +399,7 @@ function optimizeCNF(clauses) {
                     continue;
                 }
 
+                //remap to point to the first lexical literal
                 if (
                     writtenClause.length === 2 &&
                     writtenClause[0] in mappings &&
@@ -408,6 +409,14 @@ function optimizeCNF(clauses) {
                 ) {
                     let newClause = [getFinalLiteralMapping(writtenClause[0]), writtenClause[1]];
                     toAdd.push(newClause);
+                    continue;
+                }
+
+                if (
+                    writtenClause.length === 2 &&
+                    getFinalLiteralMapping(writtenClause[1]) === -writtenClause[0]
+                ) {
+                    unmappedClauses.push(writtenClause);
                     continue;
                 }
                 let newClause = [];
@@ -459,12 +468,12 @@ function optimizeCNF(clauses) {
             for (const startLiteral of Object.keys(implications)) {
                 const literalsToAdd = [startLiteral];
                 const implied = new Set();
-                if(alreadyImpliedLiterals.has(startLiteral)){
+                if (alreadyImpliedLiterals.has(startLiteral)) {
                     continue;
                 }
                 while (literalsToAdd.length > 0) {
                     const currLiteral = literalsToAdd.pop();
-                    alreadyImpliedLiterals.add(currLiteral)
+                    alreadyImpliedLiterals.add(currLiteral);
                     if (implied.has(currLiteral)) {
                         continue;
                     }
@@ -476,9 +485,13 @@ function optimizeCNF(clauses) {
                         continue;
                     }
                     for (const relatedLiteral of implications[currLiteral]) {
-                        if(relatedLiteral === startLiteral){
-                            console.log(currLiteral,"=",startLiteral)
-                            console.log(getFinalLiteralMapping(currLiteral),"=",getFinalLiteralMapping(startLiteral))
+                        if (relatedLiteral === startLiteral) {
+                            console.log(currLiteral, "=", startLiteral);
+                            console.log(
+                                getFinalLiteralMapping(currLiteral),
+                                "=",
+                                getFinalLiteralMapping(startLiteral)
+                            );
                         }
                         literalsToAdd.push(relatedLiteral);
                     }
