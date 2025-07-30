@@ -137,13 +137,11 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
         for (const literal of newClause) {
             const absLiteral = Math.abs(literal);
             const relatingClauses = relatingToLiteral[absLiteral];
-            //console.log("relating clauses", relatingClauses.length);
             for (let i = 0; i < relatingClauses.length; i++) {
                 let relatingClause = relatingClauses[i];
                 if (isSubclause(relatingClause, newClause)) {
                     //relating clause is a subclause of new clause
                     toRemove.add(relatingClause);
-                    //console.log(relatingClause,newClause)
                     relatingClauses.splice(i, 1);
                     i--;
                     add = true;
@@ -295,7 +293,6 @@ function optimizeCNF(clauses) {
         for (const literal of newClause) {
             const absLiteral = Math.abs(literal);
             const relatingClauses = relatingToLiteral[absLiteral];
-            //console.log("relating clauses", relatingClauses.length);
             for (let i = 0; i < relatingClauses.length; i++) {
                 let relatingClause = relatingClauses[i];
                 if (toRemove.has(relatingClause)) {
@@ -306,7 +303,6 @@ function optimizeCNF(clauses) {
                 if (isSubclause(relatingClause, newClause)) {
                     //relating clause is a subclause of new clause
                     toRemove.add(relatingClause);
-                    //console.log(relatingClause,newClause)
                     relatingClauses.splice(i, 1);
                     i--;
                     add = true;
@@ -393,7 +389,6 @@ function optimizeCNF(clauses) {
                 if (toRemove.has(writtenClause)) {
                     continue;
                 }
-                //console.log(newClauses.length, writtenClause);
                 if (writtenClause.length === 1) {
                     unmappedClauses.push(writtenClause);
                     continue;
@@ -408,7 +403,6 @@ function optimizeCNF(clauses) {
                     getFinalLiteralMapping(writtenClause[1]) !== writtenClause[1]
                 ) {
                     let newClause = [getFinalLiteralMapping(writtenClause[0]), writtenClause[1]];
-                    //console.log(newClause);
                     toAdd.push(newClause);
                     continue;
                 }
@@ -468,7 +462,6 @@ function optimizeCNF(clauses) {
                 if (!allLiterals.has(-literal) && !assumed.has(-literal)) {
                     assumed.add(literal);
                     toAdd.push([literal]);
-                    //console.log(literal)
                 }
             }
         }
@@ -487,7 +480,6 @@ function optimizeCNF(clauses) {
                         continue;
                     }
                     if (relatingToLiteral[Math.abs(currLiteral)].length === 1) {
-                        //console.log(relatingToLiteral[Math.abs(currLiteral)])
                         continue;
                     }
                     if (!(currLiteral in implications)) {
@@ -499,7 +491,6 @@ function optimizeCNF(clauses) {
                     }
                     if (implied.has(-currLiteral)) {
                         toAdd.push([-startLiteral]);
-                        //console.log("Found Contradiction", startLiteral);
                         break;
                     }
                     implied.add(currLiteral);
@@ -533,7 +524,6 @@ function optimizeCNF(clauses) {
                 }
                 if (validPartialSolve) {
                     toAdd.push([parseInt(startLiteral)]);
-                    console.log("Partial solve of ",implied.size, " variables");
                     break;
                 }
             }
