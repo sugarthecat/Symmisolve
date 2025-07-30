@@ -1,4 +1,4 @@
-const CURR_ALGO_VER = 6;
+const CURR_ALGO_VER = 7;
 /**
  * Validates the formatting of a CNF formula
  * @param {String} formulaText
@@ -84,113 +84,6 @@ function parseCNF(formulaText) {
 }
 
 /**
- * Checks if a formula reduces to 0 when certain clauses are added
- * @param {*} clauses
- * @returns
- */
-function CheckFullReduction(clauses, alreadyReduced = []) {
-    let toAdd = [];
-    let toAddUnit = [];
-    const addedUnits = [];
-    let relatingToLiteral = {};
-    //set up relatingToLiteral, contains all clauses relating to each literal
-    for (let clause of clauses) {
-        clause = formatClause(clause);
-        if (clause === null) {
-            continue;
-        }
-        for (const literal of clause) {
-            const absLiteral = Math.abs(literal);
-            if (!(absLiteral in relatingToLiteral)) {
-                relatingToLiteral[absLiteral] = [];
-            }
-        }
-        toAdd.push(clause);
-    }
-    for (let clause of alreadyReduced) {
-        for (const literal of clause) {
-            const absLiteral = Math.abs(literal);
-            if (!(absLiteral in relatingToLiteral)) {
-                relatingToLiteral[absLiteral] = [];
-            }
-            relatingToLiteral[absLiteral].push(clause);
-        }
-    }
-    //every iteration moves everything from oldClauses to newClauses
-    //since the relating to literal structure is updated, but the newClauses array is not
-    while (toAdd.length > 0) {
-        let add = true;
-        let newClause;
-        if (toAddUnit.length > 0) {
-            newClause = toAddUnit.pop();
-            addedUnits.push(newClause);
-        } else {
-            newClause = toAdd.pop();
-        }
-        if (newClause.length === 0) {
-            //if we have the empty clause, we can stop
-            return true;
-        }
-
-        for (const literal of newClause) {
-            const absLiteral = Math.abs(literal);
-            const relatingClauses = relatingToLiteral[absLiteral];
-            //console.log("relating clauses", relatingClauses.length);
-            for (let i = 0; i < relatingClauses.length; i++) {
-                let relatingClause = relatingClauses[i];
-                if (isSubclause(relatingClause, newClause)) {
-                    //relating clause is a subclause of new clause
-                    //console.log(relatingClause,newClause)
-                    relatingClauses.splice(i, 1);
-                    i--;
-                    add = true;
-                    continue;
-                }
-                if (isSubclause(newClause, relatingClause)) {
-                    //new clause is a subclause of related clause
-                    add = false;
-                    break;
-                }
-                //nice resolutions
-                let resolvedClause = resolve(newClause, relatingClause);
-                if (resolvedClause !== null) {
-                    //if the two clauses resolve to something meaningful, see if it can be used for an immediate size reduction
-                    if (isSubclause(relatingClause, resolvedClause)) {
-                        //if the new clause is a subclause of the written clause the written clause is redundant
-                        //doesn't mean the new clause can replace it, though, so add it to the stack
-                        if (resolvedClause.length === 1) {
-                            toAddUnit.push(resolvedClause);
-                        } else {
-                            toAdd.push(resolvedClause);
-                        }
-                        relatingClauses.splice(i, 1);
-                        i--;
-                        continue;
-                    } else if (isSubclause(newClause, resolvedClause)) {
-                        //if the new clause is a subclause of the current clause, the current clause is redundant
-                        //it does mean the new clause can replace it, but we have to check relations with all other clauses now
-                        if (resolvedClause.length === 1) {
-                            toAddUnit.push(resolvedClause);
-                        } else {
-                            toAdd.push(resolvedClause);
-                        }
-                        add = false;
-                        break;
-                    }
-                }
-            }
-            if (add) {
-                relatingClauses.push(newClause);
-            } else {
-                break;
-            }
-        }
-    }
-    //console.log("full", Date.now() - time);
-    return addedUnits;
-}
-
-/**
  * Performs all self-subsuming resolution steps, removes tautologies, and sorts the clauses
  * @param {*} clauses
  * @returns
@@ -244,13 +137,11 @@ function reduceCNF(clauses, alreadyReduced = [], justCompare = []) {
         for (const literal of newClause) {
             const absLiteral = Math.abs(literal);
             const relatingClauses = relatingToLiteral[absLiteral];
-            //console.log("relating clauses", relatingClauses.length);
             for (let i = 0; i < relatingClauses.length; i++) {
                 let relatingClause = relatingClauses[i];
                 if (isSubclause(relatingClause, newClause)) {
                     //relating clause is a subclause of new clause
                     toRemove.add(relatingClause);
-                    //console.log(relatingClause,newClause)
                     relatingClauses.splice(i, 1);
                     i--;
                     add = true;
@@ -326,6 +217,7 @@ function optimizeCNF(clauses) {
     let newClauses = [];
     let relatingToLiteral = {};
     let mappings = {}; //used as a dictionary
+    let implications = {};
     let causedLiterals = new Set();
     let causingLiterals = new Set();
     //set up relatingToLiteral, contains all clauses relating to each literal
@@ -337,8 +229,13 @@ function optimizeCNF(clauses) {
         }
         for (const literal of clause) {
             const absLiteral = Math.abs(literal);
+
             if (!(absLiteral in relatingToLiteral)) {
                 relatingToLiteral[absLiteral] = [];
+            }
+            if (!(literal in implications)) {
+                implications[literal] = [];
+                implications[-literal] = [];
             }
             let hasDuplicate = false;
             for (const relatingClause of relatingToLiteral[absLiteral]) {
@@ -376,6 +273,8 @@ function optimizeCNF(clauses) {
             causedLiterals.delete(-newClause[0]);
             causingLiterals.delete(newClause[0]);
             causingLiterals.delete(-newClause[0]);
+            delete implications[-newClause[0]];
+            delete implications[newClause[0]];
         }
 
         if (newClause.length === 2) {
@@ -385,12 +284,15 @@ function optimizeCNF(clauses) {
             causedLiterals.add(lit2);
             causingLiterals.add(-lit1);
             causingLiterals.add(-lit2);
+            if (-lit1 in implications && -lit2 in implications) {
+                implications[-lit1].push(lit2);
+                implications[-lit2].push(lit1);
+            }
         }
 
         for (const literal of newClause) {
             const absLiteral = Math.abs(literal);
             const relatingClauses = relatingToLiteral[absLiteral];
-            //console.log("relating clauses", relatingClauses.length);
             for (let i = 0; i < relatingClauses.length; i++) {
                 let relatingClause = relatingClauses[i];
                 if (toRemove.has(relatingClause)) {
@@ -401,7 +303,6 @@ function optimizeCNF(clauses) {
                 if (isSubclause(relatingClause, newClause)) {
                     //relating clause is a subclause of new clause
                     toRemove.add(relatingClause);
-                    //console.log(relatingClause,newClause)
                     relatingClauses.splice(i, 1);
                     i--;
                     add = true;
@@ -488,12 +389,12 @@ function optimizeCNF(clauses) {
                 if (toRemove.has(writtenClause)) {
                     continue;
                 }
-                //console.log(newClauses.length, writtenClause);
                 if (writtenClause.length === 1) {
                     unmappedClauses.push(writtenClause);
                     continue;
                 }
 
+                //remap to point to the first lexical literal
                 if (
                     writtenClause.length === 2 &&
                     writtenClause[0] in mappings &&
@@ -505,6 +406,7 @@ function optimizeCNF(clauses) {
                     toAdd.push(newClause);
                     continue;
                 }
+
                 let newClause = [];
                 let changed = false;
                 for (const prevLiteral of writtenClause) {
@@ -520,11 +422,9 @@ function optimizeCNF(clauses) {
                         literalCount[literal] = 1;
                     }
                 }
-                if (changed) {
+                if (changed && formatClause(newClause) !== null) {
                     newClause = formatClause(newClause);
-                    if (newClause !== null) {
-                        toAdd.push(newClause);
-                    }
+                    toAdd.push(newClause);
                 } else {
                     unmappedClauses.push(writtenClause);
                 }
@@ -535,43 +435,96 @@ function optimizeCNF(clauses) {
             //Check for literals that can be set positive or negative
 
             let allLiterals = new Set();
+            let toCheck = new Set();
+            let assumed = new Set();
             for (const clause of newClauses) {
                 if (clause.length === 1) {
+                    allLiterals.add(clause[0]);
                     continue;
                 }
+                if (clause.length === 2 && clause[0] === -getFinalLiteralMapping(clause[1])) {
+                    toCheck.add(clause[0]);
+                    toCheck.add(-clause[0]);
+                    allLiterals.add(clause[1]);
+                    allLiterals.add(-clause[1]);
+                    continue;
+                    //check the origin, don't add the ending parts
+                }
                 for (const literal of clause) {
+                    if (literal === getFinalLiteralMapping(literal)) {
+                        //if its a part of a mapping, don't check it
+                        toCheck.add(literal);
+                    }
                     allLiterals.add(literal);
                 }
             }
-            for (const literal of allLiterals) {
-                if (!allLiterals.has(-literal)) {
+            for (const literal of toCheck) {
+                if (!allLiterals.has(-literal) && !assumed.has(-literal)) {
+                    assumed.add(literal);
                     toAdd.push([literal]);
                 }
             }
         }
         if (toAdd.length === 0) {
-            //estimated size / (time / coun)t ~ 1100
-            //so size * count ~ 1100 * time
-            //so size * count / 1100 ~ time
-            for (const literal of causingLiterals) {
-                if (causedLiterals.has(literal)) {
+            const alreadyImpliedLiterals = new Set();
+            for (const startLiteral of Object.keys(implications)) {
+                const literalsToAdd = [startLiteral];
+                const implied = new Set();
+                if (alreadyImpliedLiterals.has(startLiteral)) {
                     continue;
                 }
-                if (relatingToLiteral[Math.abs(literal)].length === 1) {
-                    //If it only relates to a unit clause, its not a useful conflict
-                    continue;
-                }
-                const reduced = CheckFullReduction([[literal]], newClauses);
-                if (reduced === true) {
-                    //if the reduction is full, its a conflict
-                    toAdd.push([-literal]);
-                } else {
-                    for (unitClause of reduced) {
-                        if (unitClause[0] === literal) {
-                            continue;
-                        }
-                        causedLiterals.add(unitClause[0]);
+                while (literalsToAdd.length > 0) {
+                    const currLiteral = literalsToAdd.pop();
+                    alreadyImpliedLiterals.add(currLiteral);
+                    if (implied.has(currLiteral)) {
+                        continue;
                     }
+                    if (relatingToLiteral[Math.abs(currLiteral)].length === 1) {
+                        continue;
+                    }
+                    if (!(currLiteral in implications)) {
+                        continue;
+                    }
+                    for (const relatedLiteral of implications[currLiteral]) {
+                        //TODO: Add cyclical equality checks
+                        literalsToAdd.push(relatedLiteral);
+                    }
+                    if (implied.has(-currLiteral)) {
+                        toAdd.push([-startLiteral]);
+                        break;
+                    }
+                    implied.add(currLiteral);
+                }
+                //check for a valid partial solve with the implied literals
+                implied.add(parseInt(startLiteral))
+                let validPartialSolve = true;
+                for (const variable of implied) {
+                    if(typeof variable !== "number"){
+                        continue;
+                    }
+                    for (const clause of relatingToLiteral[Math.abs(variable)]) {
+                        let satisfied = false;
+                        let altered = false;
+                        for (const literal of clause) {
+                            if (implied.has(literal)) {
+                                satisfied = true;
+                            }
+                            if (implied.has(-literal)) {
+                                altered = true;
+                            }
+                        }
+                        if (altered && !satisfied) {
+                            validPartialSolve = false;
+                            break;
+                        }
+                    }
+                    if (!validPartialSolve) {
+                        break;
+                    }
+                }
+                if (validPartialSolve) {
+                    toAdd.push([parseInt(startLiteral)]);
+                    break;
                 }
             }
         }
@@ -665,7 +618,6 @@ function findSymmetry(clauses) {
  * Verifies a symmetry of a CNF Formula is valid.
  * Symmetries are to be given in a format of cyclic mapping:
  * For example, [[2,3]] is a symmetry that maps 2->3, 3->2 and everthing else to itself.
- * TODO: implement negative symmetries.
  * precondition: clauses are sorted and formatted
  * @param {List} clauses
  * @param {List} symmetry
